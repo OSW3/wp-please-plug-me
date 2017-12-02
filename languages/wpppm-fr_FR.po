@@ -41,6 +41,30 @@ msgstr "Le formulaire a été enregistré avec des erreurs."
 msgid "The form has been saved successfully."
 msgstr "Le formulaire a été enregistré avec succès."
 
+#: Field message : Invalide
+msgid "This field is not valid."
+msgstr "Ce champ n'est pas valide."
+
+#: Field message : Required
+msgid "This field is required."
+msgstr "Ce champ est requis."
+
+#: Field message : Email Syntax
+msgid "This field is not a valid email address."
+msgstr "Ce champ n'est pas une adresse e-mail valide."
+
+#: Field message : URL Syntax
+msgid "This field is not a valid URL."
+msgstr "Ce champ n'est pas une URL valide."
+
+#: Field message : File oversized
+msgid "File is over size."
+msgstr "Le fichier est trop grand."
+
+#: Field message : File nor allowed
+msgid "File type is not allowed."
+msgstr "Le type de fichier n'est pas autorisé."
+
 #: Custom Post Taxonomy : Categories
 msgid "Categories"
 msgstr "Catégories"

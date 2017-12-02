@@ -36,9 +36,14 @@ add_action( 'init', function(){
 if (!class_exists(PPM::getClassname()))
 {eval(sprintf('class %1$s extends PPM 
 {
+    // private static $initialized = false;
     public function start()
     {
-        $this->init();
+        // if (!self::$initialized ) 
+        // {
+        //     self::$initialized = true;
+            $this->init();
+        // }
     }
     public function activate()
     {

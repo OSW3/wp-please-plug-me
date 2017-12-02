@@ -80,7 +80,7 @@ if (!class_exists('PPM'))
             $this->setDescription();
 
             // echo "<pre>";
-            // print_r( $this->getConfig() );
+            // print_r( $this->getConfig()->Namespace );
             // echo "</pre>";
         }
         
@@ -110,6 +110,7 @@ if (!class_exists('PPM'))
         protected function init()
         {
             // -- Assets
+
             // Assets injections for front
             add_action('wp_print_styles', array($this, 'enqueue_front_styles'));
             add_action('wp_enqueue_scripts', array($this, 'enqueue_front_scripts'));
@@ -117,28 +118,10 @@ if (!class_exists('PPM'))
             add_action('admin_print_styles', array($this, 'enqueue_admin_styles'));
             add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
 
-            // -- Hooks & Shortcodes
-            if ($this->has_functions_file())
-            {
-                // Hooks injections
-                foreach ($this->getHooks() as $function => $event)
-                {
-                    if ( function_exists($function) )
-                    {
-                        $order = $event == 'init' ? 1 : 10;
-                        add_action($event, $function, $order);
-                    }
-                }
-                
-                // Shortcodes injections
-                foreach ($this->getShortcodes() as $shortcode => $function)
-                {
-                    if ( function_exists($function) )
-                    {
-                        add_shortcode($shortcode, $function);
-                    }
-                }
-            }
+
+            // -- Functions, Hooks & Shortcodes
+
+            $this->load_functions();
 
             // -- Init registers
 
@@ -267,6 +250,11 @@ if (!class_exists('PPM'))
                 "AssetsAdminStyles"     => $this->getAssetsAdminStyles(),
                 "AssetsAdminScripts"    => $this->getAssetsAdminScripts(),
             ];
+        }
+
+        public function setConfig_toFilters()
+        {
+            return $this->getConfig();
         }
 
         
@@ -929,20 +917,88 @@ if (!class_exists('PPM'))
         }
 
         /**
-         * Has functions file
-         * Check if the plugin have the file "functions.php"
+         * Load Functions
+         * Check if the plugin have the functions files and include there
          */
-        private function has_functions_file()
+        private function load_functions()
         {
-            $file = $this->getPath().'functions.php';
+            $functions_ppm = ["utils", "functions", "actions", "hooks", "shortcodes"];
+            $functions_path = $this->getPath().'functions/';
+            $functions_dir = scandir($functions_path);
 
-            if (file_exists($file))
+            // -- Load PPM Functions Files
+
+            // Load Utils
+            if (file_exists($functions_path."utils.php"))
             {
-                require_once($file);
-                return true;
+                require_once($functions_path."utils.php");
+            }
+            
+            // Load Functions
+            if (file_exists($functions_path."functions.php"))
+            {
+                require_once($functions_path."functions.php");
+            }
+            
+            // Load Actions
+            if (file_exists($functions_path."actions.php"))
+            {
+                require_once($functions_path."actions.php");
+
+                //
+                add_filter(
+                    $this->getNamespace(),
+                    [$this, 'setConfig_toFilters']
+                );
             }
 
-            return false;
+            // Load Hooks
+            if (file_exists($functions_path."hooks.php"))
+            {
+                require_once($functions_path."hooks.php");
+
+                // Hooks injections
+                foreach ($this->getHooks() as $hook => $event)
+                {
+                    if ( function_exists($hook) )
+                    {
+                        $order = $event == 'init' ? 1 : 10;
+                        add_action($event, $hook, $order);
+                    }
+                }
+            }
+
+            // Load Shortcodes
+            if (file_exists($functions_path."shortcodes.php"))
+            {
+                require_once($functions_path."shortcodes.php");
+
+                // Shortcodes injections
+                foreach ($this->getShortcodes() as $shortcode => $function)
+                {
+                    if ( function_exists($function) )
+                    {
+                        add_shortcode($shortcode, $function);
+                    }
+                }
+            }
+
+
+            // -- Load custom function files
+            
+            foreach ($functions_dir as $item)
+            {
+                $regex = "/\.php$/";
+                if (preg_match($regex, $item))
+                {
+                    $filename = preg_replace($regex, null, $item);
+
+                    if (!in_array($filename, $functions_ppm) && file_exists($functions_path.$item))
+                    {
+                        require_once($functions_path.$item);
+                    }
+                }
+            }
         }
 
         /**
@@ -1085,104 +1141,104 @@ if (!class_exists('PPM'))
             $files = !empty($_FILES[$config->Namespace]) ? $_FILES[$config->Namespace] : [];
             $responses = [];
 
-            // Extract fields form sections of the schema
-            foreach ($schema as $section)
+            if (is_array($schema))
             {
-                if (isset($section["schema"]))
+                // Extract fields form sections of the schema
+                foreach ($schema as $section)
                 {
-                    foreach ($section['schema'] as $field) 
+                    if (isset($section["schema"]))
                     {
-                        // Default field settings
-                        $field['allowed_types'] = isset($field['allowed_types']) ? $field['allowed_types'] : null;
-                        $field['class']         = isset($field['class']) ? $field['class'] : false;
-                        $field['choices']       = isset($field['choices']) ? $field['choices'] : false;
-                        $field['cols']          = isset($field['cols']) ? $field['cols'] : false;
-                        $field['default']       = isset($field['default']) ? $field['default'] : null;
-                        $field['disabled']      = isset($field['disabled']) ? $field['disabled'] : false;
-                        $field['expanded']      = isset($field['expanded']) ? $field['expanded'] : false;
-                        $field['file']          = isset($field['file']) ? $field['file'] : null;
-                        $field['helper']        = isset($field['helper']) ? $field['helper'] : null;
-                        $field['key']           = isset($field['key']) ? $field['key'] : null;
-                        $field['label']         = isset($field['label']) ? $field['label'] : null;
-                        $field['max']           = isset($field['max']) ? $field['max'] : null;
-                        $field['min']           = isset($field['min']) ? $field['min'] : null;
-                        $field['multiple']      = isset($field['multiple']) ? $field['multiple'] : false;
-                        $field['readonly']      = isset($field['readonly']) ? $field['readonly'] : false;
-                        $field['required']      = isset($field['required']) ? $field['required'] : false;
-                        $field['rows']          = isset($field['rows']) ? $field['rows'] : false;
-                        $field['rule']          = isset($field['rule']) ? $field['rule'] : false;
-                        $field['size']          = isset($field['size']) ? $field['size'] : 0;
-                        $field['step']          = isset($field['step']) ? $field['step'] : null;
-                        $field['type']          = isset($field['type']) ? $field['type'] : "text";
-                        $field['error']         = false;
-                        $field['thumbnails']    = false;
-                        // $field['value']     = isset($field['value']) ? $field['value'] : $request[$field['key']];
-                        // $field['ID'] = isset($field['ID']) ? $field['ID'] : false;
-                        // $field['section'] = isset($field['section']) ? $field['section'] : false;
-
-                        // Format data
-                        if (!is_array($field['allowed_types']) && null !== $field['allowed_types'])
+                        foreach ($section['schema'] as $field) 
                         {
-                            $field['allowed_types'] = self::exptrim(",", $field['allowed_types']);
-                        }
-
-                        // Add response to the field params
-                        switch ($field['type'])
-                        {
-                            // Define checkbox value to ON or OFF
-                            case 'checkbox':
-                                $field['value'] = isset($request[$field['key']]) ? "on" : "off";
-                                break;
-
-                            // Hash the Password
-                            case 'password':
-                                $field['value'] = !empty($request[$field['key']]) 
-                                    ? password_hash($request[$field['key']], PASSWORD_DEFAULT) 
-                                    : null;
-                                break;
-                                
-                            // Retrieve file data
-                            case 'file':
-                                if (!empty($files['name'][$field['key']]))
-                                {
-                                    $field['files'] = [];
-                                    foreach ($files as $key => $file)
+                            // Default field settings
+                            $field['allowed_types'] = isset($field['allowed_types']) ? $field['allowed_types'] : null;
+                            $field['class']         = isset($field['class']) ? $field['class'] : false;
+                            $field['choices']       = isset($field['choices']) ? $field['choices'] : false;
+                            $field['cols']          = isset($field['cols']) ? $field['cols'] : false;
+                            $field['default']       = isset($field['default']) ? $field['default'] : null;
+                            $field['disabled']      = isset($field['disabled']) ? $field['disabled'] : false;
+                            $field['expanded']      = isset($field['expanded']) ? $field['expanded'] : false;
+                            $field['file']          = isset($field['file']) ? $field['file'] : null;
+                            $field['helper']        = isset($field['helper']) ? $field['helper'] : null;
+                            $field['key']           = isset($field['key']) ? $field['key'] : null;
+                            $field['label']         = isset($field['label']) ? $field['label'] : null;
+                            $field['max']           = isset($field['max']) ? $field['max'] : null;
+                            $field['min']           = isset($field['min']) ? $field['min'] : null;
+                            $field['multiple']      = isset($field['multiple']) ? $field['multiple'] : false;
+                            $field['readonly']      = isset($field['readonly']) ? $field['readonly'] : false;
+                            $field['required']      = isset($field['required']) ? $field['required'] : false;
+                            $field['rows']          = isset($field['rows']) ? $field['rows'] : false;
+                            $field['rule']          = isset($field['rule']) ? $field['rule'] : false;
+                            $field['size']          = isset($field['size']) ? $field['size'] : 0;
+                            $field['step']          = isset($field['step']) ? $field['step'] : null;
+                            $field['type']          = isset($field['type']) ? $field['type'] : "text";
+                            $field['error']         = false;
+                            $field['thumbnails']    = false;
+                            // $field['value']     = isset($field['value']) ? $field['value'] : $request[$field['key']];
+                            // $field['ID'] = isset($field['ID']) ? $field['ID'] : false;
+                            // $field['section'] = isset($field['section']) ? $field['section'] : false;
+    
+                            // Format data
+                            if (!is_array($field['allowed_types']) && null !== $field['allowed_types'])
+                            {
+                                $field['allowed_types'] = self::exptrim(",", $field['allowed_types']);
+                            }
+    
+                            // Add response to the field params
+                            switch ($field['type'])
+                            {
+                                // Define checkbox value to ON or OFF
+                                case 'checkbox':
+                                    $field['value'] = isset($request[$field['key']]) ? "on" : "off";
+                                    break;
+    
+                                // Hash the Password
+                                case 'password':
+                                    $field['value'] = !empty($request[$field['key']]) 
+                                        ? password_hash($request[$field['key']], PASSWORD_DEFAULT) 
+                                        : null;
+                                    break;
+                                    
+                                // Retrieve file data
+                                case 'file':
+                                    if (!empty($files['name'][$field['key']]))
                                     {
-                                        if (isset($file[$field['key']]))
+                                        $field['files'] = [];
+                                        foreach ($files as $key => $file)
                                         {
-                                            if (!is_array($file[$field['key']]))
+                                            if (isset($file[$field['key']]))
                                             {
-                                                $field['files'][$key] = [$file[$field['key']]];
+                                                if (!is_array($file[$field['key']]))
+                                                {
+                                                    $field['files'][$key] = [$file[$field['key']]];
+                                                }
+                                                else
+                                                {
+                                                    $field['files'][$key] = $file[$field['key']];
+                                                }
                                             }
-                                            else
-                                            {
-                                                $field['files'][$key] = $file[$field['key']];
-                                            }
-
-                                            // $field['file'][$key] = $file[$field['key']];
-
-                                            // echo "<pre>";
-                                            // print_r($field['file'][$key]);
-                                            // print_r($files);
-                                            // echo "</pre>";
                                         }
                                     }
-                                }
-                                break;
-
-                            // Add value
-                            default:
-                                $field['value'] = $request[$field['key']];
-                                break;
-                        }
-                        
-                        if (!empty($field['key']))
-                        {
-                            $responses[$field['key']] = (object) $field;
+                                    break;
+    
+                                // Add value
+                                default:
+                                    $field['value'] = $request[$field['key']];
+                                    break;
+                            }
+                            
+                            if (!empty($field['key']))
+                            {
+                                $responses[$field['key']] = (object) $field;
+                            }
                         }
                     }
                 }
             }
+            // else
+            // {
+            //     echo "NOT AN ARRAY\n";
+            // }
 
             return $responses;
         }
@@ -1208,6 +1264,7 @@ if (!class_exists('PPM'))
             $config = $params['config'];
             $responses = $params['responses'];
             $errors = [];
+            $success = [];
 
             if (!empty($responses) && is_array($responses))
             {
@@ -1220,7 +1277,7 @@ if (!class_exists('PPM'))
 
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => "This field is required."
+                            "message" => __("This field is required.", WPPPM_TEXTDOMAIN)
                         );
                     }
                     
@@ -1231,7 +1288,7 @@ if (!class_exists('PPM'))
 
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => "This field is not a valid email address."
+                            "message" => __("This field is not a valid email address.", WPPPM_TEXTDOMAIN)
                         );
                     }
                     
@@ -1242,7 +1299,7 @@ if (!class_exists('PPM'))
 
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => "This field is not a valid url."
+                            "message" => __("This field is not a valid url.", WPPPM_TEXTDOMAIN)
                         );
                     }
                     
@@ -1265,7 +1322,15 @@ if (!class_exists('PPM'))
 
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => "This field is not valid."
+                            "message" => __("This field is not valid.", WPPPM_TEXTDOMAIN)
+                        );
+                    }
+
+                    else
+                    {
+                        $success[$response->key] = array(
+                            "field" => $response->key,
+                            "value" => $response->value
                         );
                     }
                 }
@@ -1273,6 +1338,7 @@ if (!class_exists('PPM'))
 
             return (object) array(
                 "errors" => $errors,
+                "success" => $success,
                 "isValide" => empty($errors)
             );
         }
@@ -1285,86 +1351,92 @@ if (!class_exists('PPM'))
             // Rebuild $files array
             foreach ($field->files['name'] as $key => $file)
             {
-                $files[$key] = array(
-                    "name" => $field->files['name'][$key],
-                    "type" => $field->files['type'][$key],
-                    "tmp_name" => $field->files['tmp_name'][$key],
-                    "error" => $field->files['error'][$key],
-                    "size" => $field->files['size'][$key]
-                );
+                if (!empty($field->files['name'][$key]))
+                {
+                    $files[$key] = array(
+                        "name" => $field->files['name'][$key],
+                        "type" => $field->files['type'][$key],
+                        "tmp_name" => $field->files['tmp_name'][$key],
+                        "error" => $field->files['error'][$key],
+                        "size" => $field->files['size'][$key]
+                    );
+                }
             }
 
-            foreach ($files as $file)
+            if (!empty($files))
             {
-                // Defaults
-                $size = false;
-                $type = false;
+                foreach ($files as $file)
+                {
+                    // Defaults
+                    $size = false;
+                    $type = false;
 
 
-                // -- Check file size
+                    // -- Check file size
 
-                // No sizes restrictions // Size is not defined
-                if (empty($field->size) || $field->size <= 0)
-                {
-                    $size = true;
-                }
-                // File size is less or equal to the allowed size
-                else if ($file['size'] <= $field->size)
-                {
-                    $size = true;
-                }
-
-
-                // -- Check file type
-    
-                // All types are allowed, Allowed type are not defined
-                if (empty($field->allowed_types))
-                {
-                    $type = true;
-                }
-                // Specific type is allowed
-                else if (in_array($file['type'], $field->allowed_types))
-                {
-                    $type = true;
-                }
-                // Type like "image/*" is allowed
-                else
-                {
-                    $iniversal_pattern = "/\/\*$/";
-                    foreach ($field->allowed_types as $allowed_type)
+                    // No sizes restrictions // Size is not defined
+                    if (empty($field->size) || $field->size <= 0)
                     {
-                        if (preg_match($iniversal_pattern, $allowed_type))
+                        $size = true;
+                    }
+                    // File size is less or equal to the allowed size
+                    else if ($file['size'] <= $field->size)
+                    {
+                        $size = true;
+                    }
+
+
+                    // -- Check file type
+        
+                    // All types are allowed, Allowed type are not defined
+                    if (empty($field->allowed_types))
+                    {
+                        $type = true;
+                    }
+                    // Specific type is allowed
+                    else if (in_array($file['type'], $field->allowed_types))
+                    {
+                        $type = true;
+                    }
+                    // Type like "image/*" is allowed
+                    else
+                    {
+                        $iniversal_pattern = "/\/\*$/";
+                        foreach ($field->allowed_types as $allowed_type)
                         {
-                            $allowed_type = preg_replace($iniversal_pattern, null, $allowed_type);
-    
-                            if (preg_match("/^".$allowed_type."/", $file['type'])) 
+                            if (preg_match($iniversal_pattern, $allowed_type))
                             {
-                                $type = true;
-                                break;
+                                $allowed_type = preg_replace($iniversal_pattern, null, $allowed_type);
+        
+                                if (preg_match("/^".$allowed_type."/", $file['type'])) 
+                                {
+                                    $type = true;
+                                    break;
+                                }
                             }
                         }
                     }
+
+
+                    // -- Set errors
+
+                    if (!$size)
+                    {
+                        array_push( $errors, $file['name']." - ". __("File is oversized.", WPPPM_TEXTDOMAIN));
+                    }
+                    if (!$type)
+                    {
+                        array_push( $errors, $file['name']." - ". __("File type is not allowed.", WPPPM_TEXTDOMAIN));
+                    }                
                 }
 
-
-                // -- Set errors
-
-                if (!$size)
+                if (!empty($errors))
                 {
-                    array_push( $errors, $file['name']." - File is over size." );
+                    return array(
+                        "field" => $file->key,
+                        "message" => implode("<br>", $errors)
+                    );
                 }
-                if (!$type)
-                {
-                    array_push( $errors, $file['name']." - File type is not allowed." );
-                }                
-            }
-
-            if (!empty($errors))
-            {
-                return array(
-                    "field" => $file->key,
-                    "message" => implode("<br>", $errors)
-                );
             }
 
             return true;
@@ -1449,7 +1521,7 @@ if (!class_exists('PPM'))
 
                             add_filter( 'intermediate_image_sizes_advanced', function( $sizes ) 
                             {
-                                foreach ($sizes as $size => $_)
+                                foreach ($sizes as $size => $null)
                                 {
                                     if (!in_array($size, $GLOBALS['preserved_sizes']))
                                     {
@@ -1479,194 +1551,5 @@ if (!class_exists('PPM'))
             
             return $uploads;
         }
-
-
-// //////////////////////////////////////////////////////////////////////////////////////
-
-        // public static function getPostSchema($configFile, $params)
-        // {
-        //     $config = [];
-        //     $calssName = null;
-        //     $attrNameIsArray = false;
-            
-        //     if (file_exists($configFile))
-        //         $config = json_decode(file_get_contents($configFile));
-
-        //     if (isset($config->register->posts))
-        //         $config = $config->register->posts;
-
-        //     foreach ($config as $postConfig)
-        //         if (isset($postConfig->type) && isset($params['post']) && $postConfig->type == $params['post'])
-        //             $config = $postConfig;
-            
-        //     if (isset($config->view) && $config->view === true)
-        //         $attrNameIsArray = true;
-            
-        //     if (isset($config->metas->schema))
-        //         $config = $config->metas->schema;
-
-            
-        //     foreach ($config as $field)
-        //         if (isset($field->key) && isset($params['key']) && $field->key == $params['key'])
-        //             $config = $field;
-            
-        //     if (isset($config->type))
-        //     {
-        //         if (isset($params['value']))
-        //             $config->value = $params['value'];
-                
-        //         if (isset($params['disabled']))
-        //             $config->disabled = $params['disabled'] === 'true' ? true : false;
-                
-        //         if (isset($params['class']))
-        //             $config->class = $params['class'];
-
-        //         if (isset($params['cols']))
-        //             $config->cols = $params['cols'];
-
-        //         if (isset($params['rows']))
-        //             $config->rows = $params['rows'];
-
-        //         $className = "PPM_".ucfirst(strtolower($config->type))."Type";
-        //         require_once $path.'form/form.php';
-        //         require_once $path.'form/'.strtolower($config->type).'.php';
-
-        //         $field = new $className($config);
-        //         $render = $field->render( $params['post'], false );
-
-        //         if (!$attrNameIsArray)
-        //         {
-        //             $render = preg_replace("/".$params['post']."\[(.*)\]/", "$1", $render);
-        //         }
-
-        //         return $render;
-        //     }
-        // }
-        // public static function checkPostSchema($configFile, $postType)
-        // {
-        //     $hasErrors = false;
-        //     $_SESSION[$postType] = [];
-        //     $typeFiles = [];
-        //     $schema = [];
-
-        //     $post = $_POST;
-        //     if (isset($_POST[$postType]))
-        //     {
-        //         $post = $_POST[$postType];
-        //     }
-            
-        //     if($_SERVER['REQUEST_METHOD'] == 'POST' 
-        //     && isset($_POST[$postType.'-token'])
-        //     && wp_verify_nonce($_POST[$postType.'-token'], $postType)
-        //     ) {
-        //         if (file_exists($configFile))
-        //             $config = json_decode(file_get_contents($configFile));
-
-        //         if (isset($config->register->posts))
-        //             $config = $config->register->posts;
-
-        //         foreach ($config as $postConfig)
-        //             if (isset($postConfig->type) && $postConfig->type == $postType)
-        //                 $config = $postConfig;
-                
-        //         if (isset($config->metas->schema))
-        //             $schema = $config->metas->schema;
-
-        //         // Checking fields
-        //         foreach ($schema as $field) 
-        //         {
-        //             $_SESSION[$postType][$field->key] = [];
-
-        //             if ($field->type === 'file')
-        //             {
-        //                 $typeFiles[$field->key] = $field;
-        //             }
-                    
-        //             if (isset( $post[$field->key] ))
-        //             {
-        //                 $_SESSION[$postType][$field->key]['value'] = $post[$field->key];
-                        
-        //                 // Required
-        //                 if (isset($field->required) && $field->required === true && empty($post[$field->key]))
-        //                 {
-        //                     $_SESSION[$postType][$field->key]['error'] = isset($field->required_message) ? $field->required_message : "This field is required.";
-        //                     $hasErrors = true;
-        //                 }
-                        
-        //                 // Is Email
-        //                 else if (($field->type == 'email' && !filter_var($post[$field->key], FILTER_VALIDATE_EMAIL)) && (isset($field->required) && $field->required === true))
-        //                 {
-        //                     $_SESSION[$postType][$field->key]['error'] = isset($field->syntax_error) ? $field->syntax_error : "This field is not a valid email address.";
-        //                     $hasErrors = true;
-        //                 }
-                        
-        //                 // Is URL
-        //                 else if (($field->type == 'url' && !filter_var($post[$field->key], FILTER_VALIDATE_URL)) && (isset($field->required) && $field->required === true))
-        //                 {
-        //                     $_SESSION[$postType][$field->key]['error'] = isset($field->syntax_error) ? $field->syntax_error : "This field is not a valid url address.";
-        //                     $hasErrors = true;
-        //                 }
-                        
-        //                 // RegEx
-        //                 else if (isset($field->regex) && !empty($field->regex) && !preg_match($field->regex, $post[$field->key]))
-        //                 {
-        //                     $_SESSION[$postType][$field->key]['error'] = isset($field->syntax_error) ? $field->syntax_error : "This field is not a valid.";
-        //                     $hasErrors = true;
-        //                 }
-        //             }
-        //         }
-
-        //         // Checking files
-        //         if (!empty($_FILES[$_REQUEST['post_type']]))
-        //         {
-        //             $files = [];
-        //             $allowed_types = [];
-
-        //             foreach ($_FILES[$_REQUEST['post_type']] as $key => $file)
-        //             {
-        //                 foreach (array_keys($file) as $keyName)
-        //                 {
-        //                     if (!isset($files[$keyName]))
-        //                     {
-        //                         $files[$keyName] = [];
-        //                     }
-        //                     $files[$keyName][$key] = $file[$keyName];
-        //                 }
-        //             }
-
-        //             foreach ($files as $key => $file)
-        //             {
-        //                 if (!empty($file['name']))
-        //                 {
-        //                     // Get allowed types
-        //                     if (isset($typeFiles[$key]->allowed_types))
-        //                     {
-        //                         $allowed_types = $typeFiles[$key]->allowed_types;
-        //                     }
-    
-        //                     // Get file type
-        //                     $fileType = wp_check_filetype(basename($file['name']));
-    
-        //                     // Check if type is allowed
-        //                     if (!empty($allowed_types))
-        //                     {
-        //                         if (!in_array($fileType['type'], $allowed_types))
-        //                         {
-        //                             $_SESSION[$_REQUEST['post_type']][$key]['error'] = isset($typeFiles[$key]->type_error) ? $typeFiles[$key]->type_error : "The file type that you've uploaded is not allowed.";
-        //                             $hasErrors = true;
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-                
-        //         if (!$hasErrors)
-        //         {
-        //             $_SESSION[$postType]['success'] = true;
-        //         }
-
-        //         return !$hasErrors;
-        //     }
-        // }
     }
 }

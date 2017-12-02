@@ -1,55 +1,96 @@
 <?php
+
+// Make sure we don't expose any info if called directly
+if ( !function_exists( 'add_action' ) ) 
+{
+    echo "Hi there!<br>Do you want to plug me ?<br>";
+	echo "If you looking for more about me, you can read at http://osw3.net/wordpress/plugins/please-plug-me/";
+    exit;
+}
+
 $config = array(
 
-    // 'namespace' => 'please_plug_me_namespace',
+    /**
+     * Plugin Namespace
+     * optional
+     * --
+     * If not defined, the namespace will generate automatically by the slug of 
+     * the plugin name.
+     */
+    // 'namespace' => 'please_plug_me',
+
 
     /**
-     * Assets for the Front
+     * Assets for the Front Side
+     * optional
+     * --
+     * Define the list of assets the plugin needs for the front side.
+     * it contains two list : Styles and Scripts.
+     * Declare the CSS you need in the Styles list, and the JavaScript you need 
+     * in the Scripts list.
+     * Each asset contains two parameters : 
+     * - the Name, wil generate the WP asset ID
+     * - the Path, to define the local file or an URL
      */
-    'assets' => array(
-        'styles' => array(
-            array(
-                'name' => 'my-custom-front-style',
-                'path' => 'my-custom-front',
-            ),
-        ),
-        'scripts' => array(
-            array(
-                'name' => 'my-custom-front-script',
-                'path' => 'my-custom-front',
-            ),
-        ),
-    ),
+    // 'assets' => array(
+    //     'styles' => array(
+    //         array(
+    //             'name' => 'my-custom-front-style',
+    //             'path' => 'my-custom-front',
+    //         ),
+    //     ),
+    //     'scripts' => array(
+    //         array(
+    //             'name' => 'my-custom-front-script',
+    //             'path' => 'my-custom-front',
+    //         ),
+    //     ),
+    // ),
+
 
     /**
-     * Assets for the Admin
+     * Assets for the Admin Side
+     * optional
+     * --
+     * Define the list of assets the plugin needs for the front side.
+     * it contains two list : Styles and Scripts.
+     * Declare the CSS you need in the Styles list, and the JavaScript you need 
+     * in the Scripts list.
+     * Each asset contains two parameters : 
+     * - the Name, wil generate the WP asset ID
+     * - the Path, to define the local file or an URL
      */
-    'assets_admin' => array(
-        'styles' => array(
-            array(
-                'name' => 'my-custom-admin-style',
-                'path' => 'my-custom-admin',
-            ),
-        ),
-        'scripts' => array(
-            array(
-                'name' => 'my-custom-admin-script',
-                'path' => 'my-custom-admin',
-            ),
-        ),
-    ),
+    // 'assets_admin' => array(
+    //     'styles' => array(
+    //         array(
+    //             'name' => 'my-custom-admin-style',
+    //             'path' => 'my-custom-admin',
+    //         ),
+    //     ),
+    //     'scripts' => array(
+    //         array(
+    //             'name' => 'my-custom-admin-script',
+    //             'path' => 'my-custom-admin',
+    //         ),
+    //     ),
+    // ),
+
 
     /**
      * Options data
+     * optional
+     * --
      */
     // 'options' => array(
     //     'option_name' => 'Option value',
     // ),
 
+
     /**
      * The register
      */
     'register' => array(
+
         'settings' => array(
             'menus' => array(
 
@@ -847,14 +888,34 @@ $config = array(
                     ),
                 ),
             ),
-        ),
+        )
+        
     ),
 
-    'hooks' => array(
-        'OSW3_SiteLocker' => 'wp',
-    ),
 
-    'shortcodes' => array(
-        'WP_PleasePlugMe_Shorcode_Exemple' => 'WP_PleasePlugMe_Shorcode_Exemple',
-    ),
+    /**
+     * Hooks
+     * optional
+     * --
+     * Define the list of Hooks for the plugin.
+     * Each needs a pair of "Hook Function Name" and "Event".
+     */
+    // 'hooks' => array(
+    //     'WP_PleasePlugMe_Hook_Exemple' => 'wp',
+    // ),
+
+
+    /**
+     * Shortcodes
+     * optional
+     * --
+     * Define the list of Shortcodes of the plugin.
+     * Each needs a pair of "Shortcode Identifiant" and "Shortcode Function 
+     * Name".
+     * You must declare your shortcode function in the functions.php file 
+     * located at the plugin root.
+     */
+    // 'shortcodes' => array(
+    //     'WP_PleasePlugMe_Shorcode_Exemple' => 'WP_PleasePlugMe_Shorcode_Exemple',
+    // ),
 );

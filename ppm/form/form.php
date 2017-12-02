@@ -107,13 +107,11 @@ if (!class_exists('PPM_FormType'))
             $output.= $this->getHtmlTag_helper();
 
             // The wrapper
-            $_output = isset($additional['before_field']) ? $additional['before_field'] : null;
-            $_output.= ($this->hasWrapper) ? $this->getHtmlTag_wrapper( $output ) : $output;
-            $_output.= isset($additional['after_field']) ? $additional['after_field'] : null;
-            
-            $output = ($this->hasWrapper) ? $this->getHtmlTag_wrapper( $_output ) : $_output;
-
-            return $output;
+            return implode(null,[
+                isset($additional['before_field']) ? $additional['before_field'] : null,
+                ($this->hasWrapper) ? $this->getHtmlTag_wrapper( $output ) : $output,
+                isset($additional['after_field']) ? $additional['after_field'] : null
+            ]);
         }
 
 
@@ -148,15 +146,18 @@ if (!class_exists('PPM_FormType'))
         {
             if (isset($this->errors[ $this->getKey() ]))
             {
-                if (isset( $this->errors[ $this->getKey() ]['message'] ))
+                if (!isset( $this->errors[ $this->getKey() ]['value'] ))
                 {
-                    $message = $this->errors[ $this->getKey() ]['message'];
+                    if (isset( $this->errors[ $this->getKey() ]['message'] ))
+                    {
+                        $message = $this->errors[ $this->getKey() ]['message'];
+                    }
+                    else
+                    {
+                        $message = __("This field is not valid.", WPPPM_TEXTDOMAIN);
+                    }
+                    return "<div class=\"has-error\">". $message ."</div>";
                 }
-                else
-                {
-                    $message = "This field is not valid.";
-                }
-                return "<div class=\"has-error\">". $message ."</div>";
             }
             return null;
         }
@@ -173,7 +174,7 @@ if (!class_exists('PPM_FormType'))
             if ($show_label)
             {
                 $output.= isset($additional['before_label']) ? $additional['before_label'] : null;
-                $output.= "<label for=\"". $this->getId() ."\">". $this->getLabel() ."</label>";
+                $output.= "<label for=\"". $this->getId() ."\">". stripslashes($this->getLabel()) ."</label>";
                 $output.= isset($additional['after_label']) ? $additional['after_label'] : null;
             }
 
@@ -311,7 +312,6 @@ if (!class_exists('PPM_FormType'))
             {
                 switch ( $this->getType() )
                 {
-
                     case 'date':
                         if ('today' === strtolower($value))
                             $attribute = 'max="'.date('Y-m-d').'"';

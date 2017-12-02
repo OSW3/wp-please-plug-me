@@ -338,7 +338,6 @@ if (!class_exists('PPM_RegisterSettings'))
                     $schema[$section_key]['schema'][$field_key]['section'] = $schema[$section_key]['ID'];
                 }
             }
-
             return $schema;
         }
     }

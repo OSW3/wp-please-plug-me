@@ -94,7 +94,6 @@ if (!class_exists('PPM_RegisterPosts'))
         private function add_custom_posts()
         {
             $settings = $this->getPostsSettings();
-            $post = $this->getPostsSettings();
             $schemas = $this->getPostsSchemas();
 
             foreach ($settings as $key => $post)
@@ -399,8 +398,27 @@ if (!class_exists('PPM_RegisterPosts'))
                 register_post_type( $post->type, (array) $post );
 
 
+
+
+
+
+
+
+                // Retrieve current page post_type
+                if (null === $_REQUEST['post_type'])
+                {
+                    if (isset($_REQUEST['post']))
+                    {
+                        $wp_post = get_post($_REQUEST['post']);
+                        if (isset($wp_post->post_type))
+                        {
+                            $_REQUEST['post_type'] = $wp_post->post_type;
+                        }
+                    }
+                }
+
                 // Add MetaBoxes to the form
-                if (isset($schemas[ $post->type ]))
+                if ($post->type === $_REQUEST['post_type'] && isset($schemas[ $post->type ]) && is_admin())
                 {
                     add_action('save_post', array($this, "custompost_submission"));
                     add_action('admin_init', array($this, 'customposts_view'));
@@ -438,8 +456,108 @@ if (!class_exists('PPM_RegisterPosts'))
                     add_action( "manage_{$post->type}_posts_custom_column" , array($this, 'custom_column_data'), 10, 2 );
                     add_filter( "manage_edit-{$post->type}_sortable_columns", array($this, 'custom_columns_sortable') );
                 }
+
+
+                // Remove Row Actions on Items list
+                if (true === $post->remove_admin_row_actions || is_array($post->remove_admin_row_actions))
+                {
+                    add_filter( 'post_row_actions', array($this, 'remove_admin_row_actions'), 10, 1 );
+                }
+
+
+                // Custom Post Shortcodes
+                if (isset($schemas[ $post->type ]) && !is_admin())
+                {
+                    // Schemas section
+                    foreach ($schemas[ $post->type ] as $sections)
+                    {
+                        if (isset($sections['schema']))
+                        {
+                            $sections = $sections['schema'];
+                        }
+
+                        if (is_array($sections))
+                        {
+                            foreach ($sections as $field)
+                            {
+                                if (isset($field['key']) && false !== $field['shortcode'])
+                                {
+                                    $shortcode_ID = implode(":",array(
+                                        $this->config->Namespace,
+                                        $post->type,
+                                        $field['key']
+                                    ));
+                                    
+                                    add_shortcode(
+                                        $shortcode_ID, 
+                                        [&$this,"shortcode_callback"]
+                                    );
+                                }
+                            }
+                        }      
+                    }
+                }
+
+
+
             }
         }
+
+        public function shortcode_callback( $attrs, $content = "", $tag )
+        {
+            list($namespace, $posttype, $key) = explode(":", $tag);
+            $schemas = $this->getPostsSchemas();
+            
+            if (is_array($schemas[ $posttype ]))
+            {
+                foreach ($schemas[ $posttype ] as $schema)
+                {
+                    if (is_array($schema['schema']))
+                    {
+                        foreach ($schema['schema'] as $field)
+                        {
+                            if (isset($field['key']) && $field['key'] === $key && false !== $field['shortcode'])
+                            {
+                                foreach ($attrs as $attr_key => $attr_value)
+                                {
+                                    // Boolean value
+                                    if (in_array(strtolower($attr_value), ["true", "yes", "y", "on", "1"]))
+                                    {
+                                        $attrs[$attr_key] = true;
+                                    }
+                                    else if (in_array(strtolower($attr_value), ["false", "non", "n", "off", "0"]))
+                                    {
+                                        $attrs[$attr_key] = false;
+                                    }
+                                }
+                                
+                                $field = (object) array_merge( $field, $attrs );
+
+                                require_once $this->config->Path.'ppm/form/form.php';
+                                require_once $this->config->Path.'ppm/form/'.$field->type.'.php';
+                                
+                                $classType = ucfirst(strtolower($field->type));
+                                $classType = "PPM_".$classType."Type";
+
+                                $formType = new $classType([
+                                    "config"            => $this->config,
+                                    "attributes"        => $field, 
+                                    "addLabelTag"       => is_bool($field->label) ? $field->label : true,
+                                    "addWrapper"        => false, 
+                                    "attrNameAsArray"   => false,
+                                    "schemaID"          => "CustomPosts",
+                                    "errors"            => $_SESSION[$posttype]['errors']
+                                ]);
+
+                                return $formType->render();
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+
 
         /**
          * ReSet & return post taxonomies
@@ -662,6 +780,35 @@ if (!class_exists('PPM_RegisterPosts'))
                 }
             }
         }
+
+
+        /**
+         * Remove row actions
+         */
+        public function remove_admin_row_actions( $actions )
+        {
+            if (isset($this->config->Registers->CustomPosts))
+            {
+                foreach ($this->config->Registers->CustomPosts as $post)
+                {
+                    if ($post['type'] === get_post_type() && isset($post['remove_admin_row_actions'])) 
+                    {
+                        if (true === $post['remove_admin_row_actions'])
+                        {
+                            return array();
+                        }
+                        else if (is_array($post['remove_admin_row_actions']))
+                        {
+                            if (in_array("view", $post['remove_admin_row_actions'])) unset( $actions['view'] );
+                            if (in_array("quick-edit", $post['remove_admin_row_actions'])) unset( $actions['inline hide-if-no-js'] );
+                            if (in_array("edit", $post['remove_admin_row_actions'])) unset( $actions['edit'] );
+                            if (in_array("trash", $post['remove_admin_row_actions'])) unset( $actions['trash'] );
+                        }
+                    }
+                }
+            }
+            return $actions;
+        }
         
 
         /**
@@ -691,48 +838,55 @@ if (!class_exists('PPM_RegisterPosts'))
             {
                 $type = $_REQUEST['post_type'];
                 $schema = $this->getPostsSchemas();
-                
-                // Format responses
-                $responses = PPM::responses([
-                    "config" => $this->config,
-                    "schema" => $schema[$type]
-                ]);
-                
-                // check response validation
-                $validate = PPM::validate([
-                    "config" => $this->config,
-                    "responses" => $responses
-                ]);
-                
 
-                if (!$validate->isValide)
-                {
-                    $this->errors = $validate->errors;
-                }
+                // if (is_array($schema[$type]))
+                // {
+                    // Format responses
+                    $responses = PPM::responses([
+                        "config" => $this->config,
+                        "schema" => $schema[$type]
+                    ]);
 
-                foreach ($responses as $key => $response)
-                {
-                    if (!isset($this->errors[$key]))
+                    if (!empty($responses))
                     {
-                        // Save File
-                        if ('file' === $response->type)
+                        // check response validation
+                        $validate = PPM::validate([
+                            "config" => $this->config,
+                            "responses" => $responses
+                        ]);
+                        
+        
+                        if (!$validate->isValide)
                         {
-                            if (!empty($response->files)) // Prevent to remove the previous image
+                            $this->errors = $validate->errors;
+                        }
+        
+                        foreach ($responses as $key => $response)
+                        {
+                            if (!isset($this->errors[$key]))
                             {
-                                $uploads = PPM::upload( $response, $pid, $this->config );
-                                update_post_meta($pid, $key, $uploads); 
+                                // Save File
+                                if ('file' === $response->type)
+                                {
+                                    if (!empty($response->files)) // Prevent to remove the previous image
+                                    {
+                                        $uploads = PPM::upload( $response, $pid, $this->config );
+                                        update_post_meta($pid, $key, $uploads); 
+                                    }
+                                }
+                                
+                                // Save data in wp_postmeta
+                                else
+                                {
+                                    update_post_meta($pid, $key, $response->value);
+                                }
                             }
                         }
-                        
-                        // Save data in wp_postmeta
-                        else
-                        {
-                            update_post_meta($pid, $key, $response->value);
-                        }
+        
+                        $_SESSION[$type]['errors'] = $this->errors;
                     }
-                }
-
-                $_SESSION[$type]['errors'] = $this->errors;
+                    
+                // }
             }
         }
     }

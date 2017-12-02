@@ -732,7 +732,7 @@
     },
     
     "hooks": {
-        "OSW3_SiteLocker": "wp"
+        "WP_PleasePlugMe_Hook_Exemple": "wp"
     },
     
     "shortcodes": {
