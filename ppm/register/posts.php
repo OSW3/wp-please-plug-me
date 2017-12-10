@@ -126,6 +126,7 @@ if (!class_exists('PPM_RegisterPosts'))
                 {
                     $post->label = $this->config->Name;
                 }
+                $post->label = __($post->label, $this->config->Namespace);
                 
                 // Menu position
                 if (isset($post->menu_position))
@@ -257,17 +258,17 @@ if (!class_exists('PPM_RegisterPosts'))
                 
                 // Capabilities
                 // TODO: Revoir cette  // Droits d'actions
-                // if (!isset($post->capabilities))
-                // {
-                //     $post->capabilities = [];
-                // }
-                // array_push($post->capabilities, [$post->capability_type, $post->capability_type."s"]);
+                if (!isset($post->capabilities))
+                {
+                    $post->capabilities = [];
+                }
+                array_merge($post->capabilities, [$post->capability_type => $post->capability_type."s"]);
                 
                 // Map Meta Cap
-                // if (!isset($post->map_meta_cap) || $post->map_meta_cap !== true)
-                // {
-                //     $post->map_meta_cap = false;
-                // }
+                if (!isset($post->map_meta_cap) || $post->map_meta_cap !== true)
+                {
+                    $post->map_meta_cap = false;
+                }
                 
                 
                 // Supports
@@ -293,10 +294,20 @@ if (!class_exists('PPM_RegisterPosts'))
                 
                 
                 // Labels
-                // TODO: Add translation
-                // TODO: Value can be false to remove links
                 if (isset($post->labels) && is_array($post->labels))
                 {
+                    // All items
+                    if (is_bool($post->labels['all_items']) && false === $post->labels['all_items'])
+                    {
+                        add_action('admin_menu', [$this, 'remove_admin_menu_all_items']);
+                    }
+
+                    // Add New
+                    if (is_bool($post->labels['add_new']) && false === $post->labels['add_new'])
+                    {
+                        add_action('admin_menu', [$this, 'remove_admin_menu_add_new']);
+                    }
+
                     // Force to delete entry
                     $post->labels['name'] = null;
                     $post->labels['menu_name'] = null;
@@ -317,8 +328,14 @@ if (!class_exists('PPM_RegisterPosts'))
                         {
                             unset($post->labels[$label_key]);
                         }
+                        else
+                        {
+                            $post->labels[$label_key] = __($post->labels[$label_key], $this->config->Namespace);
+                        }
                     }
                 }
+                
+                
                 
                 
                 // Post has archive
@@ -331,9 +348,10 @@ if (!class_exists('PPM_RegisterPosts'))
                 // Rewrite
                 if (!isset($post->rewrite))
                 {
-                    $post->rewrite = ["slug" => $post->type];
+                    $post->rewrite = true;
                 }
-                else 
+
+                if (is_array($post->rewrite))
                 {
                     // Slug
                     $post->rewrite['slug'] = PPM::tryToDo( $post->rewrite['slug'] );
@@ -378,7 +396,7 @@ if (!class_exists('PPM_RegisterPosts'))
                 // Delete Post with user delation
                 if (!isset($post->delete_with_user) || !is_bool($post->delete_with_user))
                 {
-                    $post->delete_with_user = null;
+                    $post->delete_with_user = false;
                 }
                 
                 
@@ -396,12 +414,6 @@ if (!class_exists('PPM_RegisterPosts'))
 
                 // Add Post Type to the Wordpress Register
                 register_post_type( $post->type, (array) $post );
-
-
-
-
-
-
 
 
                 // Retrieve current page post_type
@@ -425,25 +437,25 @@ if (!class_exists('PPM_RegisterPosts'))
                 }
 
 
-                // Add Post Category
-                if (isset($post->category))
+                // Add Post Categories
+                if (isset($post->categories))
                 {
-                    $post->category['hierarchical'] = true;
-                    $post->category = $this->add_taxonomy(
-                        "cat_", 
-                        $post->category, 
+                    $post->categories['hierarchical'] = true;
+                    $post->categories = $this->add_taxonomy(
+                        "cats_", 
+                        $post->categories, 
                         $post
                     );
                 }
 
 
                 // Add Post Tag
-                if (isset($post->tag))
+                if (isset($post->tags))
                 {
-                    $post->tag['hierarchical'] = false;
-                    $post->tag = $this->add_taxonomy(
-                        "tag_", 
-                        $post->tag, 
+                    $post->tags['hierarchical'] = false;
+                    $post->tags = $this->add_taxonomy(
+                        "tags_", 
+                        $post->tags, 
                         $post
                     );
                 }
@@ -682,8 +694,7 @@ if (!class_exists('PPM_RegisterPosts'))
                             $column->key = PPM::slugify($column->label);
                         }
     
-                        // TODO: Internationalisation (labe)
-                        $columns[ $column->key ] = $column->label;
+                        $columns[ $column->key ] = __($column->label, $this->config->Namespace);
                     }
 
                     if (isset($column->key))
@@ -808,6 +819,52 @@ if (!class_exists('PPM_RegisterPosts'))
                 }
             }
             return $actions;
+        }
+
+        public function remove_admin_menu_all_items()
+        {
+            $this->remove_admin_from_menu('all_items');
+        }
+
+        public function remove_admin_menu_add_new()
+        {
+            $this->remove_admin_from_menu('add_new');
+        }
+
+        private function remove_admin_from_menu( $item )
+        {
+            $links = array(
+                "all_items" => "edit.php?post_type=",
+                "add_new" => "post-new.php?post_type=",
+            );
+
+            $settings = $this->getPostsSettings();
+
+            // print_r( $GLOBALS['submenu'] );
+
+            foreach ($settings as $key => $post)
+            {
+                $post = (object) $post;
+                if (isset($post->labels) && is_array($post->labels))
+                {
+                    foreach ($post->labels as $label_key => $label_value)
+                    {
+                        if ($item === $label_key && isset($links[$item]))
+                        {
+                            if (isset($GLOBALS['submenu']['edit.php?post_type='.$post->type]))
+                            {
+                                foreach ($GLOBALS['submenu']['edit.php?post_type='.$post->type] as $key => $entry)
+                                {
+                                    if (isset($entry[2]) && $entry[2] === $links[$item].$post->type)
+                                    {
+                                        unset($GLOBALS['submenu']['edit.php?post_type='.$post->type][$key]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         
 

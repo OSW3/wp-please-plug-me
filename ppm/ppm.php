@@ -1,5 +1,11 @@
 <?php
 
+if (!defined('WPPPM_TEXTDOMAIN'))
+{
+    define('WPPPM_TEXTDOMAIN', 'wpppm');
+}
+
+
 if (!class_exists('PPM'))
 {
     abstract class PPM
@@ -42,9 +48,12 @@ if (!class_exists('PPM'))
         private $options = [];
         private $register;
         private $schemas;
+        private $schemasFields;
         private $settings;
         private $posts;
         private $plugin_uri;
+        private $widgets;
+        private $currentScreen;
         
         /**
          * Constructor
@@ -66,6 +75,7 @@ if (!class_exists('PPM'))
             $this->setRegisterSettings();
             
             $this->setSchemas();
+            $this->setSchemasFields();
             $this->setImagesSizes();
             $this->setHooks();
             $this->setMenus();
@@ -77,10 +87,11 @@ if (!class_exists('PPM'))
             $this->setPrefixTable();
             $this->setShortcodes();
             $this->setVersion();
+            $this->setWidgets();
             $this->setDescription();
 
             // echo "<pre>";
-            // print_r( $this->getConfig()->Namespace );
+            // print_r( $this->getConfig()->Shortcodes );
             // echo "</pre>";
         }
         
@@ -123,6 +134,7 @@ if (!class_exists('PPM'))
 
             $this->load_functions();
 
+
             // -- Init registers
 
             $params = array(
@@ -135,11 +147,18 @@ if (!class_exists('PPM'))
                 'PPM_RegisterPosts',
                 $params
             );
-
+            
             // Init Settings register
             PPM::include_class(
                 $this->getPath().'ppm/register/settings.php', 
                 'PPM_RegisterSettings',
+                $params
+            );
+            
+            // Init Widgets register
+            PPM::include_class(
+                $this->getPath().'ppm/register/widgets.php', 
+                'PPM_RegisterWidgets',
                 $params
             );
         }
@@ -159,10 +178,10 @@ if (!class_exists('PPM'))
             // Parse config from jSon file
             if (file_exists($config_json))
             {
-                $config_json = file_get_contents($config_json);
-                $config_json = json_decode($config_json, true);
-
-                $config = array_merge( $config, $config_json );
+                $config = array_merge(
+                    $config, 
+                    $this->json( $config_json, true )
+                );
             }
             else if (file_exists($config_php))
             {
@@ -243,7 +262,9 @@ if (!class_exists('PPM'))
                 "Options"               => $this->getOptions(),
                 "Registers"             => $this->getRegistersWithoutSchemas(),
                 "Schemas"               => $this->getSchemas(),
+                "SchemasFields"         => $this->getSchemasFields(),
                 "ImagesSizes"           => $this->getImagesSizes(),
+                "Widgets"               => $this->getWidgets(),
 
                 "AssetsStyles"          => $this->getAssetsStyles(),
                 "AssetsScripts"         => $this->getAssetsScripts(),
@@ -305,23 +326,10 @@ if (!class_exists('PPM'))
             // Get ImagesSizes for the Settings Register
             if (isset($settings->thumbnails) && is_array($settings->thumbnails) && !empty($settings->thumbnails))
             {
-                $thumbnails = (object) $settings->thumbnails;
-
                 if (!isset( $imagesSizes['Settings'] )) $imagesSizes['Settings'] = [];
-
-                if (isset($thumbnails->sizes))
-                {
-                    $imagesSizes['Settings']['strict'] = isset($thumbnails->strict) ? $thumbnails->strict : false;
-                    $imagesSizes['Settings']['preserve_wp_sizes'] = isset($thumbnails->preserve_wp_sizes) ? $thumbnails->preserve_wp_sizes : true;
-                    $imagesSizes['Settings']['sizes'] = $this->checkImagesSizes($thumbnails->sizes);
-                }
-                else
-                {
-                    $imagesSizes['Settings']['strict'] = false;
-                    $imagesSizes['Settings']['preserve_wp_sizes'] = true;
-                    $imagesSizes['Settings']['sizes'] = $this->checkImagesSizes($thumbnails);
-                }
+                $imagesSizes['Settings'] = $this->parseImagesSizes( $settings->thumbnails );
             }
+
             
             // Get ImagesSizes for the Custom posts Register
             foreach ($posts as $post)
@@ -330,23 +338,9 @@ if (!class_exists('PPM'))
 
                 if (isset($post->thumbnails) && is_array($post->thumbnails) && !empty($post->thumbnails))
                 {
-                    $thumbnails = (object) $post->thumbnails;
-
                     if (!isset( $imagesSizes['CustomPosts'] )) $imagesSizes['CustomPosts'] = [];
                     if (!isset( $imagesSizes['CustomPosts'][$post->type] )) $imagesSizes['CustomPosts'][$post->type] = [];
-
-                    if (isset($thumbnails->sizes))
-                    {
-                        $imagesSizes['CustomPosts'][$post->type]['strict'] = isset($thumbnails->strict) ? $thumbnails->strict : false;
-                        $imagesSizes['CustomPosts'][$post->type]['preserve_wp_sizes'] = isset($thumbnails->preserve_wp_sizes) ? $thumbnails->preserve_wp_sizes : true;
-                        $imagesSizes['CustomPosts'][$post->type]['sizes'] = $this->checkImagesSizes($thumbnails->sizes);
-                    }
-                    else
-                    {
-                        $imagesSizes['CustomPosts'][$post->type]['strict'] = false;
-                        $imagesSizes['CustomPosts'][$post->type]['preserve_wp_sizes'] = true;
-                        $imagesSizes['CustomPosts'][$post->type]['sizes'] = $this->checkImagesSizes($thumbnails);
-                    }
+                    $imagesSizes['CustomPosts'][$post->type] = $this->parseImagesSizes( $post->thumbnails );
                 }
             }
 
@@ -361,10 +355,12 @@ if (!class_exists('PPM'))
             {
                 foreach ($imagesSizes['CustomPosts'] as $CustomPosts)
                 {
-                    $filters = array_merge($filters, $CustomPosts['sizes']);
+                    if (is_array($CustomPosts['sizes']))
+                    {
+                        $filters = array_merge($filters, $CustomPosts['sizes']);
+                    }
                 }
             }
-
 
             // Add images Sizes to wp register
             foreach ($filters as $filter)
@@ -379,35 +375,64 @@ if (!class_exists('PPM'))
             
             $this->imagesSizes = (object) $imagesSizes;
         }
-        /**
-         * Check Image Sizes
-         */
-        private function checkImagesSizes( $sizes )
+        private function parseImagesSizes( $input )
         {
-            foreach ($sizes as $key => $data)
+            // Default output
+            $output = array(
+                "strict" => false,
+                "preserve_wp_sizes" => true,
+                "sizes" => array(),
+            );
+
+            // Override the Strict parameter
+            if (isset($input['strict']) && is_bool($input['strict']))
+            {
+                $output['strict'] = $input['strict'];
+            }
+
+            // Override the Preserve WP Sizes parameter
+            if (isset($input['preserve_wp_sizes']) && is_bool($input['preserve_wp_sizes']))
+            {
+                $output['preserve_wp_sizes'] = $input['preserve_wp_sizes'];
+            }
+
+            // Override the Sizes parameter
+            if (isset($input['sizes']) && is_array($input['sizes']))
+            {
+                $output['sizes'] = $input['sizes'];
+            }
+            else if (is_array($input))
+            {
+                $output['sizes'] = $input;
+            }
+
+            // Checking Sizes data
+            foreach ($output['sizes'] as $key => $size)
             {
                 if (
-                    (isset($data['name']) && is_string($data['name'])) &&
-                    (isset($data['width']) && is_integer($data['width'])) &&
-                    (isset($data['height']) && is_integer($data['height']))
+                    (!isset($size['name']) || !is_string($size['name'])) ||
+                    (!isset($size['width']) || !is_integer($size['width'])) ||
+                    (!isset($size['height']) || !is_integer($size['height']))
                 )
                 {
-                    $crop = false;
+                    unset($output['sizes'][$key]);
+                    continue;
+                }
 
-                    if (isset($data['crop']) && (is_bool($data['crop']) || is_array($data['crop'])))
-                    {
-                        $crop = $data['crop'];
-                    }
+                $output['sizes'][$key] = array(
+                    "name" => $size['name'],
+                    "width" => $size['width'],
+                    "height" => $size['height'],
+                    "crop" => false
+                );
 
-                    $sizes[$key] = [
-                        "name" => $data['name'],
-                        "width" => $data['width'],
-                        "height" => $data['height'],
-                        "crop" => $crop
-                    ];
+                if (isset($size['crop']) && (is_bool($size['crop']) || is_array($size['crop'])))
+                {
+                    $output['sizes'][$key]['crop'] = $size['crop'];
                 }
             }
-            return $sizes;
+
+            return $output;
         }
         /**
          * Get Plugin ImagesSizes
@@ -446,9 +471,15 @@ if (!class_exists('PPM'))
          */
         private function setNamespace()
         {
-            $this->namespace = isset($this->config->namespace) 
-                ? self::slugify($this->config->namespace, "_")
-                : self::slugify($this->getName(), "_");
+            $this->namespace = self::slugify($this->getName(), "_");
+
+            if (isset($this->config->namespace) )
+            {
+                if (!empty($this->config->namespace) )
+                {
+                    $this->namespace = self::slugify($this->config->namespace, "_");
+                }
+            }
         }
         /**
          * Get Plugin NameSpace
@@ -641,9 +672,9 @@ if (!class_exists('PPM'))
 
             // Build Settings schema
             $schemas->Settings = [];
-            if (isset($settings->schema) && !empty($settings->schema))
+            if (isset($settings->sections) && !empty($settings->sections))
             {
-                foreach ($settings->schema as $section_key => $section_data)
+                foreach ($settings->sections as $section_key => $section_data)
                 {
                     if (isset($section_data['schema']) && !empty($section_data['schema']))
                     {
@@ -664,6 +695,70 @@ if (!class_exists('PPM'))
         public function getSchemas()
         {
             return $this->schemas;
+        }
+
+
+        /**
+         * Retrieve Fields Only for each Schemas
+         */
+        private function setSchemasFields()
+        {
+            $schemas = $this->getSchemas();
+            $fields = [];
+
+            // Fields for settings
+            if (isset($schemas->Settings))
+            {
+                foreach ($schemas->Settings as $section)
+                {
+                    if (isset($section['schema']))
+                    {
+                        if (!isset($fields['Settings']))
+                        {
+                            $fields['Settings'] = [];
+                        }
+
+                        foreach ($section['schema'] as $field)
+                        {
+                            array_push($fields['Settings'], $field);
+                        }
+                    }
+                }
+            }
+
+            // Fields for Custom Posts
+            if (isset($schemas->CustomPosts))
+            {
+                foreach ($schemas->CustomPosts as $type => $customPost)
+                {
+                    foreach ($customPost as $section)
+                    {
+                        if (isset($section['schema']))
+                        {
+                            if (!isset($fields['CustomPosts']))
+                            {
+                                $fields['CustomPosts'] = [];
+                            }
+                            if (!isset($fields['CustomPosts'][$type]))
+                            {
+                                $fields['CustomPosts'][$type] = [];
+                            }
+
+                            foreach ($section['schema'] as $field)
+                            {
+                                array_push($fields['CustomPosts'][$type], $field);
+                            }
+                        }
+                    }
+                }
+            }
+
+            $this->schemasFields = (object) $fields;
+
+        }
+        private function getSchemasFields()
+        {
+            return $this->schemasFields;
         }
         
 
@@ -717,6 +812,124 @@ if (!class_exists('PPM'))
         public function getVersion()
         {
             return $this->version;
+        }
+        
+
+        /**
+         * Set Plugin Widgets
+         */
+        private function setWidgets()
+        {
+            $register = $this->register;
+            $posts = $this->posts;
+            $widgets = [];
+
+            // Get Widgets from the register
+            if (isset($register->widgets) && is_array($register->widgets))
+            {
+                foreach ($register->widgets as $widget)
+                {
+                    if (!empty($widget))
+                    {
+                        $widget['type'] = null;
+                        array_push($widgets, $this->parseWidgets($widget));
+                    }
+                }
+            }
+
+            // Get Widgets from custom post
+            foreach ($posts as $post)
+            {
+                $post = (object) $post;
+
+                if (isset($post->widget))
+                {
+                    array_push($widgets, $this->parseWidgets($post->widget, $post));
+                }
+            }
+            
+            $this->widgets = (object) $widgets;
+        }
+        private function parseWidgets( $input, $params=null )
+        {
+            $supported_types = ["comments", "list", "quick-add", "view"];
+            static $serial = 1;
+
+            // Default output
+            $output = array(
+                "ID"        => $this->getPrefix()."widget_".$serial,
+                "label"     => $this->getName(),
+                "type"      => "view",
+                "view"      => null,
+                "control"   => null,
+                "args"      => []
+            );
+
+
+            // -- Override the Widget Label
+            if (isset($input['label']) && !empty($input['label']))
+            {
+                $output['label'] = $input['label'];
+            }
+
+
+            // -- Overide the type
+            if (isset($input['type']) && in_array($input['type'], $supported_types))
+            {
+                $output['type'] = $input['type'];
+            }
+
+
+            // -- Define the view file
+            if ('view' === $output['type'])
+            {
+                if (isset($input['view']) && !empty($input['view'])) //&& 'view' === $output['type']
+                {
+                    $output['view'] = $input['view'];
+                }
+                else
+                {
+                    $output['view'] = $output['ID'];
+                }
+            }
+
+
+            // -- Override the widget Control
+
+            
+            // -- Override the widget Args
+
+            // View
+            $args_ID = $output['ID'];
+
+            // View
+            $args_view = $output['view'];
+
+            // PostType
+            $args_posttype = null;
+
+            if (isset($params->type))
+            {
+                $args_posttype = $params->type;
+            }
+
+            $output['args'] = array_merge($output['args'], [
+                "widget_ID" => $args_ID,
+                "widget_view" => $args_view,
+                "posttype" => $args_posttype
+            ]);
+
+
+            $serial++;
+            return (object) $output;
+        }
+        /**
+         * Get Plugin Widgets
+         * @return (object)
+         */
+        public function getWidgets()
+        {
+            return $this->widgets;
         }
         
 
@@ -837,7 +1050,6 @@ if (!class_exists('PPM'))
         }
         private function getRegistersWithoutSchemas()
         {
-
             return (object) array(
                 "Settings" => (object) $this->getSettings(),
                 "CustomPosts" => (object) $this->getCustomPosts()
@@ -845,7 +1057,7 @@ if (!class_exists('PPM'))
         }
         
         // Utils ///////////////////////////////////////////////////////////////
-        
+
         /**
          * Include Classe, its dependencies & instantiate
          * @param (string) $file
@@ -974,11 +1186,11 @@ if (!class_exists('PPM'))
                 require_once($functions_path."shortcodes.php");
 
                 // Shortcodes injections
-                foreach ($this->getShortcodes() as $shortcode => $function)
+                foreach ($this->getShortcodes() as $name => $function)
                 {
                     if ( function_exists($function) )
                     {
-                        add_shortcode($shortcode, $function);
+                        add_shortcode($name, $function);
                     }
                 }
             }
@@ -1062,6 +1274,58 @@ if (!class_exists('PPM'))
             }
 
             return $array;
+        }
+
+        /**
+         * Read a json file (with comment), sanitize it and return an stdClass
+         * or an Array
+         *
+         * @param [string] $src
+         * @param boolean $assoc
+         * @return void
+         */
+        public function json($src, $assoc=false)
+        {
+            $lines = file($src);
+            
+            foreach ($lines as $key => $line)
+            {
+                $lines[$key] = preg_replace("/((!\/\/).*)?(\/\/.*)/", "$1", $line);
+
+                if (empty(trim($lines[$key])))
+                {
+                    unset($lines[$key]);
+                }
+            }
+            
+            return json_decode(
+                implode("\n", $lines), 
+                $assoc
+            );
+        }
+
+        /**
+         * All images sizes list
+         *
+         * @return array
+         */
+        public static function all_image_sizes()
+        {
+            global $_wp_additional_image_sizes;
+            $wp_sizes = get_intermediate_image_sizes();
+            $$sizes = [];
+            
+            foreach ( $wp_sizes as $size ) {
+                $$sizes[ $size ][ 'width' ] = intval( get_option( "{$size}_size_w" ) );
+                $$sizes[ $size ][ 'height' ] = intval( get_option( "{$size}_size_h" ) );
+                $$sizes[ $size ][ 'crop' ] = get_option( "{$size}_crop" ) ? get_option( "{$size}_crop" ) : false;
+            }
+        
+            if ( isset( $_wp_additional_image_sizes ) && count( $_wp_additional_image_sizes ) ) {
+                $$sizes = array_merge( $$sizes, $_wp_additional_image_sizes );
+            }
+
+            return $$sizes;
         }
         
         // Assets //////////////////////////////////////////////////////////////

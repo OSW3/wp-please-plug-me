@@ -37,8 +37,9 @@ if (!function_exists('my_custom_post'))
 } 
 
 /**
- * Register MetaBox Callback
+ * Register MetaBox Callback Exemple
  * --
+ * This is an exemple of the Metabox Callback function.
  * https://developer.wordpress.org/reference/functions/register_post_type/
  * http://wp-learner.com/wotdpress-development/adding-metaboxes-to-post-types/
  */
@@ -48,7 +49,5 @@ if (!function_exists('WP_PleasePlugMe_registerMetaBoxCallback'))
     {
         // var_dump( $post );
         // exit;
-        // add_meta_box('property-contact', 'Contact', 'searchin_property_contact_meta', 'property', 'side', 'default');
-
     }
 } 

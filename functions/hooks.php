@@ -10,14 +10,25 @@ if ( !function_exists( 'add_action' ) )
 
 
 /**
- * Action
+ * Hook Exemple
  * --
- * An action exemple
+ * This is an exemple of a hook function.
+ * We declare a function code : "PleasePlugMe_HookExemple_Function"
+ * 
+ * Declare this hook in config.json at :
+ *      "hooks": {
+ *          "PleasePlugMe_HookExemple_Function": "wp"
+ *      }
+ * 
+ * This hook is call at each event "wp"
  */
-if (!function_exists('WP_PleasePlugMe_Hook_Exemple'))
+if (!function_exists('PleasePlugMe_HookExemple_Function'))
 {
-    function WP_PleasePlugMe_Hook_Exemple()
+    function PleasePlugMe_HookExemple_Function()
     {
-        return "Hello, i'm an action. You can do what you whant inside me.";
+        if (!is_admin())
+        {
+            echo "Hello, i'm a hook. You can do what you whant inside me.";
+        }
     }
 } 

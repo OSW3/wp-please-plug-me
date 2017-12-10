@@ -10,15 +10,32 @@ if ( !function_exists( 'add_action' ) )
 
 
 /**
- * Shortcode
+ * Shortcode Exemple
  * --
- * A shortcode exemple
- * usage: do_shortcode('[WP_PleasePlugMe_Shorcode_Exemple]');
+ * This is an exemple of a shortcode function.
+ * We declare a function code : "PleasePlugMe_ShorcodeExemple_Function", and
+ * we call this function by : "PleasePlugMe_ShorcodeExemple_Name"
+ * 
+ * Declare this shortcode in config.json at :
+ *      "shortcodes": {
+ *          "PleasePlugMe_ShorcodeExemple_Name": "PleasePlugMe_ShorcodeExemple_Function"
+ *      }
+ * 
+ * Use this shortcode like : 
+ *      do_shortcode('[PleasePlugMe_ShorcodeExemple_Name]');
  */
-if (!function_exists('WP_PleasePlugMe_Shorcode_Exemple'))
+if (!function_exists('PleasePlugMe_ShorcodeExemple_Function'))
 {
-    function WP_PleasePlugMe_Shorcode_Exemple()
+    function PleasePlugMe_ShorcodeExemple_Function( $attributes, $content, $tag )
     {
+        echo "<h3>Shortcode \$attributes</h3>";
+        var_dump($attributes);
+
+        echo "<h3>Shortcode \$content</h3>";
+        print_r($content);
+
+        echo "<h3>Shortcode \$tag</h3>";
+        print_r($tag);
         return "Hello, i'm a shortcode. You can do what you whant inside me.";
     }
 } 

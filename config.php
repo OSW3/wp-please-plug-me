@@ -17,7 +17,7 @@ $config = array(
      * If not defined, the namespace will generate automatically by the slug of 
      * the plugin name.
      */
-    // 'namespace' => 'please_plug_me',
+    'namespace' => 'please_plug_me',
 
 
     /**

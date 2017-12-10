@@ -1,6 +1,26 @@
 {
-    "_namespace": "please_plug_me_namespace",
-    
+    // @ NameSpace (optional)
+    // @ Type : string
+    // --
+    // If is not defined, the namespace will generate automatically by the 
+    // slug of the plugin name.
+    // --
+    "namespace": "",
+
+
+    // @ Front Side Assets ("assets") (optional)
+    // @ Admin Side Assets ("admin_assets") (optional)
+    // @ Type : array
+    // --
+    // Define the list of assets the plugin needs for the Front or Admin side.
+    // it contains two arrays : 
+    // - "styles" to declare all CSS you need.
+    // - "scripts" to declare all JavaScript you need.
+    //
+    // Each item on "assets" or "scripts" contains two parameters : 
+    // - "name", wil generate the WP asset ID
+    // - "path", to define the local file or an URL
+    // --
     "assets": {
         "styles": [{
             "name": "my-custom-front-style",
@@ -11,7 +31,6 @@
             "path": "my-custom-front"
         }]
     },
-    
     "assets_admin": {
         "styles": [{
             "name": "my-custom-admin-style",
@@ -23,49 +42,248 @@
         }]
     },
 
-    "_options": {
+
+    // @ Options (optional)
+    // @ Type : assoc array
+    // --
+    // List of options you want to add into the table "wp_options".
+    // The data in this list are not intended to be modified by any forms.
+    // If you want to add defaults values for forms (settings or custom posts), 
+    // please use defaults parameters of the register 
+    // (register.settings.schema.field.default or 
+    // register.posts.metas.schema.field.default), these values will be 
+    // automatically added to the list of options
+    // --
+    "options": {
         "option_name": "Option value"
     },
-
+    
+    
+    // @ Register
+    // @ Type : object
+    // --
+    // Use the register to create your plugin settings, your custom posts and 
+    // your widgets.
+    // --
     "register": {
+        
+        // @ Fields parameters
+        // --
+        // You will find fields on "Settings" and "Posts".
+        // We share the documentation here
+        // --
+        // Each field must be declared like an object and can have these 
+        // parameters :
+        // 
+        // > key (string)
+        //  This is the field identifier, its used for the id and name 
+        //  attributes.
+        // 
+        // > label (string)
+        //  This is the text used for the <label> tag.
+        // 
+        // > type (string) 
+        //  The type of the field, it can be : 
+        //  choices, color, date, datetime, email, file, hidden, month, number, 
+        //  password, range, search, tel, text, textarea, time, url, week.
+        //  (soon : collection)
+        // 
+        // > helper (string)
+        // 
+        // > default (string)
+        //  Use to define the sefault value
+        // 
+        // > required (boolean)
+        // 
+        // > readonly (boolean)
+        // 
+        // > disabled (boolean)
+        // 
+        // > maxlength (integer)
+        // 
+        // > class (string)
+        // 
+        // > step (integer | float)
+        // 
+        // > min (integer | float)
+        // 
+        // > max (integer | float)
+        // 
+        // > rule (string)
+        // 
+        // > expanded (boolean)
+        // 
+        // > multiple (boolean)
+        // 
+        // > cols (integer)
+        // 
+        // > rows (integer)
+        // 
+        // > size (integer)
+        // 
+        // > allowed_types (string | array)
+        // 
+        // > preview (boolean)
 
+
+
+        // @ Settings (optional)
+        // @ Type : object
+        // --
+        // Use this to add a settings page to your plugin.
+        // --
         "settings": {
 
+            // @ Settings > Menus (optional)
+            // @ Type : object
+            // --
+            // Parameters for menus
+            // --
             "menus": {
+                
+                // @ Menus location (optional)
+                // @ Type : boolean
+                // @ Default value : false
+                // --
+                // Define the location for the Ssettings page link
+                // --
+                // Add link to the admin menu sidebar
                 "admin": true,
+                // Add link under the name of the plugin on the Plugins page
                 "action": true,
+                // Add link to the submenu of "Settings" tab
                 "settings": true,
+                
 
-                "_icon": "dashicons-email",
-                "icon": "image:ppm.png",
-
-                "_submenus": {}
+                // @ Menu icon (optional)
+                // @ Type : string
+                // --
+                // Define the icon of the link (if admin is true)
+                // Value can be the name of a dashicon (ex: "dashicons-email")
+                // or the name of custom image, value must start by "image:" 
+                // followed by the name of the image
+                // --
+                // "icon": "dashicons-email",
+                "icon": "image:ppm.png"
             },
-
-            "_view": true,
             
+            
+            // @ Thumbnails register (optional)
+            // @ Type : object | array
+            // --
+            // Add filters for thumbnails and cropper when images are uploaded
+            // As Object : "thumbnails" : { "strict" , "preserve_wp_sizes" , "sizes" : [ ... list of sizes ... ]}
+            // As Array : "thumbnails" : [ ... list of sizes ... ]
+            // --
             "thumbnails": {
-                "_strict": true,
+                
+                // @ Strict (optional)
+                // @ Type : boolean
+                // @ Default value : false
+                // --
+                // If True, when you upload images from the 
+                // Settings page, the WordPress cropper apply only these sizes.
+                // --
+                "strict": false,
+                
+                // @ Preserve the WordPress sizes (optional)
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // Applyed only if the parameter "Strict" is True.
+                // If True, the WordPress cropper apply these size and default 
+                // Wordpress sizes
+                // --
                 "preserve_wp_sizes": true,
+                
+                // @ Sizes register (required)
+                // @ Type : array
+                // --
+                // List of filter you want to add to the WordPress cropper
+                // --
                 "sizes": [{
-                    "name": "settings-primary",
+
+                    // @ Name (required)
+                    // @ Type : string
+                    // --
+                    // Image size identifier.
+                    "name": "please-plug-me-thumbnail",
+
+                    // @ Width (required)
+                    // @ Type : integer
+                    // --
+                    // Image width in pixels.
                     "width": 800,
+
+                    // @ Height (required)
+                    // @ Type : integer
+                    // --
+                    // Image height in pixels.
                     "height": 40,
-                    "_crop": true
-                },{
-                    "name": "settings-secondary",
-                    "width": 400,
-                    "height": 270,
-                    "crop": true
-                },{
-                    "name": "settings-preview",
-                    "width": 350,
-                    "height": 250,
-                    "crop": true
+
+                    // @ Crop (optional)
+                    // @ Type : boolean | array
+                    // @ Default value : false
+                    // --
+                    // Whether to crop images to specified width and height or 
+                    // resize. An array can specify positioning of the crop area.
+                    "crop": false
+
                 }]
             },
 
-            "schema": [{
+
+            // @ View (optional)
+            // @ Type : boolean
+            // @ Default value : false
+            // --
+            // If true, you can create your spécific view and store it at 
+            // /views/settings/index.php
+            // --
+            "view": false,
+
+
+            // @ Sections (required)
+            // @ Type : array
+            // --
+            // List of sections of the Settings page.
+            // --
+            "sections": [{
+
+                // @ Title (optional)
+                // @ Type : string
+                // --
+                // The title of the section
+                // --
+                "title": "This is the title of the section",
+
+                // @ Description (optional)
+                // @ Type : string
+                // --
+                // The description of the section
+                // --
+                "description": "This is the description of the section.",
+
+                // @ Schema (optional)
+                // @ Type : array
+                // --
+                // List of fields of the section.
+                // See "Fields parameters" for more info about fields settings
+                // If not defined, the entire section will considered as null.
+                // --
+                "schema": [{
+                    "key": "unid_field_key",
+                    "label": "I'm a demo field label",
+                    "type": "text",
+                    "helper": "I'm the helper of the demo field.",
+                    "default": "I'm a demo field value (and i'm disabled)",
+                    "disabled": true
+                }]
+            },
+
+            // @ Start Demo Fields
+            // --
+            {
                 "title": "Text fields demo",
                 "description": "Description of the schema section.",
                 "schema": [{
@@ -101,6 +319,11 @@
                     "label": "Demo Text field (with cusom class)",
                     "type": "text",
                     "class": "my-custom-class"
+                },{
+                    "key": "demo_hidden",
+                    "label": "Demo Hidden field",
+                    "type": "hidden",
+                    "default": "Defualt Hidden value"
                 }
                 ,
                 {
@@ -310,174 +533,662 @@
                     "key": "demo_file_multiple",
                     "label": "Demo file Multiple",
                     "type": "file",
+                    "helper": "You can add multiple files with one field",
                     "_size": 12300,
                     "multiple": true
                 }]
-            }]
+            }
+            // --
+            // @ End Demo Fields
+
+            ]
         },
+        
 
+        // @ Posts (optional)
+        // @ Type : array
+        // --
+        // Use this to add custom posts to your plugin.
+        // --
         "posts": [{
+
+            // @ Type (required)
+            // @ Type : string
+            // --
+            // Post type key. Must not exceed 20 characters and may only
+            // contain lowercase alphanumeric characters, dashes, and 
+            // underscores.
+            // --
             "type": "wpppm_custom_post",
+
+            // @ Label (optional)
+            // @ Type : string
+            // --
+            // Label of the admin tab 
+            // --
             "label": "WPPPM Custom Post",
-            "description": "My custom post short description",
-            "_hierarchical": false,
+
+            // @ Description (optional)
+            // @ Type : string
+            // --
+            // A short descriptive summary of what the post type is
+            // --
+            "description": "My custom post description",
             
-            "_public": true,
-            "_publicly_queryable": false,
-            "_exclude_from_search": false,
+            // @ Public (optional)
+            // @ Type : boolean
+            // @ Default value : true
+            // --
+            // Whether a post type is intended for use publicly
+            // --
+            "public": true,
             
-            "_show_ui": false,
-            "_show_in_menu": true,
-            "_show_in_nav_menus": true,
-            "_show_in_admin_bar": true,
+            // @ Hierarchical (optional)
+            // @ Type : boolean
+            // @ Default value : false
+            // --
+            // Whether the post type is hierarchical
+            // --
+            "hierarchical": false,
+            
+            // @ Public Queryable (optional)
+            // @ Type : boolean
+            // @ Default value : is inherited from $public.
+            // --
+            // Whether queries can be performed on the front
+            // --
+            "publicly_queryable": false,
+            
+            // @ Exclude from search (optional)
+            // @ Type : boolean
+            // @ Default value : is the opposite value of $public.
+            // --
+            // Whether to exclude posts with this post type from front end 
+            // search results.
+            // --
+            "exclude_from_search": false,
+            
+            // @ Show UI (optional)
+            // @ Type : boolean
+            // @ Default value : is value of $public.
+            // --
+            // Whether to generate and allow a UI for managing this post type
+            // in the admin
+            // --
+            "show_ui": true,
+            
+            // @ Show in admin (optional)
+            // @ Type : boolean
+            // @ Default value : is value of $show_ui.
+            // --
+            // Where to show the post type in the admin menu.
+            // --
+            "show_in_menu": true,
+            
+            // @ Show in nav menus (optional)
+            // @ Type : boolean
+            // @ Default value : is value $public.
+            // --
+            // Makes this post type available for selection in navigation menus.
+            // --
+            "show_in_nav_menus": true,
+            
+            // @ Show in admin bar (optional)
+            // @ Type : boolean
+            // @ Default value : is value of $show_in_menu.
+            // --
+            // Makes this post type available via the admin bar.
+            // --
+            "show_in_admin_bar": true,
+            
+            // @ Show in REST (optional)
+            // @ Type : boolean
+            // @ Default value : false.
+            // --
+            // Whether to add the post type route in the REST API 'wp/v2' namespace
+            // --
+            "show_in_rest": false,
+            
+            // @ REST Base (optional)
+            // @ Type : string
+            // @ Default value : is $post_type.
+            // --
+            // To change the base url of REST API route
+            // --
+            "rest_base": "",
+            
+            // @ REST Controller Class name (optional)
+            // @ Type : string
+            // @ Default value : Default is 'WP_REST_Posts_Controller'.
+            // --
+            // REST API Controller class name
+            // --
+            "rest_controller_class": null,
+            
+            // @ Menu Position (optional)
+            // @ Type : integer
+            // @ Default value : null.
+            // --
+            // The position in the menu order the post type should appear.
+            // --
+            "menu_position": null,
+            
+            // @ Menu icon (optional)
+            // @ Type : string
+            // @ Default value : dashicons-welcome-add-page
+            // --
+            // Define the icon of the link (if admin is true)
+            // Value can be the name of a dashicon (ex: "dashicons-email")
+            // or the name of custom image, value must start by "image:" 
+            // followed by the name of the image
+            // --
+            "menu_icon": "dashicons-welcome-add-page",
+            // "menu_icon": "image:ppm.png",
+            
+            // @ Capability Type
+            // @ Type : string
+            // @ Default value : post
+            // --
+            // The string to use to build the read, edit, and delete capabilities.
+            // --
+            "capability_type": "post",
+            
+            // @ Capabilities
+            // @ Type : array
+            // @ Default value : post
+            // --
+            // Array of capabilities for this post type
+            // --
+            "capabilities": {
 
-            "_show_in_rest": true,
-            "_rest_base": "my_custom_rest_base",
-            "_rest_controller_class": "OSW3",
+                // @ Edit Post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "edit_post": true,
+                
+                // @ Edit Posts
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // If false, its disabled the access of Items list
+                // --
+                // "edit_posts": true,
+                
+                // @ Edit Others Post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "edit_others_posts": false,
 
-            "_menu_position": 0,
-            "_menu_icon": "dashicons-email", "_menu_icon": "image:16x16.png",
+                // @ Edit Private Post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "edit_private_posts": false,
+                
+                // @ Edit Published Post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "edit_published_posts": true,
+                
+                
+                // @ Read
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "read": true,
+                
+                // @ Read Post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "read_post": true,
+                
+                // @ Read Private Posts
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "read_private_posts": true,
 
-            "capability_type": "page",
-            "_capabilities": {
-                "create_posts": "do_not_allow"
+                
+                // @ Publish Posts
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // If false, user can't publish a post
+                // --
+                // "publish_posts": true,
+                
+                
+                // @ Delete Post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "delete_post": false,
+                
+                // @ Delete Posts
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "delete_posts": false,
+                
+                // @ Delete Private Posts
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "delete_private_posts": true,
+                
+                // @ Delete Published post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "delete_published_post": false,
+                
+                // @ Delete Other Posts
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // --
+                // "delete_others_posts": true,
+                
+                // @ Create Post
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // If false, user can't create new post
+                // --
+                "create_posts": true // "do_not_allow"
             },
-            "_map_meta_cap": false,
             
+            // @ Map Meta Cap
+            // @ Type : boolean
+            // @ Default value : false
+            // --
+            // Whether to use the internal default meta capability handling
+            // --
+            "map_meta_cap": true,
+            
+            // @ Supports
+            // @ Type : array
+            // @ Default value : ["title", "editor"]
+            // --
+            // Core feature(s) the post type supports
+            // "title", "editor", "comments", "revisions", "trackbacks", 
+            // "author", "excerpt", "page-attributes", "thumbnail", 
+            // "custom-fields", "post-formats"
+            // --
+            // TODO: Add Support Type
+            // https://developer.wordpress.org/reference/functions/add_post_type_support/
             "supports": ["title", "editor"],
-
-            "_register_meta_box_cb": "OSW3_WP_PluginBoilerplate_registerMetaBoxCallback",
-
-            "labels": {
-                "all_items": "All items",
-                "_add_new": "(1) Add new button label",
-                "_search_items": "(2) Search button label",
-                "_not_found": "(3) No post found text",
-                "_add_new_item": "(4)Add new item title",
-                "_edit_item": "(5) Admin bar edit item",
-                "_singular_name": "(6) Admin bar singular name (create new)",
-                "_not_found_in_trash": "(7) not found in trash",
-                "_attributes": "(9) Attributes box title",
-                "_featured_image": "(10) Feat image box title",
-                "_set_featured_image": "(11) set feat image link",
-                "_insert_into_item": "(12) Add to item button media modal",
-                "_view_item": "(13) View item > admin bar > page article",
-                "_view_items": "(14) View items > admin bar > page article",
-                "view_items": false
-            },
             
-            "has_archive": true,
+            // @ Register Meta Box CallBack
+            // @ Type : callable function
+            // @ Default value : null
+            // --
+            // Provide a callback function that sets up the meta boxes for the 
+            // edit form.
+            // The callback function must be stored on /functions/function.php
+            // --
+            "register_meta_box_cb": "WP_PleasePlugMe_registerMetaBoxCallback",
+            
+            // @ Has Archive
+            // @ Type : boolean | string
+            // @ Default value : false
+            // --
+            // Whether there should be post type archives, or if a string, the archive slug to use
+            // --
+            "has_archive": false,
+            
+            // @ Rewrite
+            // @ Type : boolean | array
+            // @ Default value : true
+            // --
+            // Triggers the handling of rewrites for this post type.
+            // To prevent rewrite, set to false.
+            // --
+            // "rewrite": {
+
+                // @ Slug
+                // @ Type : string | callable
+                // @ Default value : is the string of the post type
+                // --
+                // To create a dynamic slug, you can store it in a callable 
+                // function and write "do:your_callable_function_name".
+                // The function must be declared on /functions/actions.php
+                // --
+                // "slug": "do:my_custom_post",
+
+                // @ With Front
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // "with_front": true,
+
+                // @ Feeds
+                // @ Type : boolean
+                // @ Default value : is the same as $has_archive
+                // --
+                // "feeds": true,
+
+                // @ Page
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // "pages": true
+
+                // @ ep_mask
+                // @ Type : constant
+                // @ Default value : EP_PERMALINK
+                // TODO: contants list
+                // --
+                // "ep_mask": "EP_PERMALINK
+
+            // },
+            "rewrite": false,
+            
+            // @ Can Export
+            // @ Type : boolean
+            // @ Default value : true
+            // --
+            // Whether to allow this post type to be exported
+            // --
             "can_export": false,
-            "delete_with_user": null,
             
-            "rewrite": {
-                "slug": "do:my_custom_post",
-                "_with_front": false,
-                "_feeds": true,
-                "_pages": true
+            // @ Delete With User
+            // @ Type : boolean | null
+            // @ Default value : false
+            // --
+            // Whether to delete posts of this type when deleting a user
+            // --
+            "delete_with_user": false,
+            
+            // @ Show Admin Permalink
+            // @ Type : boolean
+            // @ Default value : true
+            // --
+            // Hide the post permalink in Admin page
+            // --
+            "show_admin_permalink": false,
+            
+            // @ NoValidate
+            // @ Type : boolean
+            // @ Default value : true
+            // --
+            // If true, add the "novalidate" attribute to the <form> tag of the 
+            // post form
+            // False to remove the novalidate attribute
+            // --
+            "novalidate": true,
+            
+            // @ Thumbnails register (optional)
+            // @ Type : object | array
+            // --
+            // Read the doc of "register.settings.thumbnails"
+            // --
+            "thumbnails": [{
+                "name": "my-custom-primary",
+                "width": 800,
+                "height": 540,
+                "crop": true
+            },{
+                "name": "my-custom-secondary",
+                "width": 400,
+                "height": 270,
+                "_crop": true
+            },{
+                "name": "my-custom-preview",
+                "width": 350,
+                "height": 250,
+                "crop": true
+            }],
+                
+            // @ Labels (optional)
+            // @ Type : array
+            // --
+            // An array of labels for this post type
+            // --
+            "labels": {
+                
+                // @ All items
+                // @ Type : string | boolean (false)
+                // @ Location : Admin sidebar, sublevel of the custom post tab
+                // --
+                // Link to show all items
+                // --
+                "all_items": "All items"
+                
+                // @ Add New
+                // @ Type : string | boolean (false)
+                // @ Location : Admin sidebar, sublevel of the custom post tab
+                // --
+                // Link to add a new item
+                // --
+                // "add_new": "Add new",
+                
+                // @ Search button label
+                // @ Type : string
+                // @ Location : Admin post list, send button of the search form
+                // --
+                // "search_items": "Search",
+                
+                // @ No item found
+                // @ Type : string
+                // @ Location : Admin post list, when the post list is empty
+                // --
+                // "not_found": "No post found",
+                
+                // @ Add new item page title
+                // @ Type : string
+                // @ Location : Admin post form to add new
+                // --
+                // "add_new_item": "Add new",
+
+                // @ Edit item page title
+                // @ Type : string
+                // @ Location : Admin edit form
+                // --
+                // "edit_item": "Edit the post",
+
+                // @ Add new (admin bar)
+                // @ Type : string
+                // @ Location : Admin bar, sublevel of "+ create" tab
+                // @ Default value : is the post label
+                // --
+                // "singular_name": "Add new custom post",
+
+                // @ No item found (on trash)
+                // @ Type : string
+                // @ Location : Admin post trash list, when the post trash list is empty
+                // --
+                // "not_found_in_trash": "No post found",
+
+                // @ Attributes
+                // @ Type : string
+                // @ Location : 
+                // --
+                // "attributes": "",
+
+                // @ Featured Image
+                // @ Type : string
+                // @ Location : Media modal
+                // --
+                // "featured_image": "",
+
+                // @ Set Featured Image
+                // @ Type : string
+                // @ Location : Media modal
+                // --
+                // "set_featured_image": "",
+
+                // @ Insert into Item
+                // @ Type : string
+                // @ Location : Media modal, insert button
+                // --
+                // "insert_into_item": "Add to item",
+
+                // @ View Item
+                // @ Type : string
+                // @ Location : Admin bar, on Edit post page
+                // --
+                // "view_item": "View item",
+
+                // @ View Items
+                // @ Type : string
+                // @ Location : 
+                // --
+                // "view_items": ""
             },
-
-            "category": {
+                
+            // @ Category (taxonomy) (optional)
+            // @ Type : array
+            // --
+            // Settings for the taxonomy "Category" of the post
+            // --
+            "categories": {
+                
+                // @ Labels (optional)
+                // @ Type : array
+                // --
+                // An array of labels for categories
+                // --
                 "labels": {
-                    "name": "Categories",
-                    "_add_new_item": "(1) Add new item title",
-                    "_search_items": "(2) Search button label",
-                    "_not_found": "(3) No item found",
-                    "_parent_item": "(4) Parent categ",
-                    "_edit_item": "(5) Edit Item",
-                    "_view_item": "(6) View item > admin bar",
-                    "_most_used": "(7) Most used tab dans la page de gestion des menus",
-                    "_all_items": "(8) all items tab in create article form",
-
-                    "__singular_name": "SINGULAR_NAME",
-                    "__popular_items": "POPULAR_ITEMS",
-                    "__parent_item_colo": "PARENT_ITEM_COLO",
-                    "__new_item_name": "NEW_ITEM_NAME",
-                    "__separate_items_with_commas": "SEPARATE_ITEMS_WITH_COMMAS",
-                    "__add_or_remove_items": "ADD_OR_REMOVE_ITEMS",
-                    "__choose_from_most_used": "CHOOSE_FROM_MOST_USED",
-                    "__no_terms": "NO_TERMS",
-                    "__back_to_items": "BACK_TO_ITEMS"
+                    "name": "Categories"
+                    // "_add_new_item": "(1) Add new item title",
+                    // "_search_items": "(2) Search button label",
+                    // "_not_found": "(3) No item found",
+                    // "_parent_item": "(4) Parent categ",
+                    // "_edit_item": "(5) Edit Item",
+                    // "_view_item": "(6) View item > admin bar",
+                    // "_most_used": "(7) Most used tab dans la page de gestion des menus",
+                    // "_all_items": "(8) all items tab in create article form",
+                    // "__singular_name": "SINGULAR_NAME",
+                    // "__popular_items": "POPULAR_ITEMS",
+                    // "__parent_item_colo": "PARENT_ITEM_COLO",
+                    // "__new_item_name": "NEW_ITEM_NAME",
+                    // "__separate_items_with_commas": "SEPARATE_ITEMS_WITH_COMMAS",
+                    // "__add_or_remove_items": "ADD_OR_REMOVE_ITEMS",
+                    // "__choose_from_most_used": "CHOOSE_FROM_MOST_USED",
+                    // "__no_terms": "NO_TERMS",
+                    // "__back_to_items": "BACK_TO_ITEMS"
                 },
-                "rel_objects": ["post", "truc"],
 
-                "public": null,
-                "rewrite": {
-                    "slug": "azertyu",
-                    "_with_front": "",
-                    "_hierarchical": "",
-                    "_ep_mask": ""
-                },
+                // @ Rel Object (optional)
+                // @ Type : array
+                // @ Default value : is an empty array
+                // --
+                // You can share categories of this post type with others posts type
+                // --
+                // "rel_objects": ["page"],
+
+                // @ Public (optional)
+                // @ Type : boolean | null
+                // @ Default value : true
+                // --
+                // Whether a category is intended for use publicly
+                // --
+                // "public": true,
+
+                // @ Rewrite (optional)
+                // @ Type : boolean | array
+                // @ Default value : true
+                // --
+                // Same as post.rewrite.
+                // --
+                "rewrite": false,
+
+                // @ Show Admin Columns (optional)
+                // @ Type : boolean
+                // @ Default value : true
+                // --
+                // If true, A category column was added to the list of posts
+                // --
                 "show_admin_column": true
             },
-
-            "tag": {
+                
+            // @ Tags (taxonomy) (optional)
+            // @ Type : array
+            // --
+            // Settings for the taxonomy "CateTaggory" of the post
+            // Same as Category (taxonomy)
+            // --
+            "tags": {
                 "labels": {
                     "name": "Tags"
                 },
-                "rel_objects": ["post", "truc"],
-                "_public": true,
-                "rewrite": true,
-                "_show_admin_column": true
+                "rewrite": true
             },
-            
+                
+            // @ Admin Columns
+            // @ Type : array
+            // --
+            // Define columns and data for the list of post type
+            // --
             "admin_columns": [{
+                
+                // @ Label
+                // @ Type : array
+                // --
+                // Specify the label of the column
+                // --
                 "label": "My custom field",
-                "_data": ["glue", "field A", "field B"],
+                
+                // @ Label
+                // @ Type : string | array
+                // --
+                // Specify the key of the postmeta.
+                // When Data is an array, You can combine multiple postmeta with glue
+                // ["glue", "field A", "field B", ...],
+                // --
                 "data": ["at", "date", "time"],
+                
+                // @ Sortable
+                // @ Type : boolean
+                // @ Default value : false
+                // --
+                // Specify if the column was sortable or not
+                // --
                 "sortable": true
-            },{
+            },
+            // For defaults columns (Title & Date), you can define if they are 
+            // showed or not
+            {
                 "key": "date",
                 "public": false
             },{
                 "key": "title",
                 "public": true
             }],
-            
-            "show_admin_permalink": false,
-            "_novalidate": false,
 
-            "_view": true,
-
-            "thumbnails": {
-                "strict": true,
-                "preserve_wp_sizes": false,
-                "sizes": [{
-                    "name": "my-custom-primary",
-                    "width": 800,
-                    "height": 540,
-                    "crop": true
-                },{
-                    "name": "my-custom-secondary",
-                    "width": 400,
-                    "height": 270,
-                    "crop": true
-                },{
-                    "name": "my-custom-preview",
-                    "width": 350,
-                    "height": 250,
-                    "crop": true
-                }]
-            },
-            
-            "_thumbnails": [{
-                    "name": "my-custom-primary",
-                    "width": 800,
-                    "height": 540,
-                    "crop": true
-                },{
-                    "name": "my-custom-secondary",
-                    "width": 400,
-                    "height": 270,
-                    "crop": true
-                },{
-                    "name": "my-custom-preview",
-                    "width": 350,
-                    "height": 250,
-                    "crop": true
-                }],
-
-            
+            // @ View
+            // @ Type : boolean
+            // @ Default value : false
+            // --
+            // If true, The meta box view is provided from a file.
+            // The view file must be stored in /views/{$post_type}.php.
+            // The name of the file must be the name of the post.
+            // If False, the mata box will generated automaticaly from the 
+            // $metas parameters
+            // --
+            "view": false,
+                
+            // @ Metas
+            // @ Type : array
+            // --
+            // TODO:
+            // --
             "metas": [{
                 "title": "Text fields demo",
                 "_view": "view-test",
@@ -726,16 +1437,128 @@
                     "_allowed_types": ["image/*", "audio/*"],
                     "multiple": true
                 }]
-            }]
+            }],
+                
+            // @ Widget
+            // @ Type : boolean | array
+            // --
+            // TODO:
+            // --
+            "_widget": true,
+            "widget": {
+
+                // @ Label (optional)
+                // @ Type : string
+                // @ Default value : is the label of this custopm post
+                // --
+                // The title of the widget box.
+                // --
+                "label": "Widget for PPM Custom Post",
+
+                // @ Type (optional)
+                // @ Type : string
+                // @ Default value : view
+                // --
+                // Define the type of predefined widget.
+                // Types can be :
+                //  > view
+                //  > comments (last comments)
+                //  > quick-add
+                //  > list
+                //  
+                // --
+                "type": "list",
+
+                // @ View (optional)
+                // @ Type : string
+                // @ Default value : null
+                // --
+                // Define the name of the view file.
+                // The view file must be stored in "/views/widgets/{view_file_name}.php"
+                // /!\ the widget.type value msut be defined at "view"
+                // 
+                // --
+                "view": "my-custom-post-widget-view",
+
+                // @ Control (optional)
+                // @ Type : callable
+                // @ Default value : null
+                // --
+                // Function that outputs controls for the widget 
+                // --
+                "control": null,
+
+                // @ Args (optional)
+                // @ Type : array | callable (do:function_name)
+                // @ Default value : null
+                // --
+                // Data that should be set as the $args property of the widget 
+                // --
+                "args": null
+            }
+        }],
+        
+
+        // @ Widgets (optional)
+        // @ Type : array
+        // --
+        // Use this to add widgets to your plugin.
+        // --
+        "widgets": [{
+
+            // # Exemple : Undefined view file
+            "label": "Widget with undefined view file"
+
+            // For all widget of the register
+            // The Type parameters is automaticaly defined at "view"
+            // "type": "view"
+            
+        },{
+
+            // # Exemple : Without view file
+            "label": "Widget without view file",
+            "view": "i-have-no-file" // file is not created in the view directory
+            
+        },{
+
+            // # Exemple : Without view file
+            "label": "Widget with view file",
+            "view": "i-have-file" // file is not created in the view directory
+            
         }]
 
     },
-    
+
+
+    // @ Hooks (optional)
+    // @ Type : assoc array
+    // --
+    // List of hooks code you want to use with your plugin
+    // Each item must be a pair of "Hook Function" and "Trigger Event".
+    // Functions of hooks can be declared anywhere you want, but for a 
+    // good practice, prefere declare your functions in the file 
+    // "/functions/hooks.php"
+    // --
+    // https://codex.wordpress.org/Plugin_API/Action_Reference
+    // --
     "hooks": {
-        "WP_PleasePlugMe_Hook_Exemple": "wp"
+        "PleasePlugMe_HookExemple_Function": "wp"
     },
-    
+
+
+    // @ Shortcodes (optional)
+    // @ Type : assoc array
+    // --
+    // List of shortcodes you want to create with your plugin
+    // Each item must be a pair of "Shortcode Name" and "Shortcode Function".
+    // Functions of shortcodes can be declared anywhere you want, but for a 
+    // good practice, prefere declare your functions in the file 
+    // "/functions/shortcodes.php"
+    // --
     "shortcodes": {
-        "WP_PleasePlugMe_Shorcode_Exemple": "WP_PleasePlugMe_Shorcode_Exemple"
+        "PleasePlugMe_ShorcodeExemple_Name": "PleasePlugMe_ShorcodeExemple_Function"
     }
+
+
+    // @ Actions ()
 }
