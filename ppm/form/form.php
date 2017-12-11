@@ -18,6 +18,7 @@ if (!class_exists('PPM_FormType'))
         private $rows = null;
         private $checked = null;
         private $required = null;
+        // private $requiredSymbol;
         private $disabled = null;
         private $readonly = null;
         private $multiple = null;
@@ -49,12 +50,12 @@ if (!class_exists('PPM_FormType'))
             $this->setName( $attrNameAsArray );
             $this->setId();
             $this->setValue();
+            $this->setRequired();
             $this->setPlaceholder();
             $this->setClass();
             $this->setCols();
             $this->setRows();
             $this->setChecked();
-            $this->setRequired();
             $this->setDisabled();
             $this->setReadonly();
             $this->setTag();
@@ -172,8 +173,6 @@ if (!class_exists('PPM_FormType'))
         {
             $output = null;
             $show_label = true;
-            
-            // var_dump( empty($this->getLabel()) );
 
             if ((isset($additional['show_label']) && $additional['show_label'] === false) || empty($this->getLabel()) )
             {
@@ -613,6 +612,11 @@ if (!class_exists('PPM_FormType'))
             $value = isset($this->attributes->placeholder) 
                 ? addslashes(__($this->attributes->placeholder, $this->config->Namespace ))
                 : null;
+            
+            if (null != $value)
+            {
+                $value.= $this->getRequiredSymbol();
+            }
 
             $attribute = null != $value 
                 ? 'placeholder="'.$value.'"'
@@ -824,6 +828,25 @@ if (!class_exists('PPM_FormType'))
         public function getAttrRequired()
         {
             return $this->required->attribute;
+        }
+
+        private function getRequiredSymbol()
+        {
+            $symbol = "*";
+            
+            if ($this->getRequired())
+            {
+                if (isset($this->attributes->required_symbol))
+                {
+                    $symbol = $this->attributes->required_symbol;
+
+                    if (false === $symbol)
+                    {
+                        $symbol = null;
+                    }
+                }
+                return " ".$symbol;
+            }
         }
         
 
@@ -1136,9 +1159,19 @@ if (!class_exists('PPM_FormType'))
          */
         private function setLabel ()
         {
-            $this->label = isset($this->attributes->label) 
+            $label = isset($this->attributes->label) 
                 ? addslashes(__($this->attributes->label, $this->config->Namespace ))
                 : null;
+
+
+            if (null != $label)
+            {
+                $label.= " <span class=\"required-symbol\">";
+                $label.= trim($this->getRequiredSymbol());
+                $label.= "<span>";
+            }
+
+            $this->label = $label;
         }
         /**
          * Get Label
