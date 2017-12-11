@@ -1414,34 +1414,38 @@ if (!class_exists('PPM'))
                     {
                         foreach ($section['schema'] as $field) 
                         {
+                            $error_messages = array(
+                                "required"  => __("This field is required.", WPPPM_TEXTDOMAIN),
+                                "email"     => __("This field is not a valid email address.", WPPPM_TEXTDOMAIN),
+                                "url"       => __("This field is not a valid url.", WPPPM_TEXTDOMAIN),
+                                "rule"      => __("This field is not valid.", WPPPM_TEXTDOMAIN)
+                            );
+
                             // Default field settings
-                            $field['allowed_types'] = isset($field['allowed_types']) ? $field['allowed_types'] : null;
-                            $field['class']         = isset($field['class']) ? $field['class'] : false;
-                            $field['choices']       = isset($field['choices']) ? $field['choices'] : false;
-                            $field['cols']          = isset($field['cols']) ? $field['cols'] : false;
-                            $field['default']       = isset($field['default']) ? $field['default'] : null;
-                            $field['disabled']      = isset($field['disabled']) ? $field['disabled'] : false;
-                            $field['expanded']      = isset($field['expanded']) ? $field['expanded'] : false;
-                            $field['file']          = isset($field['file']) ? $field['file'] : null;
-                            $field['helper']        = isset($field['helper']) ? $field['helper'] : null;
-                            $field['key']           = isset($field['key']) ? $field['key'] : null;
-                            $field['label']         = isset($field['label']) ? $field['label'] : null;
-                            $field['max']           = isset($field['max']) ? $field['max'] : null;
-                            $field['min']           = isset($field['min']) ? $field['min'] : null;
-                            $field['multiple']      = isset($field['multiple']) ? $field['multiple'] : false;
-                            $field['readonly']      = isset($field['readonly']) ? $field['readonly'] : false;
-                            $field['required']      = isset($field['required']) ? $field['required'] : false;
-                            $field['rows']          = isset($field['rows']) ? $field['rows'] : false;
-                            $field['rule']          = isset($field['rule']) ? $field['rule'] : false;
-                            $field['size']          = isset($field['size']) ? $field['size'] : 0;
-                            $field['step']          = isset($field['step']) ? $field['step'] : null;
-                            $field['type']          = isset($field['type']) ? $field['type'] : "text";
-                            $field['error']         = false;
-                            $field['thumbnails']    = false;
-                            // $field['value']     = isset($field['value']) ? $field['value'] : $request[$field['key']];
-                            // $field['ID'] = isset($field['ID']) ? $field['ID'] : false;
-                            // $field['section'] = isset($field['section']) ? $field['section'] : false;
-    
+                            $field['allowed_types']     = isset($field['allowed_types']) ? $field['allowed_types'] : null;
+                            $field['class']             = isset($field['class']) ? $field['class'] : false;
+                            $field['choices']           = isset($field['choices']) ? $field['choices'] : false;
+                            $field['cols']              = isset($field['cols']) ? $field['cols'] : false;
+                            $field['default']           = isset($field['default']) ? $field['default'] : null;
+                            $field['disabled']          = isset($field['disabled']) ? $field['disabled'] : false;
+                            $field['expanded']          = isset($field['expanded']) ? $field['expanded'] : false;
+                            $field['file']              = isset($field['file']) ? $field['file'] : null;
+                            $field['helper']            = isset($field['helper']) ? $field['helper'] : null;
+                            $field['key']               = isset($field['key']) ? $field['key'] : null;
+                            $field['label']             = isset($field['label']) ? $field['label'] : null;
+                            $field['max']               = isset($field['max']) ? $field['max'] : null;
+                            $field['min']               = isset($field['min']) ? $field['min'] : null;
+                            $field['multiple']          = isset($field['multiple']) ? $field['multiple'] : false;
+                            $field['readonly']          = isset($field['readonly']) ? $field['readonly'] : false;
+                            $field['required']          = isset($field['required']) ? $field['required'] : false;
+                            $field['rows']              = isset($field['rows']) ? $field['rows'] : false;
+                            $field['rule']              = isset($field['rule']) ? $field['rule'] : false;
+                            $field['size']              = isset($field['size']) ? $field['size'] : 0;
+                            $field['step']              = isset($field['step']) ? $field['step'] : null;
+                            $field['type']              = isset($field['type']) ? $field['type'] : "text";
+                            $field['error']             = false;
+                            $field['thumbnails']        = false;
+
                             // Format data
                             if (!is_array($field['allowed_types']) && null !== $field['allowed_types'])
                             {
@@ -1490,6 +1494,28 @@ if (!class_exists('PPM'))
                                     $field['value'] = $request[$field['key']];
                                     break;
                             }
+
+                            // Custom error message
+                            if (isset($field['error_messages']))
+                            {
+                                if (is_string($field['error_messages']))
+                                {
+                                    $error_messages = array(
+                                        "required"  => __($field['error_messages'], $config->Namespce),
+                                        "email"     => __($field['error_messages'], $config->Namespce),
+                                        "url"       => __($field['error_messages'], $config->Namespce),
+                                        "rule"      => __($field['error_messages'], $config->Namespce)
+                                    );
+                                }
+                                else if (is_array($field['error_messages']))
+                                {
+                                    if (isset($field['error_messages']['required'])) $error_messages['required'] = $field['error_messages']['required'];
+                                    if (isset($field['error_messages']['email'])) $error_messages['email'] = $field['error_messages']['email'];
+                                    if (isset($field['error_messages']['url'])) $error_messages['url'] = $field['error_messages']['url'];
+                                    if (isset($field['error_messages']['rule'])) $error_messages['rule'] = $field['error_messages']['rule'];
+                                }
+                            }
+                            $field['error_messages'] = (object) $error_messages;                            
                             
                             if (!empty($field['key']))
                             {
@@ -1499,10 +1525,6 @@ if (!class_exists('PPM'))
                     }
                 }
             }
-            // else
-            // {
-            //     echo "NOT AN ARRAY\n";
-            // }
 
             return $responses;
         }
@@ -1526,22 +1548,27 @@ if (!class_exists('PPM'))
         public static function validate( $params )
         {
             $config = $params['config'];
+            $post_type = $params['post_type'];
             $responses = $params['responses'];
             $errors = [];
+            $values = [];
             $success = [];
 
             if (!empty($responses) && is_array($responses))
             {
                 foreach ($responses as $response)
                 {
+                    // Values
+                    $values[$response->key] = $response->value;
+
                     // Is Required
                     if ($response->required && empty($response->value))
                     {
                         $response->error = true;
-
+                        
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => __("This field is required.", WPPPM_TEXTDOMAIN)
+                            "message" => $response->error_messages->required
                         );
                     }
                     
@@ -1552,7 +1579,7 @@ if (!class_exists('PPM'))
 
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => __("This field is not a valid email address.", WPPPM_TEXTDOMAIN)
+                            "message" => $response->error_messages->email
                         );
                     }
                     
@@ -1563,7 +1590,7 @@ if (!class_exists('PPM'))
 
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => __("This field is not a valid url.", WPPPM_TEXTDOMAIN)
+                            "message" => $response->error_messages->url
                         );
                     }
                     
@@ -1586,25 +1613,27 @@ if (!class_exists('PPM'))
 
                         $errors[$response->key] = array(
                             "field" => $response->key,
-                            "message" => __("This field is not valid.", WPPPM_TEXTDOMAIN)
+                            "message" => $response->error_messages->rule
                         );
                     }
 
                     else
                     {
-                        $success[$response->key] = array(
-                            "field" => $response->key,
-                            "value" => $response->value
-                        );
+                        array_push($success, $response->key);
                     }
                 }
             }
 
-            return (object) array(
+            $_SESSION[$post_type] = array(
+                // If the submit has no error, we send $value as an empty array
+                // to prevent to show data in form
+                "values" => !empty($errors) ? $values : [],
                 "errors" => $errors,
                 "success" => $success,
-                "isValide" => empty($errors)
+                "isValid" => empty($errors)
             );
+
+            return (object) $_SESSION[$post_type];
         }
 
         public static function validate_file( $field )

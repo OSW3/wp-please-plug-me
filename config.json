@@ -74,57 +74,110 @@
         // --
         // Each field must be declared like an object and can have these 
         // parameters :
-        // 
-        // > key (string)
-        //  This is the field identifier, its used for the id and name 
-        //  attributes.
-        // 
-        // > label (string)
-        //  This is the text used for the <label> tag.
-        // 
-        // > type (string) 
-        //  The type of the field, it can be : 
+        
+        // @ Name : key (required)
+        // @ type : string
+        // --
+        // This is the field identifier, its used for the id and name 
+        // attributes.
+        
+        // @ Name : label (optional)
+        // @ Type : string
+        // @ Default value : null
+        // --
+        // This is the text used for the <label> tag.
+        // If is not defined the <label> tag was not generated
+        
+        // @ Name : type (required)
+        // @ Type : string
+        // @ Default value : null
+        // --
+        // The type of the field, it can be : 
         //  choices, color, date, datetime, email, file, hidden, month, number, 
         //  password, range, search, tel, text, textarea, time, url, week.
-        //  (soon : collection)
-        // 
-        // > helper (string)
-        // 
-        // > default (string)
+        // Soon : collection
+        
+        // @ Name : helper (optional)
+        // @ Type : string
+        
+        // @ Name : default (optional)
+        // @ Type : string
         //  Use to define the sefault value
-        // 
-        // > required (boolean)
-        // 
-        // > readonly (boolean)
-        // 
-        // > disabled (boolean)
-        // 
-        // > maxlength (integer)
-        // 
-        // > class (string)
-        // 
-        // > step (integer | float)
-        // 
-        // > min (integer | float)
-        // 
-        // > max (integer | float)
-        // 
-        // > rule (string)
-        // 
-        // > expanded (boolean)
-        // 
-        // > multiple (boolean)
-        // 
-        // > cols (integer)
-        // 
-        // > rows (integer)
-        // 
-        // > size (integer)
-        // 
-        // > allowed_types (string | array)
-        // 
-        // > preview (boolean)
+        
+        // @ Name : required (optional)
+        // @ Type : boolean
+        
+        // @ Name : readonly (optional)
+        // @ Type : boolean
+        
+        // @ Name : disabled (optional)
+        // @ Type : boolean
+        
+        // @ Name : maxlength (optional)
+        // @ Type : integer
+        
+        // @ Name : class (optional)
+        // @ Type : string
+        
+        // @ Name : step (optional)
+        // @ Type : integer | float
+        
+        // @ Name : min (optional)
+        // @ Type : integer | float
+        
+        // @ Name : max (optional)
+        // @ Type : integer | float
+        
+        // @ Name : rule (optional)
+        // @ Type : string
+        
+        // @ Name : expanded (optional)
+        // @ Type : boolean
+        
+        // @ Name : multiple (optional)
+        // @ Type : boolean
+        
+        // @ Name : cols (optional)
+        // @ Type : integer
+        
+        // @ Name : rows (optional)
+        // @ Type : integer
+        
+        // @ Name : size (optional)
+        // @ Type : integer
+        
+        // @ Name : allowed_types (optional)
+        // @ Type : string | array
+        
+        // @ Name : preview (optional)
+        // @ Type : boolean
 
+        // @ Name : show_error (optional)
+        // @ Type : boolean
+        // @ Default value : true
+        // --
+        // If False, the error message was not printed for this field
+        
+        // @ Name : error_messages (optional)
+        // @ Type : string | array 
+        // @ Default value : is an array
+        // @ Exemple : "error_messages": "You write something wrong."
+        // @ Exemple : "error_messages": {
+        //     "email": "WTF !? This is not an email address !"
+        // }
+        // -- 
+        // The default array values content
+        // - "required" : "This field is required.", 
+        // - "email" : "This field is not a valid email address.", 
+        // - "url" : "This field is not a valid url.", 
+        // - "rule" : "This field is not valid."
+        // --
+        // If String, the message was apply on all errors type : "error_messages": "Has error !"
+        // If Array, you can specify each error type message
+
+
+        // /////////////////////////////////////////////////////////////////////
+        // /////////////////////////////////////////////////////////////////////
 
 
         // @ Settings (optional)

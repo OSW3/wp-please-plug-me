@@ -29,6 +29,7 @@ if (!class_exists('PPM_FormType'))
         
         private $hasLabelTag = false;
         private $hasWrapper = false;
+        private $hasError = false;
         private $label = null;
         private $helper = null;
 
@@ -41,7 +42,7 @@ if (!class_exists('PPM_FormType'))
             $this->errors       = isset($params['errors']) ? $params['errors'] : [];
             $this->schemaID     = isset($params['schemaID']) ? $params['schemaID'] : null;
             $attrNameAsArray    = isset($params['attrNameAsArray']) ? $params['attrNameAsArray'] : false;
-            
+
             $this->setKey();
             $this->setType();
             $this->setMultiple();
@@ -144,20 +145,26 @@ if (!class_exists('PPM_FormType'))
         }
         private function getHtmlTag_error()
         {
-            if (isset($this->errors[ $this->getKey() ]))
+            // Define if we show the error message
+            $show_error = true;
+            if (isset($this->attributes->show_error) && is_bool($this->attributes->show_error))
             {
-                if (!isset( $this->errors[ $this->getKey() ]['value'] ))
+                $show_error = $this->attributes->show_error;
+            }
+
+            $has_error = $this->getHasError();
+
+            if ($show_error && $has_error)
+            {
+                if (isset( $has_error['message'] ))
                 {
-                    if (isset( $this->errors[ $this->getKey() ]['message'] ))
-                    {
-                        $message = $this->errors[ $this->getKey() ]['message'];
-                    }
-                    else
-                    {
-                        $message = __("This field is not valid.", WPPPM_TEXTDOMAIN);
-                    }
-                    return "<div class=\"has-error\">". $message ."</div>";
+                    $message = $has_error['message'];
                 }
+                else
+                {
+                    $message = __("This field is not valid.", WPPPM_TEXTDOMAIN);
+                }
+                return "<div class=\"notice has-error\">". $message ."</div>";
             }
             return null;
         }
@@ -166,7 +173,9 @@ if (!class_exists('PPM_FormType'))
             $output = null;
             $show_label = true;
             
-            if (isset($additional['show_label']) && $additional['show_label'] === false)
+            // var_dump( empty($this->getLabel()) );
+
+            if ((isset($additional['show_label']) && $additional['show_label'] === false) || empty($this->getLabel()) )
             {
                 $show_label = false;
             }
@@ -251,6 +260,17 @@ if (!class_exists('PPM_FormType'))
         public function getKey()
         {
             return $this->key;
+        }
+
+
+        public function getHasError()
+        {
+            if (isset($this->errors[$this->getKey()]))
+            {
+                return $this->errors[$this->getKey()];
+            }
+            
+            return false;
         }
 
 
@@ -627,6 +647,11 @@ if (!class_exists('PPM_FormType'))
             $value = isset($this->attributes->class) 
                 ? $this->attributes->class 
                 : null;
+            
+            if ($this->getHasError())
+            {
+                $value.= " has-error";
+            }
 
             $attribute = null != $value 
                 ? 'class="'.$value.'"'

@@ -28,7 +28,7 @@ if (!function_exists('PleasePlugMe_HookExemple_Function'))
     {
         if (!is_admin())
         {
-            echo "Hello, i'm a hook. You can do what you whant inside me.";
+            // echo "Hello, i'm a hook. You can do what you whant inside me.";
         }
     }
 } 

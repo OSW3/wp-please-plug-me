@@ -10,6 +10,7 @@ if (!class_exists('PPM_RegisterPosts'))
         private $type;
         private $available_capability_type = ['post', 'page'];
         private $available_ep_mask = ["EP_NONE", "EP_PERMALINK", "EP_ATTACHMENT", "EP_DATE", "EP_YEAR", "EP_MONTH", "EP_DAY", "EP_ROOT", "EP_COMMENTS", "EP_SEARCH", "EP_CATEGORIES", "EP_TAGS", "EP_AUTHORS", "EP_PAGES", "EP_ALL_ARCHIVES", "EP_ALL"];
+        private $posts_type = [];
 
         /**
          * Constructor
@@ -509,9 +510,6 @@ if (!class_exists('PPM_RegisterPosts'))
                         }      
                     }
                 }
-
-
-
             }
         }
 
@@ -528,40 +526,43 @@ if (!class_exists('PPM_RegisterPosts'))
                     {
                         foreach ($schema['schema'] as $field)
                         {
-                            if (isset($field['key']) && $field['key'] === $key && false !== $field['shortcode'])
+                            if (isset($field['type']) && !empty($field['type']))
                             {
-                                foreach ($attrs as $attr_key => $attr_value)
+                                if (isset($field['key']) && $field['key'] === $key && false !== $field['shortcode'])
                                 {
-                                    // Boolean value
-                                    if (in_array(strtolower($attr_value), ["true", "yes", "y", "on", "1"]))
+                                    foreach ($attrs as $attr_key => $attr_value)
                                     {
-                                        $attrs[$attr_key] = true;
+                                        // Boolean value
+                                        if (in_array(strtolower($attr_value), ["true", "yes", "y", "on", "1"]))
+                                        {
+                                            $attrs[$attr_key] = true;
+                                        }
+                                        else if (in_array(strtolower($attr_value), ["false", "non", "n", "off", "0"]))
+                                        {
+                                            $attrs[$attr_key] = false;
+                                        }
                                     }
-                                    else if (in_array(strtolower($attr_value), ["false", "non", "n", "off", "0"]))
-                                    {
-                                        $attrs[$attr_key] = false;
-                                    }
+                                    
+                                    $field = (object) array_merge( $field, $attrs );
+    
+                                    require_once $this->config->Path.'ppm/form/form.php';
+                                    require_once $this->config->Path.'ppm/form/'.$field->type.'.php';
+                                    
+                                    $classType = ucfirst(strtolower($field->type));
+                                    $classType = "PPM_".$classType."Type";
+    
+                                    $formType = new $classType([
+                                        "config"            => $this->config,
+                                        "attributes"        => $field, 
+                                        "addLabelTag"       => is_bool($field->label) ? $field->label : true,
+                                        "addWrapper"        => false, 
+                                        "attrNameAsArray"   => false,
+                                        "schemaID"          => "CustomPosts",
+                                        "errors"            => isset($_SESSION[$posttype]['errors']) ? $_SESSION[$posttype]['errors'] : []
+                                    ]);
+    
+                                    return $formType->render();
                                 }
-                                
-                                $field = (object) array_merge( $field, $attrs );
-
-                                require_once $this->config->Path.'ppm/form/form.php';
-                                require_once $this->config->Path.'ppm/form/'.$field->type.'.php';
-                                
-                                $classType = ucfirst(strtolower($field->type));
-                                $classType = "PPM_".$classType."Type";
-
-                                $formType = new $classType([
-                                    "config"            => $this->config,
-                                    "attributes"        => $field, 
-                                    "addLabelTag"       => is_bool($field->label) ? $field->label : true,
-                                    "addWrapper"        => false, 
-                                    "attrNameAsArray"   => false,
-                                    "schemaID"          => "CustomPosts",
-                                    "errors"            => $_SESSION[$posttype]['errors']
-                                ]);
-
-                                return $formType->render();
                             }
                         }
                     }
@@ -896,54 +897,50 @@ if (!class_exists('PPM_RegisterPosts'))
                 $type = $_REQUEST['post_type'];
                 $schema = $this->getPostsSchemas();
 
-                // if (is_array($schema[$type]))
-                // {
-                    // Format responses
-                    $responses = PPM::responses([
-                        "config" => $this->config,
-                        "schema" => $schema[$type]
-                    ]);
+                // Format responses
+                $responses = PPM::responses([
+                    "config" => $this->config,
+                    "schema" => $schema[$type]
+                ]);
 
-                    if (!empty($responses))
+                if (!empty($responses))
+                {
+                    // check response validation
+                    $validate = PPM::validate([
+                        "config" => $this->config,
+                        "post_type" => $type,
+                        "responses" => $responses
+                    ]);
+    
+                    if (!$validate->isValid)
                     {
-                        // check response validation
-                        $validate = PPM::validate([
-                            "config" => $this->config,
-                            "responses" => $responses
-                        ]);
-                        
-        
-                        if (!$validate->isValide)
+                        $this->errors = $validate->errors;
+                    }
+    
+                    foreach ($responses as $key => $response)
+                    {
+                        if (!isset($this->errors[$key]))
                         {
-                            $this->errors = $validate->errors;
-                        }
-        
-                        foreach ($responses as $key => $response)
-                        {
-                            if (!isset($this->errors[$key]))
+                            // Save File
+                            if ('file' === $response->type)
                             {
-                                // Save File
-                                if ('file' === $response->type)
+                                if (!empty($response->files)) // Prevent to remove the previous image
                                 {
-                                    if (!empty($response->files)) // Prevent to remove the previous image
-                                    {
-                                        $uploads = PPM::upload( $response, $pid, $this->config );
-                                        update_post_meta($pid, $key, $uploads); 
-                                    }
-                                }
-                                
-                                // Save data in wp_postmeta
-                                else
-                                {
-                                    update_post_meta($pid, $key, $response->value);
+                                    $uploads = PPM::upload( $response, $pid, $this->config );
+                                    update_post_meta($pid, $key, $uploads); 
                                 }
                             }
+                            
+                            // Save data in wp_postmeta
+                            else
+                            {
+                                update_post_meta($pid, $key, $response->value);
+                            }
                         }
-        
-                        $_SESSION[$type]['errors'] = $this->errors;
                     }
-                    
-                // }
+    
+                    $_SESSION[$type]['errors'] = $this->errors;
+                }
             }
         }
     }
