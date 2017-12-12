@@ -28,7 +28,8 @@
         }],
         "scripts": [{
             "name": "my-custom-front-script",
-            "path": "my-custom-front"
+            "path": "my-custom-front",
+            "dependencies": "jQuery"
         }]
     },
     "assets_admin": {
@@ -38,7 +39,8 @@
         }],
         "scripts": [{
             "name": "my-custom-admin-script",
-            "path": "my-custom-admin"
+            "path": "my-custom-admin",
+            "dependencies": "jQuery"
         }]
     },
 
