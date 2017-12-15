@@ -1092,6 +1092,9 @@ if (!class_exists('PPM'))
             {
                 require_once($file);
 
+                echo "<pre>";
+                print_r($className);
+                echo "</pre>";
                 if (is_array($className))
                 {
                     $method = isset($className[1]) ? $className[1] : null;
@@ -1100,9 +1103,6 @@ if (!class_exists('PPM'))
 
                     if (class_exists($className))
                     {
-                        echo "<pre>";
-                        print_r($className);
-                        echo "</pre>";
             
                         if (null === $method)
                         {
