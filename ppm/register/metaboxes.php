@@ -19,9 +19,9 @@ if (!class_exists('PPM_RegisterMetaboxes'))
             $this->schemas = $params['schemas'];
             $this->type = $params['type'];
             
-            // $this->add_metaboxes();
+            $this->add_metaboxes();
 
-            add_action('add_meta_boxes', array($this, 'add_metaboxes'));
+            // add_action('add_meta_boxes', array($this, 'add_metaboxes'));
         }
 
 
