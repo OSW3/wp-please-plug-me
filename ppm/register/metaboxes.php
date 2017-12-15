@@ -19,7 +19,9 @@ if (!class_exists('PPM_RegisterMetaboxes'))
             $this->schemas = $params['schemas'];
             $this->type = $params['type'];
             
-            $this->add_metaboxes();
+            // $this->add_metaboxes();
+
+            add_action('add_meta_boxes', array($this, 'add_metaboxes'));
         }
 
 
@@ -121,7 +123,7 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                         $callback       = [$this, 'metabox_fields'];
                         $screen         = $type;
                         $context        = 'normal'; // !empty($metabox['context']) ? $metabox['context'] : 'normal';
-                        $priority       = 'default'; //!empty($metabox['priority']) ? $metabox['priority'] : 'high';
+                        $priority       = 'high'; //!empty($metabox['priority']) ? $metabox['priority'] : 'high';
                         // $callback_args  = !empty($metabox['callback_args']) ? $metabox['callback_args'] : [];
                         // add_meta_box( $id, $title, $callback, $screen, $context, $priority, $callback_args );
                         add_meta_box( $id               , $title                , $callback         , $screen       , $context  , $priority );
