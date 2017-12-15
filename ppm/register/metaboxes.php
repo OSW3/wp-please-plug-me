@@ -19,10 +19,6 @@ if (!class_exists('PPM_RegisterMetaboxes'))
             $this->schemas = $params['schemas'];
             $this->type = $params['type'];
             
-                        echo "<pre>";
-                        print_r($this->config);
-                        echo "</pre>";
-            
             $this->add_metaboxes();
         }
 
@@ -70,11 +66,6 @@ if (!class_exists('PPM_RegisterMetaboxes'))
         public function add_metaboxes()
         {
             $settings = $this->settings;
-
-            echo "<pre>";
-            print_r($settings);
-            echo "</pre>";
-
             $schemas = $this->schemas;
             $type = $this->type;
             $metaboxes = isset($schemas[$type]) ? $schemas[$type] : null;
