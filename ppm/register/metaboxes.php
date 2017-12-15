@@ -67,9 +67,9 @@ if (!class_exists('PPM_RegisterMetaboxes'))
         {
             $settings = $this->settings;
 
-            // echo "<pre>";
-            // print_r($settings);
-            // echo "</pre>";
+            echo "<pre>";
+            print_r($settings);
+            echo "</pre>";
 
             $schemas = $this->schemas;
             $type = $this->type;
