@@ -1088,10 +1088,6 @@ if (!class_exists('PPM'))
             }
 
             // Load class
-            echo "<pre>";
-            print_r($file);
-            echo "</pre>";
-
             if (file_exists($file))
             {
                 require_once($file);
@@ -1104,6 +1100,10 @@ if (!class_exists('PPM'))
 
                     if (class_exists($className))
                     {
+                        echo "<pre>";
+                        print_r($className);
+                        echo "</pre>";
+            
                         if (null === $method)
                         {
                             return new $className( $params );
