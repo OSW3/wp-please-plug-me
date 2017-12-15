@@ -90,7 +90,7 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                                 "metabox_".$type, 
                                 __($post['label'], $this->config->Namespace), 
                                 [$this, 'metabox_view'], 
-                                $type,
+                                'normal', // $type,
                                 'default' // 'normal', 
                                 // 'high', 
                                 // []
