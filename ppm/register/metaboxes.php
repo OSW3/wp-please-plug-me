@@ -138,7 +138,7 @@ if (!class_exists('PPM_RegisterMetaboxes'))
 
 
                     add_meta_box(
-                        'metabox_'.$key, 
+                        'metabox_', 
                         'Label', // __($post['label'], $this->config->Namespace), 
                         array($this,'linkToArcticle'), 
                         $type, 
