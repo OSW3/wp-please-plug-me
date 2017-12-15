@@ -132,8 +132,8 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                 // {
                 //     $metaboxes = [$metaboxes];
                 // }
-                foreach ($metaboxes as $key => $metabox)
-                {
+                // foreach ($metaboxes as $key => $metabox)
+                // {
                     // print_r( $metabox );
 
 
@@ -183,35 +183,35 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                     //             }
                     //         }
                     //     }
-                }
+                // }
             // }
 
-            if ($add_novalidate)
-            {
-                add_action('post_edit_form_tag', array( $this, 'add_form_novalidate'));
-            }
+            // if ($add_novalidate)
+            // {
+            //     add_action('post_edit_form_tag', array( $this, 'add_form_novalidate'));
+            // }
 
-            if ($add_enctype)
-            {
-                add_action('post_edit_form_tag', array( $this, 'add_form_enctype'));
-            }
+            // if ($add_enctype)
+            // {
+            //     add_action('post_edit_form_tag', array( $this, 'add_form_enctype'));
+            // }
             
-            if (!$show_admin_permalink)
-            {
-                add_filter( 'get_sample_permalink_html', function(){ return false; } );
-            }
+            // if (!$show_admin_permalink)
+            // {
+            //     add_filter( 'get_sample_permalink_html', function(){ return false; } );
+            // }
 
-            if (isset($_SESSION[$type]) && !empty($_SESSION[$type]))
-            {
-                if (isset($_SESSION[$type]['errors']))
-                {
-                    add_action('admin_notices', array($this, 'add_warning_notices'));
-                }
-                else
-                {
-                    add_action('admin_notices', array($this, 'add_success_notices'));
-                }
-            }
+            // if (isset($_SESSION[$type]) && !empty($_SESSION[$type]))
+            // {
+            //     if (isset($_SESSION[$type]['errors']))
+            //     {
+            //         add_action('admin_notices', array($this, 'add_warning_notices'));
+            //     }
+            //     else
+            //     {
+            //         add_action('admin_notices', array($this, 'add_success_notices'));
+            //     }
+            // }
         }
 
         /**
