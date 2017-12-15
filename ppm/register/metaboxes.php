@@ -90,17 +90,18 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                                 "metabox_".$type, 
                                 __($post['label'], $this->config->Namespace), 
                                 [$this, 'metabox_view'], 
-                                'normal', // $type,
-                                'default' // 'normal', 
-                                // 'high', 
+                                $type,
+                                'normal', 
+                                'default' // 'high', 
                                 // []
                             );
-            
-// add_meta_box( 'wpt_events_location' , 'Event Location'      , 'wpt_events_location'     , 'events'                  , 'side'    , 'default');
-// add_meta_box( 'linkToArcticle'      , 'Link to arcticle'    , 'linkToArcticle'          , 'arcticles'               , 'default' , 'normal' );
-// add_meta_box( 'linkToArcticle'      , 'Link to arcticle'    , 'linkToArcticle'          , 'arcticles'               , 'normal'  , 'default' );
 
-// add_meta_box( "metabox_".$type      , __($post['label']     , $this->config->Namespace) , [$this, 'metabox_view']   , $type     , 'normal', 'high', []);
+// add_meta_box( $id                   , $title                                            , $callback                 , $screen                   , $context  , $priority , $callback_args )
+// add_meta_box( 'wpt_events_location' , 'Event Location'                                  , 'wpt_events_location'     , 'events'                  , 'side'    , 'default');
+// add_meta_box( 'linkToArcticle'      , 'Link to arcticle'                             , 'linkToArcticle'          , 'arcticles'               , 'default' , 'normal' );
+// add_meta_box( 'linkToArcticle'      , 'Link to arcticle'                             , 'linkToArcticle'          , 'arcticles'               , 'normal'  , 'default' );
+
+// add_meta_box( "metabox_".$type      , __($post['label'], $this->config->Namespace)   , [$this, 'metabox_view']   , $type                     , 'normal'  , 'high'    , []);
 
                             
 
