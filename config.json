@@ -337,7 +337,7 @@
                 // If not defined, the entire section will considered as null.
                 // --
                 "schema": [{
-                    "key": "unid_field_key",
+                    "key": "uniqid_field_key",
                     "label": "I'm a demo field label",
                     "type": "text",
                     "helper": "I'm the helper of the demo field.",
