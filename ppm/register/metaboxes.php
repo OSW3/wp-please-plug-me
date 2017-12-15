@@ -103,8 +103,6 @@ if (!class_exists('PPM_RegisterMetaboxes'))
 
 // add_meta_box( "metabox_".$type      , __($post['label'], $this->config->Namespace)   , [$this, 'metabox_view']   , $type                     , 'normal'  , 'high'    , []);
 
-                            
-
                             $generate_view = false;
                         }
                     }
@@ -122,10 +120,13 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                         $title          = !empty($metabox['title']) ? $metabox['title'] : "-";
                         $callback       = [$this, 'metabox_fields'];
                         $screen         = $type;
-                        $context        = !empty($metabox['context']) ? $metabox['context'] : 'normal';
-                        $priority       = !empty($metabox['priority']) ? $metabox['priority'] : 'high';
-                        $callback_args  = !empty($metabox['callback_args']) ? $metabox['callback_args'] : [];
-                        add_meta_box( $id, $title, $callback, $screen, $context, $priority, $callback_args );
+                        $context        = 'normal'; // !empty($metabox['context']) ? $metabox['context'] : 'normal';
+                        $priority       = 'default'; //!empty($metabox['priority']) ? $metabox['priority'] : 'high';
+                        // $callback_args  = !empty($metabox['callback_args']) ? $metabox['callback_args'] : [];
+                        // add_meta_box( $id, $title, $callback, $screen, $context, $priority, $callback_args );
+                        add_meta_box( $id               , $title                , $callback         , $screen       , $context  , $priority );
+                        // add_meta_box( 'linkToArcticle'  , 'Link to arcticle'    , 'linkToArcticle'  , 'arcticles'   , 'normal'  , 'default' );
+
         
                         if (isset($metabox['schema']))
                         {
