@@ -1071,6 +1071,7 @@ if (!class_exists('PPM'))
 
         /**
          * Include Classe, its dependencies & instantiate
+         * 
          * @param (string) $file
          * @param (string) $className
          * @param (string) $params
@@ -1088,10 +1089,6 @@ if (!class_exists('PPM'))
             }
 
             // Load class
-            echo "<pre>";
-            var_dump($file);
-            var_dump(file_exists($file));
-            echo "</pre>\n";
             if (file_exists($file))
             {
                 require_once($file);
