@@ -143,7 +143,7 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                         array($this,'linkToArcticle'), 
                         $type, 
                         'normal', 
-                        'default' 
+                        'high' 
                     );
                     //     $id             = "metabox_".$type."_".$key;
                     //     $title          = !empty($metabox['title']) ? $metabox['title'] : "-";
