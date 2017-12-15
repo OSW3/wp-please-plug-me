@@ -65,100 +65,126 @@ if (!class_exists('PPM_RegisterMetaboxes'))
         /**
          * Generate MetaBox
          */
+        public function linkToArcticle()
+        {
+            echo "Metabox Test";
+        }
         public function add_metaboxes()
         {
             $settings = $this->settings;
-            $schemas = $this->schemas;
             $type = $this->type;
+
+            // add_meta_box(
+            //     'linkToArcticle', 
+            //     __($post['label'], $this->config->Namespace), 
+            //     array($this,'linkToArcticle'), 
+            //     $type, 
+            //     'normal', 
+            //     'default' 
+            // );
+// 
+            $schemas = $this->schemas;
             $metaboxes = isset($schemas[$type]) ? $schemas[$type] : null;
             $add_enctype = false;
             $add_novalidate = true;
             $show_admin_permalink = true;
 
             $metabox_view_file = $this->config->Path."views/metaboxes/".$type.".php";
-            $generate_view = true;
+            // $generate_view = true;
 
-            // Metabox form a view file
-            foreach ($settings as $post)
-            {
-                if ($type === $post['type'])
-                {
-                    if (isset($post['view']) && true === $post['view'])
-                    {
-                        if (file_exists($metabox_view_file))
-                        {
+//             // Metabox form a view file
+//             foreach ($settings as $post)
+//             {
+//                 if ($type === $post['type'])
+//                 {
+//                     if (isset($post['view']) && true === $post['view'])
+//                     {
+//                         if (file_exists($metabox_view_file))
+//                         {
 
-                            add_meta_box(
-                                "metabox_".$type, 
-                                __($post['label'], $this->config->Namespace), 
-                                [$this, 'metabox_view'], 
-                                $type,
-                                'normal', 
-                                'default' // 'high', 
-                                // []
-                            );
+//                             add_meta_box(
+//                                 "metabox_".$type, 
+//                                 __($post['label'], $this->config->Namespace), 
+//                                 [$this, 'metabox_view'], 
+//                                 $type,
+//                                 'normal', 
+//                                 'default' // 'high', 
+//                                 // []
+//                             );
 
-// add_meta_box( $id                   , $title                                            , $callback                 , $screen                   , $context  , $priority , $callback_args )
-// add_meta_box( 'wpt_events_location' , 'Event Location'                                  , 'wpt_events_location'     , 'events'                  , 'side'    , 'default');
-// add_meta_box( 'linkToArcticle'      , 'Link to arcticle'                             , 'linkToArcticle'          , 'arcticles'               , 'default' , 'normal' );
-// add_meta_box( 'linkToArcticle'      , 'Link to arcticle'                             , 'linkToArcticle'          , 'arcticles'               , 'normal'  , 'default' );
+// // add_meta_box( $id                   , $title                                            , $callback                 , $screen                   , $context  , $priority , $callback_args )
+// // add_meta_box( 'wpt_events_location' , 'Event Location'                                  , 'wpt_events_location'     , 'events'                  , 'side'    , 'default');
+// // add_meta_box( 'linkToArcticle'      , 'Link to arcticle'                             , 'linkToArcticle'          , 'arcticles'               , 'default' , 'normal' );
+// // add_meta_box( 'linkToArcticle'      , 'Link to arcticle'                             , 'linkToArcticle'          , 'arcticles'               , 'normal'  , 'default' );
 
-// add_meta_box( "metabox_".$type      , __($post['label'], $this->config->Namespace)   , [$this, 'metabox_view']   , $type                     , 'normal'  , 'high'    , []);
+// // add_meta_box( "metabox_".$type      , __($post['label'], $this->config->Namespace)   , [$this, 'metabox_view']   , $type                     , 'normal'  , 'high'    , []);
 
-                            $generate_view = false;
-                        }
-                    }
-                }
-            }
+//                             $generate_view = false;
+//                         }
+//                     }
+//                 }
+//             }
 
             // Metaboxes generated automaticaly
-            if ($generate_view)
-            {
-                if (is_array($metaboxes))
+            // if ($generate_view)
+            // {
+                // if (!is_array($metaboxes))
+                // {
+                //     $metaboxes = [$metaboxes];
+                // }
+                foreach ($metaboxes as $key => $metabox)
                 {
-                    foreach ($metaboxes as $key => $metabox)
-                    {
-                        $id             = "metabox_".$type."_".$key;
-                        $title          = !empty($metabox['title']) ? $metabox['title'] : "-";
-                        $callback       = [$this, 'metabox_fields'];
-                        $screen         = $type;
-                        $context        = 'normal'; // !empty($metabox['context']) ? $metabox['context'] : 'normal';
-                        $priority       = 'high'; //!empty($metabox['priority']) ? $metabox['priority'] : 'high';
-                        // $callback_args  = !empty($metabox['callback_args']) ? $metabox['callback_args'] : [];
-                        // add_meta_box( $id, $title, $callback, $screen, $context, $priority, $callback_args );
-                        add_meta_box( $id               , $title                , $callback         , $screen       , $context  , $priority );
-                        // add_meta_box( 'linkToArcticle'  , 'Link to arcticle'    , 'linkToArcticle'  , 'arcticles'   , 'normal'  , 'default' );
+                    // print_r( $metabox );
+
+
+                    add_meta_box(
+                        'metabox_'.$key, 
+                        'Label', // __($post['label'], $this->config->Namespace), 
+                        array($this,'linkToArcticle'), 
+                        $type, 
+                        'normal', 
+                        'default' 
+                    );
+                    //     $id             = "metabox_".$type."_".$key;
+                    //     $title          = !empty($metabox['title']) ? $metabox['title'] : "-";
+                    //     $callback       = [$this, 'metabox_fields'];
+                    //     $screen         = $type;
+                    //     $context        = 'normal'; // !empty($metabox['context']) ? $metabox['context'] : 'normal';
+                    //     $priority       = 'high'; //!empty($metabox['priority']) ? $metabox['priority'] : 'high';
+                    //     // $callback_args  = !empty($metabox['callback_args']) ? $metabox['callback_args'] : [];
+                    //     // add_meta_box( $id, $title, $callback, $screen, $context, $priority, $callback_args );
+                    //     add_meta_box( $id               , $title                , $callback         , $screen       , $context  , $priority );
+                    //     // add_meta_box( 'linkToArcticle'  , 'Link to arcticle'    , 'linkToArcticle'  , 'arcticles'   , 'normal'  , 'default' );
 
         
-                        if (isset($metabox['schema']))
-                        {
-                            if ($add_novalidate)
-                            {
-                                if (isset($settings[$key]['novalidate']) && $settings[$key]['novalidate'] === false)
-                                {
-                                    $add_novalidate = false;
-                                }
-                            }
+                    //     if (isset($metabox['schema']))
+                    //     {
+                    //         if ($add_novalidate)
+                    //         {
+                    //             if (isset($settings[$key]['novalidate']) && $settings[$key]['novalidate'] === false)
+                    //             {
+                    //                 $add_novalidate = false;
+                    //             }
+                    //         }
         
-                            if ($show_admin_permalink)
-                            {
-                                if (isset($settings[$key]['show_admin_permalink']) && $settings[$key]['show_admin_permalink'] === false)
-                                {
-                                    $show_admin_permalink = false;
-                                }
-                            }
+                    //         if ($show_admin_permalink)
+                    //         {
+                    //             if (isset($settings[$key]['show_admin_permalink']) && $settings[$key]['show_admin_permalink'] === false)
+                    //             {
+                    //                 $show_admin_permalink = false;
+                    //             }
+                    //         }
         
-                            foreach ($metabox['schema'] as $field)
-                            {
-                                if ($field['type'] === "file")
-                                {
-                                    $add_enctype = true;
-                                }
-                            }
-                        }
-                    }
+                    //         foreach ($metabox['schema'] as $field)
+                    //         {
+                    //             if ($field['type'] === "file")
+                    //             {
+                    //                 $add_enctype = true;
+                    //             }
+                    //         }
+                    //     }
                 }
-            }
+            // }
 
             if ($add_novalidate)
             {
