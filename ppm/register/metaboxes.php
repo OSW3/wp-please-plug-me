@@ -66,6 +66,11 @@ if (!class_exists('PPM_RegisterMetaboxes'))
         public function add_metaboxes()
         {
             $settings = $this->settings;
+
+            // echo "<pre>";
+            // print_r($settings);
+            // echo "</pre>";
+
             $schemas = $this->schemas;
             $type = $this->type;
             $metaboxes = isset($schemas[$type]) ? $schemas[$type] : null;
@@ -247,7 +252,7 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                                     ]);
     
                                     // Show preview for files
-                                    if ('file' === $field->type && false !== $field->preview)
+                                    if ('file' === $field->type && (!isset($field->preview) || false !== $field->preview))
                                     {
                                         $value = $formType->getValue();
                                         $output.= $formType->render( $value, true );
