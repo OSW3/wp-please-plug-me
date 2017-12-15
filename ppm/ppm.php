@@ -1088,13 +1088,14 @@ if (!class_exists('PPM'))
             }
 
             // Load class
+            echo "<pre>";
+            var_dump($file);
+            var_dump(file_exists($file));
+            echo "</pre>\n";
             if (file_exists($file))
             {
                 require_once($file);
 
-                echo "<pre>";
-                print_r($className);
-                echo "</pre>";
                 if (is_array($className))
                 {
                     $method = isset($className[1]) ? $className[1] : null;
