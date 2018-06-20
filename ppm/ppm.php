@@ -1628,7 +1628,7 @@ if (!class_exists('PPM'))
                     }
                     
                     // Is Email
-                    else if ('email' === $response->type && !filter_var($response->value, FILTER_VALIDATE_EMAIL))
+                    else if ('email' === $response->type && !empty($response->value) && !filter_var($response->value, FILTER_VALIDATE_EMAIL))
                     {
                         $response->error = true;
 
@@ -1639,7 +1639,7 @@ if (!class_exists('PPM'))
                     }
                     
                     // Is url
-                    else if ('url' === $response->type && !filter_var($response->value, FILTER_VALIDATE_URL))
+                    else if ('url' === $response->type && !empty($response->value) && !filter_var($response->value, FILTER_VALIDATE_URL))
                     {
                         $response->error = true;
 

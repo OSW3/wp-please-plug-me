@@ -159,19 +159,33 @@ if (!class_exists('PPM_RegisterSettings'))
     
                 foreach ( $schema as $section_key => $section_data )
                 {
-                    $section_namespace = $section_data['namespace'].$section_data['ID'];
+                    $section_namespace = $section_data['namespace'].$section_data['ID'];$section_title = null;
+
+                    if (isset($section_data['title'])) 
+                    {
+                        $section_title = $section_data['title'];
+                        $section_title = __($section_title, $this->config->Namespace );
+                    }
                     
                     add_settings_section(
                         $section_namespace,
-                        __($section_data['title'], $this->config->Namespace ),
+                        $section_title,
                         function ($data)
                         {
                             global $schema;
                             foreach ($schema as $section)
                             {
+                                $section_description = null;
+
+                                if (isset($section['description'])) 
+                                {
+                                    $section_description = $section['description'];
+                                    $section_description = __($section_description, $this->config->Namespace );
+                                }
+
                                 if ($data['id'] === $section['namespace'].$section['ID'])
                                 {
-                                    echo __($section['description'], $this->config->Namespace );
+                                    echo __($section_description, $this->config->Namespace );
                                 }
                             }
                         },
