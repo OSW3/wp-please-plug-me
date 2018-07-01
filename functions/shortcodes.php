@@ -13,20 +13,20 @@ if ( !function_exists( 'add_action' ) )
  * Shortcode Exemple
  * --
  * This is an exemple of a shortcode function.
- * We declare a function code : "PleasePlugMe_ShorcodeExemple_Function", and
+ * We declare a function code : "PPM_Exemple_Shorcode_Function", and
  * we call this function by : "PleasePlugMe_ShorcodeExemple_Name"
  * 
  * Declare this shortcode in config.json at :
  *      "shortcodes": {
- *          "PleasePlugMe_ShorcodeExemple_Name": "PleasePlugMe_ShorcodeExemple_Function"
+ *          "PleasePlugMe_ShorcodeExemple_Name": "PPM_Exemple_Shorcode_Function"
  *      }
  * 
  * Use this shortcode like : 
  *      do_shortcode('[PleasePlugMe_ShorcodeExemple_Name]');
  */
-if (!function_exists('PleasePlugMe_ShorcodeExemple_Function'))
+if (!function_exists('PPM_Exemple_Shorcode_Function'))
 {
-    function PleasePlugMe_ShorcodeExemple_Function( $attributes, $content, $tag )
+    function PPM_Exemple_Shorcode_Function( $attributes, $content, $tag )
     {
         echo "<h3>Shortcode \$attributes</h3>";
         var_dump($attributes);

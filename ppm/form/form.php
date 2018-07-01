@@ -95,6 +95,10 @@ if (!class_exists('PPM_FormType'))
                 case 'textarea':
                     $control = $this->getHtmlTag_textarea( $attributes );
                     break;
+            
+                case 'wysiwyg':
+                    $control = $this->getHtmlTag_wysiwig();
+                    break;
             }
 
             // The label
@@ -131,6 +135,13 @@ if (!class_exists('PPM_FormType'))
         private function getHtmlTag_textarea( $attributes )
         {
             return "<textarea $attributes >". $this->getValue() ."</textarea>";
+        }
+        private function getHtmlTag_wysiwig()
+        {            
+            $editor_id = $this->config->Namespace.'['.$this->getKey().']';
+            ob_start();
+            @wp_editor( $this->getValue(), $editor_id );
+            return ob_get_clean();
         }
         private function getHtmlTag_wrapper( $control )
         {
@@ -219,6 +230,10 @@ if (!class_exists('PPM_FormType'))
                     
                 case 'textarea':
                     $this->tag = "textarea";
+                    break;
+                    
+                case 'wysiwyg':
+                    $this->tag = "wysiwyg";
                     break;
                     
                 default:

@@ -13,18 +13,18 @@ if ( !function_exists( 'add_action' ) )
  * Hook Exemple
  * --
  * This is an exemple of a hook function.
- * We declare a function code : "PleasePlugMe_HookExemple_Function"
+ * We declare a function code : "PPM_Exemple_Hook"
  * 
  * Declare this hook in config.json at :
  *      "hooks": {
- *          "PleasePlugMe_HookExemple_Function": "wp"
+ *          "PPM_Exemple_Hook": "wp"
  *      }
  * 
  * This hook is call at each event "wp"
  */
-if (!function_exists('PleasePlugMe_HookExemple_Function'))
+if (!function_exists('PPM_Exemple_Hook'))
 {
-    function PleasePlugMe_HookExemple_Function()
+    function PPM_Exemple_Hook()
     {
         if (!is_admin())
         {

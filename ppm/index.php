@@ -10,6 +10,7 @@ if ( !function_exists( 'add_action' ) )
 
 // Files required
 require_once(__DIR__.'/ppm.php');
+require_once(__DIR__.'/functions.php');
 
 // Plugin activation / desactivation
 register_activation_hook( PPM::base(__DIR__)."/index.php", function(){

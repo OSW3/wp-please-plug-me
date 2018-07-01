@@ -230,31 +230,37 @@ if (!class_exists('PPM_RegisterMetaboxes'))
                                 
                                 if (isset($field->key))
                                 {
-                                    require_once $this->config->Path.'ppm/form/form.php';
-                                    require_once $this->config->Path.'ppm/form/'.$field->type.'.php';
+                                    $file_form_class = $this->config->Path.'ppm/form/form.php';
+                                    $file_field_class = $this->config->Path.'ppm/form/'.$field->type.'.php';
                                     
-                                    $classType = ucfirst(strtolower($field->type));
-                                    $classType = "PPM_".$classType."Type";
-    
-                                    $formType = new $classType([
-                                        "config"            => $this->config,
-                                        "attributes"        => $field, 
-                                        "addLabelTag"       => true, 
-                                        "addWrapper"        => true, 
-                                        "attrNameAsArray"   => true,
-                                        "schemaID"          => "CustomPosts",
-                                        "errors"            => isset($_SESSION[$type]['errors']) ? $_SESSION[$type]['errors'] : []
-                                    ]);
-    
-                                    // Show preview for files
-                                    if ('file' === $field->type && (!isset($field->preview) || false !== $field->preview))
+                                    if (file_exists($file_form_class) && file_exists($file_field_class)) 
                                     {
-                                        $value = $formType->getValue();
-                                        $output.= $formType->render( $value, true );
-                                    }
-                                    else
-                                    {
-                                        $output.= $formType->render();
+                                        require_once $file_form_class;
+                                        require_once $file_field_class;
+                                        
+                                        $classType = ucfirst(strtolower($field->type));
+                                        $classType = "PPM_".$classType."Type";
+        
+                                        $formType = new $classType([
+                                            "config"            => $this->config,
+                                            "attributes"        => $field, 
+                                            "addLabelTag"       => true, 
+                                            "addWrapper"        => true, 
+                                            "attrNameAsArray"   => true,
+                                            "schemaID"          => "CustomPosts",
+                                            "errors"            => isset($_SESSION[$type]['errors']) ? $_SESSION[$type]['errors'] : []
+                                        ]);
+        
+                                        // Show preview for files
+                                        if ('file' === $field->type && (!isset($field->preview) || false !== $field->preview))
+                                        {
+                                            $value = $formType->getValue();
+                                            $output.= $formType->render( $value, true );
+                                        }
+                                        else
+                                        {
+                                            $output.= $formType->render();
+                                        }
                                     }
                                 }
                             }
