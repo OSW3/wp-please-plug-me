@@ -10,18 +10,18 @@ if (!defined('WPINC'))
 	exit;
 }
 
-use \Framework\Components\Form\Form\Form;
+use \Framework\Components\Form\Fields\Text;
 
-if (!class_exists('Framework\Components\Form\Fields\Text'))
+if (!class_exists('Framework\Components\Form\Fields\Checkbox'))
 {
-    class Text extends Form 
+    class Checkbox extends Text 
     {
         /**
          * Field Builder
          */
-        // public function builder()
-        // {
-        //     $this->setType('text');
-        // }
+        public function builder()
+        {
+            $this->setType('checkbox');
+        }
     }
 }

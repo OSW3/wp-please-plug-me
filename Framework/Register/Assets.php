@@ -135,7 +135,10 @@ if (!class_exists('Framework\Register\Assets'))
         {
             $_assets = $this->bs->getAssets();
             $_scripts = [];
-            $_styles = [];
+            $_styles = [[
+                'handle' => "ppm-framework-style",
+                'src' => $this->bs->getUri().'Framework/Assets/css/ppm.css'
+            ]];
 
             // Retrieve specific Admin assets
             if (isset($_assets['admin'])) 

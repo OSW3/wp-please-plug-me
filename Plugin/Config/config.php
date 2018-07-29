@@ -90,7 +90,7 @@ $config = [
                /**
                 * Src
                 * 
-                * Determine the uri of the styleshhet
+                * Determine the uri of the stylesheet
                 * 
                 * @param required
                 * @type string
@@ -1764,7 +1764,7 @@ $config = [
                                  * Schema
                                  */
                                 'schema' => [
-                                    'demo_text'
+                                    'demo_select',
                                 ]
 
                             ],
@@ -1781,7 +1781,7 @@ $config = [
                                 'priority' => 'high',
                                 'display' => true,
                                 'schema' => [
-                                    'demo_text'
+                                    'demo_text',
                                 ]
 
                             ],
@@ -2455,7 +2455,19 @@ $config = [
                      * @default null
                      * @field-type: all
                      */
-                    'label' => null,
+                    'label' => "Demo text input",
+
+                    /**
+                     * Default
+                     * 
+                     * Define the default value
+                     * 
+                     * @param optional
+                     * @type string
+                     * @default null
+                     * @field-type: all
+                     */
+                    'default' => null,
 
                     /**
                      * Helper
@@ -2467,7 +2479,7 @@ $config = [
                      * @default null
                      * @field-type: all
                      */
-                    'helper' => null,
+                    'helper' => "Demo helper text",
 
                     /**
                      * Attributes
@@ -2527,10 +2539,10 @@ $config = [
                          * 
                          * @param optional
                          * @type string|null
-                         * @default null
+                         * @default 'regular-text'
                          * @field-type: all
                          */
-                        'class' => "form-control",
+                        'class' => null,
     
                         /**
                          * Placeholder
@@ -2602,7 +2614,7 @@ $config = [
                          * @default null
                          * @field-type: xxx
                          */
-                        'width' => 30,
+                        'width' => null,
 
                         /**
                          * Cols
@@ -2627,6 +2639,18 @@ $config = [
                          * @field-type: textarea
                          */
                         'rows' => null,
+
+                        /**
+                         * Multiple
+                         * 
+                         * If true <select> is multiple
+                         * 
+                         * @param optional
+                         * @type boolean
+                         * @default false
+                         * @field-type: choices
+                         */
+                        'multiple' => false,
 
                     ],
 
@@ -2674,29 +2698,6 @@ $config = [
                     ],
 
                     /**
-                     * Default
-                     * 
-                     * Define the default value
-                     * 
-                     * @param optional
-                     * @type string
-                     * @default null
-                     * @field-type: all
-                     */
-                    'default' => null,
-
-                    /**
-                     * Required Symbole
-                     * 
-                     * Define the symbole for fields are required
-                     * 
-                     * @param optional
-                     * @type string|null
-                     * @default null
-                     */
-                    'required_symbol' => null,
-
-                    /**
                      * Expended
                      * 
                      * -
@@ -2707,18 +2708,6 @@ $config = [
                      * @field-type: choices
                      */
                     'expanded' => false,
-
-                    /**
-                     * Multiple
-                     * 
-                     * If true <select> is multiple
-                     * 
-                     * @param optional
-                     * @type boolean
-                     * @default false
-                     * @field-type: choices
-                     */
-                    'multiple' => false,
 
                     /**
                      * Preview
@@ -2742,6 +2731,45 @@ $config = [
                      * @default false
                      * @field-type: all
                      */
+                    'shortcode' => false,
+
+                ],
+                [
+                    'key' => 'demo_select',
+                    'type' => 'choices',
+                    'label' => "Blob select input",
+                    // 'helper' => "Blob helper select",
+                    'choices' => array(
+                        'a' => 'Choice A',
+                        'b' => 'Choice B',
+                        'c' => 'Choice C',
+                    ),
+                    'attr' => [
+                        // 'id' => null,
+                        // 'required' => true,
+                        // 'readonly' => false,
+                        // 'disabled' => false,
+                        // 'class' => "inline",
+                        // 'placeholder' => null,
+                        // 'maxlength' => null,
+                        // 'step' => null,
+                        // 'max' => null,
+                        // 'min' => null,
+                        // 'width' => null,
+                        // 'cols' => null,
+                        // 'rows' => null,
+                        'multiple' => false,
+                    ],
+                    'rules' => [
+                        'pattern' => null,
+                        'size' => null,
+                        'allowed_types' => null,
+
+                    ],
+                    'default' => "null",
+                    'expanded' => true,
+                    // 'expanded' => false,
+                    'preview' => true,
                     'shortcode' => false,
 
                 ]

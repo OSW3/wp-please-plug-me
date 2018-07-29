@@ -1,0 +1,7 @@
+.choices-expanded .choices-option {
+    display: block;
+    margin-bottom: 6px;
+}
+.choices-expanded.inline .choices-option {
+    display: inline;
+}

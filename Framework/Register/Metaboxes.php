@@ -107,6 +107,8 @@ if (!class_exists('Framework\Register\Metaboxes'))
                     // Default display
                     $display = true;
 
+                    $metabox['post_type'] = $this->getPost('type');
+
                     // Define the display
                     if (isset($metabox['key']) && isset($metabox['display']) && is_bool($metabox['display'])) 
                     {
@@ -183,23 +185,32 @@ if (!class_exists('Framework\Register\Metaboxes'))
             // Retrieve schema definition
             $schema = $this->getPost('schema');
 
+            $content.= '<table class="form-table">';
+            $content.= '<tbody>';
+
             foreach ($metabox_fields as $field_key) 
             {
                 foreach ($schema as $schema_field) 
                 {
                     if ($field_key == $schema_field['key'])
                     {
+                        $schema_field['post_type'] = $metabox['post_type'];
+                        // print_r($metabox);
+                        // print_r($field_key);
+                        // print_r($this->bs);
+
                         $fieldClass = ucfirst(strtolower($schema_field['type']));
                         $fieldClass = "\\Framework\\Components\\Form\\Fields\\".$fieldClass;
                         
-                        // print_r($fieldClass);
-                        $field = new $fieldClass($schema_field);
-
+                        $field = new $fieldClass($schema_field, ['metabox' => true]);
                         $content.= $field->render();
-
+                        
                     }
                 }
             }
+
+            $content.= '</tbody>';
+            $content.= '</table>';
 
             echo $content;
         }

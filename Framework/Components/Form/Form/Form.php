@@ -14,43 +14,197 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 {
     abstract class Form
     {
+        const TYPES = ['Class','Choices','Cols','Disabled','Expanded','Helper',
+            'Id','Label','Max','MaxLength','Min','Multiple','Name',
+            'Placeholder','Readonly','Required','Rows','Step','Type','Value',
+            'Width'];
+
+        /**
+         * Field Attrs
+         */
+        private $attrs;
+        
+        /**
+         * 
+         */ 
+        private $choices;
+        
+        /**
+         * 
+         */ 
+        private $class;
+        
+        /**
+         * 
+         */ 
+        private $cols;
+        
         /**
          * Field config
          */
         private $config;
 
         /**
-         * Field Attrs
-         */
-        private $attrs;
-
-        private $template;
-
-        private $type;
-        private $id;
-        private $class;
-        private $placeholder;
-        private $required;
-        private $readonly;
+         * 
+         */ 
         private $disabled;
-        private $maxLength;
-        private $step;
-        private $min;
+        
+        /**
+         * 
+         */ 
+        private $expanded;
+        
+        /**
+         * 
+         */ 
+        private $helper;
+        
+        /**
+         * 
+         */ 
+        private $id;
+        
+        /**
+         * 
+         */ 
+        private $label;
+        
+        /**
+         * 
+         */ 
         private $max;
-        private $width;
-        private $cols;
+        
+        /**
+         * 
+         */ 
+        private $maxLength;
+        
+        /**
+         * 
+         */ 
+        private $min;
+        
+        /**
+         * 
+         */ 
+        private $multiple;
+        
+        /**
+         * 
+         */ 
+        private $name;
+        
+        /**
+         * 
+         */ 
+        private $placeholder;
+        
+        /**
+         * 
+         */ 
+        private $readonly;
+        
+        /**
+         * 
+         */ 
+        private $required;
+        
+        /**
+         * 
+         */ 
         private $rows;
+        
+        /**
+         * 
+         */ 
+        private $step;
 
         /**
          * 
          */
-        public function __construct(array $config)
+        private $template;
+
+        /**
+         * 
+         */
+        private $tmplOptions;
+        
+        /**
+         * 
+         */ 
+        private $type;
+        
+        /**
+         * 
+         */ 
+        private $value;
+        
+        /**
+         * 
+         */ 
+        private $width;
+
+        /**
+         * 
+         */
+        public function __construct(array $config, array $template_options = [])
         {
             // define Field Type
             $this->setConfig($config);
-            
+            $this->tmplOptions = array_merge([
+                "metabox" => false,
+                "choices" => false,
+            ],$template_options);
+
+            // Call setter methods
+            foreach (self::TYPES as $type) 
+            {
+                $method = 'set'.$type;
+                $this->$method();
+            }
+
             // Build the field
             $this->builder();
+
+
+            
+            
+            
+            
+            
+            
+            
+            
+
+
+            // echo "<pre>";
+            // print_r([
+            //     "type" => $this->getType(),
+
+
+
+            //     "Label" => $this->getLabel(),
+            //     "Helper" => $this->getHelper(),
+            //     "Value" => $this->getValue(),
+
+            //     "Multiple" => $this->getMultiple(),
+            //     "Expanded" => $this->getExpanded(),
+            //     "ID" => $this->getID(),
+            //     "Class" => $this->getClass(),
+            //     "Placeholder" => $this->getPlaceholder(),
+            //     "Required" => $this->getRequired(),
+            //     "Readonly" => $this->getReadonly(),
+            //     "Disabled" => $this->getDisabled(),
+            //     "MaxLength" => $this->getMaxLength(),
+            //     "Width" => $this->getWidth(),
+            //     "Min" => $this->getMin(),
+            //     "Max" => $this->getMax(),
+            //     "Step" => $this->getStep(),
+            //     "Cols" => $this->getCols(),
+            //     "Rows" => $this->getRows(),
+            //     "Choices" => $this->getChoices(),
+            // ]);
+            // echo "</pre>";
         }
 
         /**
@@ -65,38 +219,221 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         public function render()
         {
-            $this->settemplate();
+            //  Template Options
+            $options = $this->tmplOptions;
 
+            // print_r($options);
+
+
+            // $this->setTemplate();
 
             // Init the Output
             $output = '';
 
-            // Init the Attributes
-            $attributes = '';
+            
 
-            $attributes.= $this->getAttrType();
-            $attributes.= $this->getAttrID();
-            $attributes.= $this->getAttrClass();
-            $attributes.= $this->getAttrPlaceholder();
-            $attributes.= $this->getAttrRequired();
-            $attributes.= $this->getAttrReadonly();
-            $attributes.= $this->getAttrDisabled();
-            $attributes.= $this->getAttrMaxLength();
-            $attributes.= $this->getAttrMin();
-            $attributes.= $this->getAttrMax();
-            $attributes.= $this->getAttrStep();
-            $attributes.= $this->getAttrCols();
-            $attributes.= $this->getAttrRows();
-            $attributes.= $this->getAttrWidth();
+            // Output for metabox
+            if ($options['metabox']) 
+            {
+                $output.= '<tr>';
+                $output.= '<th scope="row">';
+                $output.= $this->tagLabel();
+                $output.= '</th>';
+                $output.= '<td>';
+                $output.= $this->tagTemplate();
+                $output.= $this->tagHelper();
+                $output.= '</td>';
+                $output.= '</tr>';
+            }
 
-            $output.= preg_replace("/{{attributes}}/", $attributes, $this->getTemplate());
-            $output.= "<".preg_replace("/{{attributes}}/", $attributes, $this->getTemplate())."/>";
+            else {
+
+                $output.= $this->tagTemplate();
+                // $output.= preg_replace("/{{attributes}}/", $attributes, $this->getTemplate());
+            }
 
             return $output;
         }
 
+
         /**
-         * Set Field type
+         * ----------------------------------------
+         * Tag templates
+         * ----------------------------------------
+         */
+
+        /**
+         * Label
+         */
+        private function tagLabel()
+        {
+            $tag = '<label$1>$2$3</label>';
+
+            if (!empty($this->getId())) { 
+                $tag = preg_replace("/\\$1/", ' for="'.$this->getId().'"', $tag);
+            }
+
+            if (!empty($this->getLabel())) {
+                $tag = preg_replace("/\\$2/", $this->getLabel(), $tag);
+            }
+
+            if ($this->getRequired()) { 
+                $tag = preg_replace("/\\$3/", ' <span>*</span>', $tag);
+            }
+
+            $tag = preg_replace("/(:?\\$1|\\$2|\\$3)/", null, $tag);
+
+            return $tag;
+        }
+        /**
+         * Helper
+         */
+        private function tagHelper()
+        {
+            return '<p class="description">' . $this->getHelper() . '</p>';
+        }
+        /**
+         * <option>
+         */
+        private function tagOption()
+        {
+            return '<option{{attributes}}>'.$this->getLabel().'</option>';
+        }
+        private function tagOptionChoice( $field )
+        {
+            $tag = '<div class="choices-option"><label>$1 $2</label></div>';
+
+            if ('checkbox' == $field->getType())
+            {
+                $field->setName( $field->getName().'['.$field->getValue().']' );
+            }
+
+            $tag = preg_replace("/\\$1/", $field->render(), $tag);
+            $tag = preg_replace("/\\$2/", $field->getLabel(), $tag);
+
+            return $tag;
+        }
+        /**
+         * Choices Container for not expanded Choices
+         * <select>
+         */
+        private function tagChoicesSelect()
+        {
+            return '<select{{attributes}}>'.$this->tagChoicesOption().'</select>';
+        }
+        /**
+         * Choices Container for expanded Choices
+         * <input type="checkbox">
+         * <input type="radio">
+         */
+        private function tagChoicesInput()
+        {
+            return '<div class="choices-expanded '.$this->getClass().'">'.$this->tagChoicesOption().'</div>';
+        }
+        /**
+         * Choice item
+         */
+        private function tagChoicesOption()
+        {
+            $tag = '';
+
+            foreach ($this->getChoices() as $value => $label) 
+            {
+                // Tag options
+                $options = array_merge($this->config,[
+                    "label"     => $label,
+                    "value"     => $value,
+                    "choices"   => []
+                ]);
+
+                // Tag object (checkbox)
+                if ($this->getExpanded() && $this->getMultiple()) {
+                    $tag.= $this->tagOptionChoice(new \Framework\Components\Form\Fields\Checkbox($options));
+                }
+
+                // Tag object (radio)
+                elseif ($this->getExpanded() && !$this->getMultiple()) {
+                    $tag.= $this->tagOptionChoice(new \Framework\Components\Form\Fields\Radio($options));
+                }
+
+                // Tag object (select)
+                else {
+                    $field = new \Framework\Components\Form\Fields\Option($options);
+                    $tag.= $field->render();
+                }
+            }
+
+            return $tag;
+        }
+        /**
+         * <input/>
+         */
+        private function tagInput()
+        {
+            return '<input{{attributes}} />';
+        }
+
+        private function tagAttributes()
+        {
+            $attr = '';
+            $attr.= $this->getAttrType();
+            $attr.= $this->getAttrId();
+            $attr.= $this->getAttrName();
+            $attr.= $this->getAttrClass();
+            $attr.= $this->getAttrPlaceholder();
+            $attr.= $this->getAttrRequired();
+            $attr.= $this->getAttrReadonly();
+            $attr.= $this->getAttrDisabled();
+            $attr.= $this->getAttrMaxLength();
+            $attr.= $this->getAttrMultiple();
+            $attr.= $this->getAttrMin();
+            $attr.= $this->getAttrMax();
+            $attr.= $this->getAttrStep();
+            $attr.= $this->getAttrCols();
+            $attr.= $this->getAttrRows();
+            $attr.= $this->getAttrWidth();
+            $attr.= $this->getAttrValue();
+
+            return $attr;
+        }
+
+        /**
+         * 
+         */
+        private function tagTemplate()
+        {
+            switch ($this->getType())
+            {
+                case 'select':
+                case 'choices_select':
+                    $template = $this->tagChoicesSelect();
+                    break;
+
+                case 'choices_checkbox':
+                case 'choices_radio':
+                    $template = $this->tagChoicesInput();
+                    break;
+                
+                case 'option':
+                    $template = $this->tagOption();
+                    break;
+
+                default:
+                    $template = $this->tagInput();
+            }
+
+            return preg_replace("/{{attributes}}/", $this->tagAttributes(), $template);;
+        }
+
+
+        /**
+         * ----------------------------------------
+         * Retrieve Attribute and config options from config.php
+         * ----------------------------------------
+         */
+
+        /**
+         * Config from config.php
          */
         private function setConfig(array $config)
         {
@@ -106,10 +443,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-
-        /**
-         * Get Field Type
-         */
         private function getConfig(string $key = '')
         {
             if (isset( $this->config[$key] )) 
@@ -121,7 +454,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         }
 
         /**
-         * Retrive Atributes
+         * Attributes from this->getConfig()
          */
         private function setAttrs()
         {
@@ -137,10 +470,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-
-        /**
-         * Get Attribute
-         */
         private function getAttr(string $key = '')
         {
             if (isset( $this->attrs[$key] )) 
@@ -151,136 +480,97 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             return null;
         }
 
-        /**
-         * 
-         */
-        private function setTemplate()
-        {
-            switch ($this->getType())
-            {
-                case '':
-                    break;
 
-                default:
-                    $this->template = "input {{attributes}} ";
-                    // $this->template = "<input {{attributes}} />";
+        /**
+         * ----------------------------------------
+         * Options and Attribute Getters / Setters
+         * ----------------------------------------
+         */
+
+        /**
+         * Class
+         */
+        protected function setClass()
+        {
+            // Default class
+            $this->class = (is_admin() && $this->tmplOptions['metabox']) ? 'regular-text' : null;
+
+            // Retrive Class parameters
+            $class = $this->getAttr('class');
+
+            if (is_string($class))
+            {
+                $this->class.= ' '.$class;
             }
 
             return $this;
         }
-        private function getTemplate()
+        protected function getClass()
         {
-            return $this->template;
+            return $this->class;
         }
-
-        /**
-         * Set Field Type
-         */
-        protected function setType(string $type)
+        protected function getAttrClass()
         {
-            $this->type = $type;
-            // Default type
-            // $type = "text";
-
-            // if ($this->getConfig('type'))
-            // {
-            //     $this->type = $this->getConfig('type');
-            // }
-
-            return $this;
-        }
-        private function getType()
-        {
-            return $this->type;
-        }
-        private function getAttrType()
-        {
-            return ' type="'. $this->getType() .'"';
-        }
-
-        /**
-         * Set Attribute ID
-         */
-        protected function setID()
-        {
-            $id = $this->getAttr('id');
-
-            if (null != $id) 
+            if (null != $this->getClass())
             {
-                $this->id = $id;
+                return ' class="'.$this->getClass().'"';
             }
-            else
+
+            return null;
+        }
+
+        /**
+         * Choices
+         */
+        protected function setChoices()
+        {
+            // Default choices
+            $this->choices = [];
+
+            if (!in_array($this->getType(), ['option']))
             {
-                $this->id = $this->getConfig('key');
+                if ($this->getConfig('choices'))
+                {
+                    $this->choices = $this->getConfig('choices');
+                }
             }
 
             return $this;
         }
-        private function getID()
+        protected function getChoices()
         {
-            return $this->id;
-        }
-        private function getAttrID()
-        {
-            return ' id="'. $this->getID() .'"';
+            return $this->choices;
         }
 
         /**
-         * Set Attribute Required
+         * Cols
          */
-        protected function setRequired()
+        protected function setCols()
         {
-            // Default required
-            $this->required = false;
+            // Default cols
+            $this->cols = null;
 
-            // Retrive Required parameters
-            $required = $this->getAttr('required');
+            // Retrive cols parameters
+            $cols = $this->getAttr('cols');
 
-            if (is_bool($required))
+            if (is_int($cols))
             {
-                $this->required = $required;
+                $this->cols = $cols;
             }
 
             return $this;
         }
-        private function getRequired()
+        protected function getCols()
         {
-            return $this->required;
+            return $this->cols;
         }
-        private function getAttrRequired()
+        protected function getAttrCols()
         {
-            return $this->getRequired() ? ' required="required"' : null;
-        }
-
-        /**
-         * Set Attribute Readonly
-         */
-        protected function setReadonly()
-        {
-            // Default readonly
-            $this->readonly = false;
-
-            // Retrive Readonly parameters
-            $readonly = $this->getAttr('readonly');
-
-            if (is_bool($readonly))
-            {
-                $this->readonly = $readonly;
-            }
-
-            return $this;
-        }
-        private function getReadonly()
-        {
-            return $this->readonly;
-        }
-        private function getAttrReadonly()
-        {
-            return $this->getReadonly() ? ' readonly="readonly"' : null;
+            return $this->getCols() ? ' cols="'.$this->getCols().'"' : null;
         }
 
         /**
-         * Set Attribute Disabled
+         * Disabled
          */
         protected function setDisabled()
         {
@@ -297,135 +587,112 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getDisabled()
+        protected function getDisabled()
         {
             return $this->disabled;
         }
-        private function getAttrDisabled()
+        protected function getAttrDisabled()
         {
             return $this->getDisabled() ? ' disabled="disabled"' : null;
         }
 
         /**
-         * Set Attribute Class
+         * Expanded
          */
-        protected function setClass()
+        protected function setExpanded()
         {
-            // Default class
-            $this->class = null;
+            // Default expanded
+            $this->expanded = false;
 
-            // Retrive Class parameters
-            $class = $this->getAttr('class');
+            // Retrive Readonly parameters
+            $expanded = $this->getConfig('expanded');
 
-            if (is_string($class))
+            if (is_bool($expanded))
             {
-                $this->class = $class;
+                $this->expanded = $expanded;
             }
 
             return $this;
         }
-        private function getClass()
+        protected function getExpanded()
         {
-            return $this->class;
+            return $this->expanded;
         }
-        private function getAttrClass()
+
+        /**
+         * Set Helper
+         */
+        protected function setHelper()
         {
-            if (null != $this->getClass())
+            // Default helper
+            $this->helper = '';
+
+            if ($this->getConfig('helper'))
             {
-                return ' class="'.$this->getClass().'"';
+                $this->helper = $this->getConfig('helper');
+            }
+
+            return $this;
+        }
+        protected function getHelper()
+        {
+            return $this->helper;
+        }
+
+        /**
+         * ID
+         */
+        protected function setId()
+        {
+            $id = $this->getAttr('id');
+
+            if (null != $id) 
+            {
+                $this->id = $id;
+            }
+            else
+            {
+                $this->id = $this->getConfig('key');
+            }
+
+            return $this;
+        }
+        protected function getId()
+        {
+            return $this->id;
+        }
+        protected function getAttrId()
+        {
+            if (!in_array($this->getType(), ['option']) && $this->getId())
+            {
+                return ' id="'. $this->getId() .'"';
             }
 
             return null;
         }
 
         /**
-         * Set Attribute Placeholder
+         * Label
          */
-        protected function setPlaceholder()
+        protected function setLabel()
         {
-            // Default placeholder
-            $this->placeholder = null;
+            // Default label
+            $this->label = '';
 
-            // Retrive placeholder parameters
-            $placeholder = $this->getAttr('placeholder');
-
-            if (is_string($placeholder))
+            if ($this->getConfig('label'))
             {
-                $this->placeholder = $placeholder;
+                $this->label = $this->getConfig('label');
             }
 
             return $this;
         }
-        private function getPlaceholder()
+        protected function getLabel()
         {
-            return $this->placeholder;
-        }
-        private function getAttrPlaceholder()
-        {
-            if (null != $this->getPlaceholder())
-            {
-                return ' placeholder="'.$this->getPlaceholder().'"';
-            }
-
-            return null;
+            return $this->label;
         }
 
         /**
-         * Set Attribute Max Length
-         */
-        protected function setMaxLength()
-        {
-            // Default maxLength
-            $this->maxLength = null;
-
-            // Retrive Max parameters
-            $maxLength = $this->getAttr('maxlength');
-
-            if (is_int($maxLength))
-            {
-                $this->maxLength = $maxLength;
-            }
-
-            return $this;
-        }
-        private function getMaxLength()
-        {
-            return $this->maxLength;
-        }
-        private function getAttrMaxLength()
-        {
-            return $this->getMaxLength() ? ' maxlength="'.$this->getMaxLength().'"' : null;
-        }
-
-        /**
-         * Set Attribute Step
-         */
-        protected function setStep()
-        {
-            // Default Step
-            $this->step = null;
-
-            // Retrive Step parameters
-            $step = $this->getAttr('step');
-
-            if (is_int($step))
-            {
-                $this->step = $step;
-            }
-
-            return $this;
-        }
-        private function getStep()
-        {
-            return $this->step;
-        }
-        private function getAttrStep()
-        {
-            return $this->getStep() ? ' step="'.$this->getStep().'"' : null;
-        }
-
-        /**
-         * Set Attribute Max 
+         * Max 
          */
         protected function setMax()
         {
@@ -442,13 +709,40 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getMax()
+        protected function getMax()
         {
             return $this->max;
         }
-        private function getAttrMax()
+        protected function getAttrMax()
         {
             return $this->getMax() ? ' max="'.$this->getMax().'"' : null;
+        }
+
+        /**
+         * Max Length
+         */
+        protected function setMaxLength()
+        {
+            // Default maxLength
+            $this->maxLength = null;
+
+            // Retrive Max parameters
+            $maxLength = $this->getAttr('maxlength');
+
+            if (is_int($maxLength))
+            {
+                $this->maxLength = $maxLength;
+            }
+
+            return $this;
+        }
+        protected function getMaxLength()
+        {
+            return $this->maxLength;
+        }
+        protected function getAttrMaxLength()
+        {
+            return $this->getMaxLength() ? ' maxlength="'.$this->getMaxLength().'"' : null;
         }
 
         /**
@@ -469,44 +763,159 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getMin()
+        protected function getMin()
         {
             return $this->min;
         }
-        private function getAttrMin()
+        protected function getAttrMin()
         {
             return $this->getMin() ? ' min="'.$this->getMin().'"' : null;
         }
 
         /**
-         * Set Attribute Cols
+         * Multiple
          */
-        protected function setCols()
+        protected function setMultiple()
         {
-            // Default cols
-            $this->cols = null;
+            // Default multiple
+            $this->multiple = false;
 
-            // Retrive cols parameters
-            $cols = $this->getAttr('cols');
+            // Retrive Readonly parameters
+            $multiple = $this->getAttr('multiple');
 
-            if (is_int($cols))
+            if (is_bool($multiple))
             {
-                $this->cols = $cols;
+                $this->multiple = $multiple;
             }
 
             return $this;
         }
-        private function getCols()
+        protected function getMultiple()
         {
-            return $this->cols;
+            return $this->multiple;
         }
-        private function getAttrCols()
+        protected function getAttrMultiple()
         {
-            return $this->getCols() ? ' cols="'.$this->getCols().'"' : null;
+            if (in_array($this->getType(), ['file','select']) && $this->getMultiple()) 
+            {
+                return ' multiple="multiple"';
+            }
+
+            return null;
         }
 
         /**
-         * Set Attribute Rows
+         * Name
+         */
+        protected function setName(string $name = '')
+        {
+            if (empty($name)) 
+            {
+                $name = $this->getConfig('post_type');
+                $name.= '['.$this->getConfig('key').']';
+            }
+
+            $this->name = $name;
+            
+            return $this;
+        }
+        protected function getName()
+        {
+            return $this->name;
+        }
+        protected function getAttrName()
+        {
+            return ' name="'.$this->getName().'"';
+        }
+
+        /**
+         * Placeholder
+         */
+        protected function setPlaceholder()
+        {
+            // Default placeholder
+            $this->placeholder = null;
+
+            // Retrive placeholder parameters
+            $placeholder = $this->getAttr('placeholder');
+
+            if (is_string($placeholder))
+            {
+                $this->placeholder = $placeholder;
+            }
+
+            return $this;
+        }
+        protected function getPlaceholder()
+        {
+            return $this->placeholder;
+        }
+        protected function getAttrPlaceholder()
+        {
+            if (null != $this->getPlaceholder())
+            {
+                return ' placeholder="'.$this->getPlaceholder().'"';
+            }
+
+            return null;
+        }
+
+        /**
+         * Readonly
+         */
+        protected function setReadonly()
+        {
+            // Default readonly
+            $this->readonly = false;
+
+            // Retrive Readonly parameters
+            $readonly = $this->getAttr('readonly');
+
+            if (is_bool($readonly))
+            {
+                $this->readonly = $readonly;
+            }
+
+            return $this;
+        }
+        protected function getReadonly()
+        {
+            return $this->readonly;
+        }
+        protected function getAttrReadonly()
+        {
+            return $this->getReadonly() ? ' readonly="readonly"' : null;
+        }
+
+        /**
+         * Required
+         */
+        protected function setRequired()
+        {
+            // Default required
+            $this->required = false;
+
+            // Retrive Required parameters
+            $required = $this->getAttr('required');
+
+            if (is_bool($required))
+            {
+                $this->required = $required;
+            }
+
+            return $this;
+        }
+        protected function getRequired()
+        {
+            return $this->required;
+        }
+        protected function getAttrRequired()
+        {
+            return $this->getRequired() ? ' required="required"' : null;
+        }
+
+        /**
+         * Rows
          */
         protected function setRows()
         {
@@ -523,17 +932,119 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getRows()
+        protected function getRows()
         {
             return $this->rows;
         }
-        private function getAttrRows()
+        protected function getAttrRows()
         {
             return $this->getRows() ? ' rows="'.$this->getRows().'"' : null;
         }
 
         /**
-         * Set Attribute Width
+         * Step
+         */
+        protected function setStep()
+        {
+            // Default Step
+            $this->step = null;
+
+            // Retrive Step parameters
+            $step = $this->getAttr('step');
+
+            if (is_int($step))
+            {
+                $this->step = $step;
+            }
+
+            return $this;
+        }
+        protected function getStep()
+        {
+            return $this->step;
+        }
+        protected function getAttrStep()
+        {
+            return $this->getStep() ? ' step="'.$this->getStep().'"' : null;
+        }
+
+        /**
+         * Type
+         */
+        protected function setType($type = null)
+        {
+            if (null === $type)
+            {
+                $called_class = get_called_class();
+                $called_class = str_replace("\\", "/", $called_class);
+                $called_class = basename($called_class);
+                $called_class = strtolower($called_class);
+
+                $type = $called_class;
+            }
+
+            if ($type == 'choices')
+            {
+                if ($this->getExpanded() && $this->getMultiple()) {
+                    $type = "choices_checkbox";
+                }
+                elseif ($this->getExpanded() && !$this->getMultiple()) {
+                    $type = "choices_radio";
+                }
+                else {
+                    $type = "choices_select";
+                }
+            }
+
+            $this->type = $type;
+
+            return $this;
+        }
+        protected function getType()
+        {
+            return $this->type;
+        }
+        protected function getAttrType()
+        {
+            if (!in_array($this->getType(), ['option','select','textarea']))
+            {            
+                return ' type="'. $this->getType() .'"';
+            }
+        }
+
+        /**
+         * Value
+         */
+        protected function setValue()
+        {
+            // Default Value
+            $this->value = null;
+
+            // Retrive Default parameters
+            if ($this->getConfig('default'))
+            {
+                $this->value = $this->getConfig('default');
+            }
+
+            // Override default value
+            if ($this->getConfig('value'))
+            {
+                $this->value = $this->getConfig('value');
+            }
+
+            return $this;
+        }
+        protected function getValue()
+        {
+            return $this->value;
+        }
+        protected function getAttrValue()
+        {
+            return $this->getValue() ? ' value="'.$this->getValue().'"' : null;
+        }
+
+        /**
+         * Width
          */
         protected function setWidth()
         {
@@ -550,15 +1061,13 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getWidth()
+        protected function getWidth()
         {
             return $this->width;
         }
-        private function getAttrWidth()
+        protected function getAttrWidth()
         {
             return $this->getWidth() ? ' width="'.$this->getWidth().'"' : null;
         }
-
-
     }
 }

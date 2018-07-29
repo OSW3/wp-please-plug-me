@@ -12,16 +12,16 @@ if (!defined('WPINC'))
 
 use \Framework\Components\Form\Form\Form;
 
-if (!class_exists('Framework\Components\Form\Fields\Text'))
+if (!class_exists('Framework\Components\Form\Fields\Option'))
 {
-    class Text extends Form 
+    class Option extends Form 
     {
         /**
          * Field Builder
          */
-        // public function builder()
-        // {
-        //     $this->setType('text');
-        // }
+        public function builder()
+        {
+            $this->setType('option');
+        }
     }
 }
