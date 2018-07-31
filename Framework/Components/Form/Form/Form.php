@@ -14,10 +14,10 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 {
     abstract class Form
     {
-        const TYPES = ['Class','Choices','Cols','Disabled','Expanded','Helper',
+        const TYPES = ['Choices','Cols','Disabled','Expanded','Helper',
             'Id','Label','Max','MaxLength','Min','Multiple','Name',
             'Placeholder','Readonly','Required','Rows','Step','Type','Value',
-            'Width'];
+            'Width','Class'];
 
         /**
          * Field Attrs
@@ -290,7 +290,12 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         private function tagHelper()
         {
-            return '<p class="description">' . $this->getHelper() . '</p>';
+            if (!empty($this->getHelper()))
+            {
+                return '<p class="description">' . $this->getHelper() . '</p>';
+            }
+
+            return null;
         }
         /**
          * <option>
@@ -372,6 +377,27 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         {
             return '<input{{attributes}} />';
         }
+        /**
+         * <textarea>
+         */
+        private function tagTextarea()
+        {
+            return '<textarea{{attributes}}>'.$this->getValue().'</textarea>';
+        }
+        /**
+         * <output>
+         */
+        private function tagOutput()
+        {
+            // TODO: Inject JS calculation into <form> --> https://www.w3schools.com/tags/tag_output.asp
+
+            // $for = $this->getConfig('post_type');
+            // $for.= '['.$this->getValue().']';
+
+            $for = $this->getValue();
+
+            return '<output name="'.$this->getName().'" for="'.$for.'"></output>';
+        }
 
         private function tagAttributes()
         {
@@ -416,6 +442,14 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 
                 case 'option':
                     $template = $this->tagOption();
+                    break;
+                
+                case 'textarea':
+                    $template = $this->tagTextarea();
+                    break;
+                
+                case 'output':
+                    $template = $this->tagOutput();
                     break;
 
                 default:
@@ -493,7 +527,15 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         protected function setClass()
         {
             // Default class
-            $this->class = (is_admin() && $this->tmplOptions['metabox']) ? 'regular-text' : null;
+            $this->class = 'ppm-control';
+            
+            if (
+                is_admin() && 
+                $this->tmplOptions['metabox'] &&
+                !in_array($this->getType(), ['color'])
+            ){
+                $this->class.= ' regular-text';
+            }
 
             // Retrive Class parameters
             $class = $this->getAttr('class');
@@ -952,7 +994,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             // Retrive Step parameters
             $step = $this->getAttr('step');
 
-            if (is_int($step))
+            if (is_int($step) || is_float($step))
             {
                 $this->step = $step;
             }
@@ -1032,6 +1074,20 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 $this->value = $this->getConfig('value');
             }
 
+            switch ($this->getType()) 
+            {
+                case 'date':
+                    if ('today' == $this->value) {
+                        $this->value = date('Y-m-d');
+                    }
+                    break;
+
+                case 'time':
+                    if ('now' == $this->value) {
+                        $this->value = date('H:i');
+                    }
+                    break;
+            }
             return $this;
         }
         protected function getValue()

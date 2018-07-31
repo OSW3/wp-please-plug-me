@@ -1722,6 +1722,11 @@ $config = [
                                  * Title
                                  */
                                 'title' => 'test metaboxes',
+
+                                /**
+                                 * Description
+                                 */
+                                'description' => 'This is a metabox description value.',
                                 
                                 /**
                                  * Source
@@ -1771,19 +1776,141 @@ $config = [
 
                             
                             /**
-                             * Custom Metabox 2
+                             * Demo Metabox : Text
                              */
                             [
-                                'key' => 'test2',
-                                'title' => 'test metaboxes 2',
+                                'key' => 'demo_metabox_fieldtypes',
+                                'title' => 'Metabox : Fields types',
                                 'src' => null,
                                 'context' => 'normal',
                                 'priority' => 'high',
                                 'display' => true,
                                 'schema' => [
                                     'demo_text',
+                                    'demo_textarea',
+                                    'demo_password',
+                                    'demo_email',
+                                    'demo_tel',
+                                    'demo_number',
+                                    'demo_url',
+                                    'demo_date',
+                                    'demo_time',
+                                    'demo_datetime',
+                                    'demo_month',
+                                    'demo_week',
+                                    'demo_search',
+                                    'demo_range',
+                                    'demo_output',
+                                    'demo_color',
+                                    'demo_file',
+                                    'demo_hidden',
                                 ]
+                            ],
 
+                            
+                            /**
+                             * Demo Metabox : Options
+                             */
+                            [
+                                'key' => 'demo_metabox_options',
+                                'title' => 'Metabox : Field options',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_placeholder',
+                                    'demo_required',
+                                    'demo_readonly',
+                                    'demo_disabled',
+                                    'demo_helper',
+                                    'demo_custom_class',
+                                ]
+                            ],
+
+                            
+                            /**
+                             * Demo Metabox : Choices
+                             */
+                            [
+                                'key' => 'demo_metabox_choices',
+                                'title' => 'Metabox : Choices',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_choices',
+                                    'demo_choices_multiple',
+                                    'demo_choices_expanded',
+                                    'demo_choices_expanded_multiple',
+                                    'demo_choices_expanded_inline',
+                                    'demo_choices_expanded_multiple_inline',
+                                ]
+                            ],
+
+                            
+                            /**
+                             * Demo Metabox : Options
+                             */
+                            [
+                                'key' => 'demo_metabox_options_number',
+                                'title' => 'Metabox : Number type options',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_number',
+                                    'demo_number_default',
+                                    'demo_number_min',
+                                    'demo_number_max',
+                                    'demo_number_step10',
+                                    'demo_number_step001',
+                                ]
+                            ],
+
+                            
+                            /**
+                             * Demo Metabox : Date & Time
+                             */
+                            [
+                                'key' => 'demo_metabox_datetime',
+                                'title' => 'Metabox : Date & Time',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_date',
+                                    'demo_time',
+                                    'demo_datetime',
+                                    'demo_month',
+                                    'demo_week',
+                                    'demo_date_with_default',
+                                    'demo_date_with_default_today',
+                                    'demo_time_with_default',
+                                    'demo_time_with_default_now',
+                                ]
+                            ],
+
+                            
+                            /**
+                             * Demo Metabox : Textarea
+                             */
+                            [
+                                'key' => 'demo_metabox_textarea',
+                                'title' => 'Metabox : Textarea options',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_textarea',
+                                    'demo_textarea_cols',
+                                    'demo_textarea_rows',
+                                    'demo_textarea_autosize',
+                                ]
                             ],
 
                         ],
@@ -2427,7 +2554,7 @@ $config = [
                      * @param required
                      * @type string
                      */
-                    'key' => 'demo_text',
+                    'key' => 'ppm_field',
 
                     /**
                      * Type
@@ -2436,8 +2563,8 @@ $config = [
                      * 
                      * Possible value :
                      * choices, collection, color, date, datetime, email, file, 
-                     * hidden, month, number, password, range, search, tel, 
-                     * text, textarea, time, url, week, wysiwyg.
+                     * hidden, month, number, output, password, range, search, 
+                     * tel, text, textarea, time, url, week, wysiwyg.
                      * 
                      * @param optional
                      * @type string
@@ -2694,7 +2821,6 @@ $config = [
                          * @field-type: file
                          */
                         'allowed_types' => null,
-
                     ],
 
                     /**
@@ -2734,57 +2860,481 @@ $config = [
                     'shortcode' => false,
 
                 ],
+
+                /**
+                 * ====================
+                 * SCHEMA FOR DEMO
+                 * ====================
+                 */
+
+                // Type
+                
+                /**
+                 * Text
+                 */
                 [
-                    'key' => 'demo_select',
+                    'key' => 'demo_text',
+                    'type' => 'text',
+                    'label' => "Text",
+                ],
+                
+                /**
+                 * Textarea
+                 */
+                [
+                    'key' => 'demo_textarea',
+                    'type' => 'textarea',
+                    'label' => "Textarea",
+                ],
+                
+                /**
+                 * Password
+                 */
+                [
+                    'key' => 'demo_password',
+                    'type' => 'password',
+                    'label' => "Password",
+                ],
+                
+                /**
+                 * Email
+                 */
+                [
+                    'key' => 'demo_email',
+                    'type' => 'email',
+                    'label' => "Email",
+                ],
+                
+                /**
+                 * Tel
+                 */
+                [
+                    'key' => 'demo_tel',
+                    'type' => 'tel',
+                    'label' => "Tel",
+                    'rule' => [
+                        'pattern' => '/^((\+\d{1,3}(-| )?\(?\d\)?(-| )?\d{1,5})|(\(?\d{2,6}\)?))(-| )?(\d{3,4})(-| )?(\d{4})(( x| ext)\d{1,5}){0,1}$/'
+                    ]
+                ],
+                
+                /**
+                 * URL
+                 */
+                [
+                    'key' => 'demo_url',
+                    'type' => 'url',
+                    'label' => "URL",
+                ],
+                
+                /**
+                 * Number
+                 */
+                [
+                    'key' => 'demo_number',
+                    'type' => 'number',
+                    'label' => "Number",
+                ],
+                
+                /**
+                 * Date
+                 */
+                [
+                    'key' => 'demo_date',
+                    'type' => 'date',
+                    'label' => "Date",
+                ],
+                
+                /**
+                 * Time
+                 */
+                [
+                    'key' => 'demo_time',
+                    'type' => 'time',
+                    'label' => "Time",
+                ],
+                
+                /**
+                 * Datetime
+                 */
+                [
+                    'key' => 'demo_datetime',
+                    'type' => 'datetime',
+                    'label' => "DateTime",
+                ],
+                
+                /**
+                 * Month
+                 */
+                [
+                    'key' => 'demo_month',
+                    'type' => 'month',
+                    'label' => "Month",
+                ],
+                
+                /**
+                 * Week
+                 */
+                [
+                    'key' => 'demo_week',
+                    'type' => 'week',
+                    'label' => "Week",
+                ],
+                
+                /**
+                 * Search
+                 */
+                [
+                    'key' => 'demo_search',
+                    'type' => 'search',
+                    'label' => "Search",
+                ],
+                
+                /**
+                 * Range
+                 */
+                [
+                    'key' => 'demo_range',
+                    'type' => 'range',
+                    'label' => "Range",
+                ],
+                
+                /**
+                 * Output
+                 */
+                [
+                    'key' => 'demo_output',
+                    'type' => 'output',
+                    'label' => "Output",
+                    'value' => "demo_range",
+                ],
+                
+                /**
+                 * Color
+                 */
+                [
+                    'key' => 'demo_color',
+                    'type' => 'color',
+                    'label' => "Color",
+                ],
+                
+                /**
+                 * File
+                 */
+                [
+                    'key' => 'demo_file',
+                    'type' => 'file',
+                    'label' => "File",
+                ],
+                
+                /**
+                 * Hidden
+                 */
+                [
+                    'key' => 'demo_hidden',
+                    'type' => 'hidden',
+                    'label' => "Hidden",
+                ],
+
+                // Options
+                
+                /**
+                 * Placeholder
+                 */
+                [
+                    'key' => 'demo_placeholder',
+                    'type' => 'text',
+                    'label' => "Placeholder",
+                    'attr' => [
+                        'placeholder' => "With placeholder data"
+                    ]
+                ],
+                /**
+                 * Required
+                 */
+                [
+                    'key' => 'demo_required',
+                    'type' => 'text',
+                    'label' => "Required",
+                    'attr' => [
+                        'required' => true
+                    ]
+                ],
+                /**
+                 * Readonly
+                 */
+                [
+                    'key' => 'demo_readonly',
+                    'type' => 'text',
+                    'label' => "Read Only",
+                    'default' => "Data read only",
+                    'attr' => [
+                        'readonly' => true
+                    ]
+                ],
+                /**
+                 * Disabled
+                 */
+                [
+                    'key' => 'demo_disabled',
+                    'type' => 'text',
+                    'label' => "Disabled",
+                    'default' => "Data disabled",
+                    'attr' => [
+                        'disabled' => true
+                    ]
+                ],
+                /**
+                 * With helper
+                 */
+                [
+                    'key' => 'demo_helper',
+                    'type' => 'text',
+                    'label' => "Helper",
+                    'helper' => "This field have a helper text.",
+                ],
+                /**
+                 * With Custom class
+                 */
+                [
+                    'key' => 'demo_custom_class',
+                    'type' => 'text',
+                    'label' => "With Custom Class attribute",
+                    'attr' => [
+                        'class' => "this-is-my-custom-class"
+                    ]
+                ],
+
+                // Number Options
+                
+                /**
+                 * Number Default
+                 */
+                [
+                    'key' => 'demo_number_default',
+                    'type' => 'number',
+                    'label' => "Number with Default",
+                    'default' => 42
+                ],
+                /**
+                 * Number Min
+                 */
+                [
+                    'key' => 'demo_number_min',
+                    'type' => 'number',
+                    'label' => "Number with Min",
+                    'attr' => [
+                        'min' => 42
+                    ]
+                ],
+                /**
+                 * Number Max
+                 */
+                [
+                    'key' => 'demo_number_max',
+                    'type' => 'number',
+                    'label' => "Number with Max",
+                    'attr' => [
+                        'max' => 42
+                    ]
+                ],
+                /**
+                 * Number Step
+                 */
+                [
+                    'key' => 'demo_number_step10',
+                    'type' => 'number',
+                    'label' => "Number with Step (10)",
+                    'attr' => [
+                        'step' => 10
+                    ]
+                ],
+                [
+                    'key' => 'demo_number_step001',
+                    'type' => 'number',
+                    'label' => "Number with Step (0.01)",
+                    'attr' => [
+                        'step' => 0.01
+                    ]
+                ],
+
+                // Choices
+
+                /**
+                 * Select
+                 */
+                [
+                    'key' => 'demo_choices',
                     'type' => 'choices',
-                    'label' => "Blob select input",
-                    // 'helper' => "Blob helper select",
+                    'label' => "Choices Simple",
+                    'choices' => array(
+                        'a' => 'Choice A',
+                        'b' => 'Choice B',
+                        'c' => 'Choice C',
+                    ),
+                ],
+                /**
+                 * Select Multiple
+                 */
+                [
+                    'key' => 'demo_choices_multiple',
+                    'type' => 'choices',
+                    'label' => "Choices Multiple",
                     'choices' => array(
                         'a' => 'Choice A',
                         'b' => 'Choice B',
                         'c' => 'Choice C',
                     ),
                     'attr' => [
-                        // 'id' => null,
-                        // 'required' => true,
-                        // 'readonly' => false,
-                        // 'disabled' => false,
-                        // 'class' => "inline",
-                        // 'placeholder' => null,
-                        // 'maxlength' => null,
-                        // 'step' => null,
-                        // 'max' => null,
-                        // 'min' => null,
-                        // 'width' => null,
-                        // 'cols' => null,
-                        // 'rows' => null,
-                        'multiple' => false,
-                    ],
-                    'rules' => [
-                        'pattern' => null,
-                        'size' => null,
-                        'allowed_types' => null,
-
-                    ],
-                    'default' => "null",
+                        'multiple' => true
+                    ]
+                ],
+                /**
+                 * Select Expanded
+                 */
+                [
+                    'key' => 'demo_choices_expanded',
+                    'type' => 'choices',
+                    'label' => "Choices Expanded Simple",
+                    'choices' => array(
+                        'a' => 'Choice A',
+                        'b' => 'Choice B',
+                        'c' => 'Choice C',
+                    ),
+                    'expanded' => true
+                ],
+                /**
+                 * Select Expanded Multiple
+                 */
+                [
+                    'key' => 'demo_choices_expanded_multiple',
+                    'type' => 'choices',
+                    'label' => "Choices Expanded Multiple",
+                    'choices' => array(
+                        'a' => 'Choice A',
+                        'b' => 'Choice B',
+                        'c' => 'Choice C',
+                    ),
                     'expanded' => true,
-                    // 'expanded' => false,
-                    'preview' => true,
-                    'shortcode' => false,
+                    'attr' => [
+                        'multiple' => true
+                    ]
+                    ],
 
-                ]
+                /**
+                 * Select Expanded Inline
+                 */
+                [
+                    'key' => 'demo_choices_expanded_inline',
+                    'type' => 'choices',
+                    'label' => "Expanded Simple Inline",
+                    'choices' => array(
+                        'a' => 'Choice A',
+                        'b' => 'Choice B',
+                        'c' => 'Choice C',
+                    ),
+                    'expanded' => true,
+                    'attr' => [
+                        'class' => 'inline'
+                    ]
+                ],
+                /**
+                 * Select Expanded Multiple Inline
+                 */
+                [
+                    'key' => 'demo_choices_expanded_multiple_inline',
+                    'type' => 'choices',
+                    'label' => "Expanded Multiple Inline",
+                    'choices' => array(
+                        'a' => 'Choice A',
+                        'b' => 'Choice B',
+                        'c' => 'Choice C',
+                    ),
+                    'expanded' => true,
+                    'attr' => [
+                        'class' => 'inline',
+                        'multiple' => true
+                    ]
+                ],
 
+                // Date & Time
+                
+                /**
+                 * Date with default
+                 */
+                [
+                    'key' => 'demo_date_with_default',
+                    'type' => 'date',
+                    'label' => "Date with default",
+                    'default' => '1982-03-15'
+                ],
+                /**
+                 * Date with default (today)
+                 */
+                [
+                    'key' => 'demo_date_with_default_today',
+                    'type' => 'date',
+                    'label' => "Date with default (today)",
+                    'default' => 'today'
+                ],
+                /**
+                 * Time with default
+                 */
+                [
+                    'key' => 'demo_time_with_default',
+                    'type' => 'time',
+                    'label' => "Time with default",
+                    'default' => '16:32'
+                ],
+                /**
+                 * Time with default
+                 */
+                [
+                    'key' => 'demo_time_with_default_now',
+                    'type' => 'time',
+                    'label' => "Time with default (now)",
+                    'default' => 'now'
+                ],
+
+                // Textarea options
+                
+                /**
+                 * Textarea with cols
+                 */
+                [
+                    'key' => 'demo_textarea_cols',
+                    'type' => 'textarea',
+                    'label' => "Textarea with cols",
+                    'attr' => [
+                        'cols' => 10
+                    ]
+                ],
+                
+                /**
+                 * Textarea with rows
+                 */
+                [
+                    'key' => 'demo_textarea_rows',
+                    'type' => 'textarea',
+                    'label' => "Textarea with rows",
+                    'attr' => [
+                        'rows' => 10
+                    ]
+                ],
+                
+                /**
+                 * Textarea with autisize
+                 */
+                [
+                    'key' => 'demo_textarea_autosize',
+                    'type' => 'textarea',
+                    'label' => "Textarea with autosize",
+                    'attr' => [
+                        'class' => 'autosize'
+                    ]
+                ],
             ]
 
         ]
-
-
-
-
-        // ,[
-        //     'type' => "ppm_custom_post2",
-        //     'name' => "My PPM Custom Post 2",
-        // ]
     ]
 ];
 

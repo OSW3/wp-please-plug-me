@@ -185,6 +185,11 @@ if (!class_exists('Framework\Register\Metaboxes'))
             // Retrieve schema definition
             $schema = $this->getPost('schema');
 
+            if (isset($metabox['description']))
+            {
+                $content.= '<div class="metabox-header"><p>'.$metabox['description'].'</p></div>';
+            }
+
             $content.= '<table class="form-table">';
             $content.= '<tbody>';
 

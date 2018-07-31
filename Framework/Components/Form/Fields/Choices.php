@@ -16,21 +16,5 @@ if (!class_exists('Framework\Components\Form\Fields\Choices'))
 {
     class Choices extends Form 
     {
-        /**
-         * Field Builder
-         */
-        public function builder()
-        {
-            // Redefine Type
-            // if ($this->getExpanded() && $this->getMultiple()) {
-            //     $this->setType('checkbox');
-            // }
-            // elseif ($this->getExpanded() && !$this->getMultiple()) {
-            //     $this->setType('radio');
-            // }
-            // else {
-                // $this->setType('select');
-            // }
-        }
     }
 }

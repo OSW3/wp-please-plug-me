@@ -16,12 +16,5 @@ if (!class_exists('Framework\Components\Form\Fields\Text'))
 {
     class Text extends Form 
     {
-        /**
-         * Field Builder
-         */
-        // public function builder()
-        // {
-        //     $this->setType('text');
-        // }
     }
 }

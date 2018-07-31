@@ -135,10 +135,7 @@ if (!class_exists('Framework\Register\Assets'))
         {
             $_assets = $this->bs->getAssets();
             $_scripts = [];
-            $_styles = [[
-                'handle' => "ppm-framework-style",
-                'src' => $this->bs->getUri().'Framework/Assets/css/ppm.css'
-            ]];
+            $_styles = [];
 
             // Retrieve specific Admin assets
             if (isset($_assets['admin'])) 
@@ -159,6 +156,26 @@ if (!class_exists('Framework\Register\Assets'))
                 }
                 if (isset($_assets['both']['scripts'])) {
                     $_scripts = array_merge($_scripts, $_assets['both']['scripts']);
+                }
+            }
+
+            // Framework Assets
+            $framework_conf = $this->bs->getRoot().'Framework/config.php';
+            if (file_exists($framework_conf)) 
+            {
+                // Default frmwrk_cnf
+                $frmwrk_cnf = [];
+                $plugin_uri = $this->bs->getUri();
+
+                include_once $framework_conf;
+
+                if (isset($frmwrk_cnf['assets']['admin'])) {
+                    if (isset($frmwrk_cnf['assets']['admin']['styles'])) {
+                        $_styles = array_merge($_styles, $frmwrk_cnf['assets']['admin']['styles']);
+                    }
+                    if (isset($frmwrk_cnf['assets']['admin']['scripts'])) {
+                        $_scripts = array_merge($_scripts, $frmwrk_cnf['assets']['admin']['scripts']);
+                    }
                 }
             }
 

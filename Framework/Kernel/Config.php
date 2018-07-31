@@ -305,13 +305,14 @@ if (!class_exists('Framework\Kernel\Config'))
             
             if (!empty($plugin)) 
             {
-                $config_file = self::getStaticRoot($plugin).FS::FILE_CONFIG;
-
-                if (file_exists($config_file)) {
-                    include_once $config_file;
+                // Custom config
+                $custom_conf = self::getStaticRoot($plugin).FS::FILE_CONFIG;
+                if (file_exists($custom_conf)) {
+                    include_once $custom_conf;
                 }
-                
+
                 $config = array_merge(self::DEFAULT, $config, self::getStaticDefinition($plugin));
+
             }
 
             // Sanitize the config array
