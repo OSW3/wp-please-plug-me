@@ -17,7 +17,6 @@ if (!class_exists('Framework\Register\Assets'))
 {
 	class Assets
 	{
-
         /**
          * The instance of the bootstrap class
          * 

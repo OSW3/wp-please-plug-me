@@ -10,14 +10,21 @@ if (!defined('WPINC'))
 	exit;
 }
 
+use \Framework\Kernel\Config;
+
 if (!class_exists('Framework\Components\Form\Form\Form'))
 {
     abstract class Form
     {
-        const TYPES = ['Choices','Cols','Disabled','Expanded','Helper',
-            'Id','Label','Max','MaxLength','Min','Multiple','Name',
+        const TYPES = ['Accept','Choices','Cols','Disabled','Expanded','Helper',
+            'Label','Max','MaxLength','Min','Multiple','Name',
             'Placeholder','Readonly','Required','Rows','Step','Type','Value',
-            'Width','Class'];
+            'Width','Id','Class'];
+
+        /**
+         * Field Accept
+         */
+        private $accept;
 
         /**
          * Field Attrs
@@ -113,6 +120,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          * 
          */ 
         private $rows;
+        
+        /**
+         * 
+         */ 
+        private $rules;
         
         /**
          * 
@@ -222,15 +234,8 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             //  Template Options
             $options = $this->tmplOptions;
 
-            // print_r($options);
-
-
-            // $this->setTemplate();
-
             // Init the Output
             $output = '';
-
-            
 
             // Output for metabox
             if ($options['metabox']) 
@@ -282,6 +287,26 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             }
 
             $tag = preg_replace("/(:?\\$1|\\$2|\\$3)/", null, $tag);
+
+            return $tag;
+        }
+
+        /**
+         * Label
+         */
+        private function tagFile()
+        {
+
+            $tag = "<table>";
+            $tag.=  "<tr>";
+            $tag.=      "<td>";
+            // $tag.=          '<img src="'..'Framework/Assets/images/default.svg'.'">';
+            $tag.=      "</td>";
+            $tag.=      "<td>";
+            $tag.=          $this->tagInput();
+            $tag.=      "</td>";
+            $tag.=  "</tr>";
+            $tag.= "</table>";
 
             return $tag;
         }
@@ -398,6 +423,25 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return '<output name="'.$this->getName().'" for="'.$for.'"></output>';
         }
+        /**
+         * wp_editor
+         */
+        private function tagWysiwyg()
+        {
+            $settings = array(
+                'media_buttons' => false,
+                // 'quicktags' => array( 
+                //     'buttons' => 'strong,em,del,ul,ol,li,close' 
+                // ),
+                'editor_class' => $this->getClass(),
+                'textarea_name' => $this->getId(),
+                'textarea_rows' => 8
+            );
+
+            ob_start();
+            wp_editor( $this->getValue(), $this->getId(), $settings );
+            return ob_get_clean();
+        }
 
         private function tagAttributes()
         {
@@ -419,6 +463,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             $attr.= $this->getAttrRows();
             $attr.= $this->getAttrWidth();
             $attr.= $this->getAttrValue();
+            $attr.= $this->getAttrAccept();
 
             return $attr;
         }
@@ -427,7 +472,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          * 
          */
         private function tagTemplate()
-        {
+        {            
             switch ($this->getType())
             {
                 case 'select':
@@ -444,19 +489,30 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                     $template = $this->tagOption();
                     break;
                 
+                case 'output':
+                    $template = $this->tagOutput();
+                    break;
+                
                 case 'textarea':
                     $template = $this->tagTextarea();
                     break;
                 
-                case 'output':
-                    $template = $this->tagOutput();
+                case 'wysiwyg':
+                    $template = $this->tagWysiwyg();
                     break;
+                
+                case 'file':
+                    if ($this->getConfig('preview')) 
+                    {
+                        $template = $this->tagFile();
+                        break;
+                    }
 
                 default:
                     $template = $this->tagInput();
             }
 
-            return preg_replace("/{{attributes}}/", $this->tagAttributes(), $template);;
+            return preg_replace("/{{attributes}}/", $this->tagAttributes(), $template);
         }
 
 
@@ -474,6 +530,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             $this->config = $config;
 
             $this->setAttrs();
+            $this->setRules();
 
             return $this;
         }
@@ -514,12 +571,75 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             return null;
         }
 
+        /**
+         * Rules from this->getConfig()
+         */
+        private function setRules()
+        {
+            // Default Attrs
+            $this->rules = array();
+
+            $config = $this->config;
+
+            if (isset($config['rules']) && is_array($config['rules']))
+            {
+                $this->rules = $config['rules'];
+            }
+
+            return $this;
+        }
+        private function getRule(string $key = '')
+        {
+            if (isset( $this->rules[$key] )) 
+            {
+                return $this->rules[$key];
+            }
+
+            return null;
+        }
+
 
         /**
          * ----------------------------------------
          * Options and Attribute Getters / Setters
          * ----------------------------------------
          */
+
+        /**
+         * Accept
+         */
+        protected function setAccept()
+        {
+            // Default class
+            $this->accept = null;
+            
+            // Retrive Class parameters
+            $accept = $this->getRule('allowed_types');
+
+            if (is_array($accept))
+            {
+                $this->accept = implode(",", $accept);
+            }
+            else
+            {
+                $this->accept = $accept;
+            }
+
+            return $this;
+        }
+        protected function getAccept()
+        {
+            return $this->accept;
+        }
+        protected function getAttrAccept()
+        {
+            if ('file' == $this->getType() && null != $this->getAccept())
+            {
+                return ' accept="'.$this->getAccept().'"';
+            }
+
+            return null;
+        }
 
         /**
          * Class
@@ -695,6 +815,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             else
             {
                 $this->id = $this->getConfig('key');
+            }
+
+            if ('wysiwyg' == $this->getType())
+            {
+                $this->id = $this->getName();
             }
 
             return $this;

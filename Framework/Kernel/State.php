@@ -26,9 +26,9 @@ if (!class_exists('Framework\Kernel\State'))
 			// TODO: (if not already added)
 			Options::add([ $this->getNamespace() => $this->getOptions() ]);
 
-			// Create Specific Database (if not already created)
+			// TODO: Create Specific Database (if not already created)
 
-			// Initialize Text domain
+			// TODO: Initialize Text domain
 
 
             // print_r("\n");
@@ -40,14 +40,13 @@ if (!class_exists('Framework\Kernel\State'))
 		 */
 		public function deactivate()
 		{
-			// Delete plugin options (if not preserved)
+			// Delete plugin options 
+			// TODO: (if not preserved)
 			Options::delete( $this->getNamespace() );
 
-			// Delete Specific Database (if not preserved)
+			// TODO: Delete Specific Database (if not preserved)
 
-			// Delete Text domain (if not preserved)
-
-
+			// TODO: Delete Text domain (if not preserved)
 
 			// echo "Stop"; exit;
 		}

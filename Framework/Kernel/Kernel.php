@@ -11,6 +11,7 @@ if (!defined('WPINC'))
 }
 
 use \Framework\Kernel\Config;
+use \Framework\Kernel\Updater;
 
 if (!class_exists('Framework\Kernel\Kernel'))
 {
@@ -38,7 +39,11 @@ if (!class_exists('Framework\Kernel\Kernel'))
             new \Framework\Register\Posts($bs);
             // new \Framework\Register\Widgets($bs);
 
-
+            if (is_admin()) 
+            {
+                new \Framework\Kernel\Updater($bs);
+            }
+            
 
 
 
@@ -113,7 +118,6 @@ if (!class_exists('Framework\Kernel\Kernel'))
                     break;
             
                 case 'foot':
-                    # code...
                     break;
             }
         }

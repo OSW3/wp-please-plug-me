@@ -1913,6 +1913,42 @@ $config = [
                                 ]
                             ],
 
+                            
+                            /**
+                             * Demo Metabox : File
+                             */
+                            [
+                                'key' => 'demo_metabox_file',
+                                'title' => 'Metabox : File options',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_file',
+                                    'demo_file_multiple',
+                                    'demo_file_type',
+                                    'demo_file_size',
+                                    'demo_file_preview',
+                                ]
+                            ],
+
+                            
+                            /**
+                             * Demo Metabox : File
+                             */
+                            [
+                                'key' => 'demo_metabox_wysiwyg',
+                                'title' => 'Metabox : WYSIWYG',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_wysiwyg',
+                                ]
+                            ],
+
                         ],
 
                         /**
@@ -3034,6 +3070,15 @@ $config = [
                     'type' => 'hidden',
                     'label' => "Hidden",
                 ],
+                
+                /**
+                 * wysiwyg
+                 */
+                [
+                    'key' => 'demo_wysiwyg',
+                    'type' => 'wysiwyg',
+                    'label' => "WYSIWYG",
+                ],
 
                 // Options
                 
@@ -3331,6 +3376,54 @@ $config = [
                     'attr' => [
                         'class' => 'autosize'
                     ]
+                ],
+
+                // File options
+                
+                /**
+                 * File with multiple
+                 */
+                [
+                    'key' => 'demo_file_multiple',
+                    'type' => 'file',
+                    'label' => "File multiple",
+                    'attr' => [
+                        'multiple' => true
+                    ]
+                ],
+                
+                /**
+                 * File with allowed type
+                 */
+                [
+                    'key' => 'demo_file_type',
+                    'type' => 'file',
+                    'label' => "File (allowed type)",
+                    'rules' => [
+                        'allowed_types' => 'image/*, audio/*'
+                    ]
+                ],
+                
+                /**
+                 * File with size
+                 */
+                [
+                    'key' => 'demo_file_size',
+                    'type' => 'file',
+                    'label' => "File (size)",
+                    'rules' => [
+                        'size' => 200
+                    ]
+                ],
+                
+                /**
+                 * File with preview
+                 */
+                [
+                    'key' => 'demo_file_preview',
+                    'type' => 'file',
+                    'label' => "File (allowed preview)",
+                    'preview' => true
                 ],
             ]
 
