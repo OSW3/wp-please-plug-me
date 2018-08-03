@@ -15,6 +15,7 @@ if (!defined('WPINC'))
 use \Framework\Components\Strings;
 use \Framework\Components\FileSystem as FS;
 use \Framework\Register\Taxonomy;
+use \Framework\Components\Form\Response\Response;
 
 if (!class_exists('Framework\Register\Posts'))
 {
@@ -166,19 +167,17 @@ if (!class_exists('Framework\Register\Posts'))
                     // Define Supports
                     $post = $this->setSupports($supports, $post);
 
-// TODO : 'map_meta_cap'
-// (bool) Whether to use the internal default meta capability handling. Default false.
+                    // TODO : 'map_meta_cap'
+                    // (bool) Whether to use the internal default meta capability handling. Default false.
 
-// TODO : 'register_meta_box_cb'
-// (callable) Provide a callback function that sets up the meta boxes for the edit form. Do remove_meta_box() and add_meta_box() calls in the callback. Default null.
+                    // TODO : 'register_meta_box_cb'
+                    // (callable) Provide a callback function that sets up the meta boxes for the edit form. Do remove_meta_box() and add_meta_box() calls in the callback. Default null.
 
-// TODO : '_builtin'
-// (bool) FOR INTERNAL USE ONLY! True if this post type is a native or "built-in" post_type. Default false.
+                    // TODO : '_builtin'
+                    // (bool) FOR INTERNAL USE ONLY! True if this post type is a native or "built-in" post_type. Default false.
 
                     // Internationalize the post data
                     // $post = $this->i18n($post);
-
-                    // print_r($post);
 
                     // Add the custom post to the register
                     register_post_type( $post['type'], $post );
@@ -187,12 +186,18 @@ if (!class_exists('Framework\Register\Posts'))
                     add_filter( "manage_{$post['type']}_posts_columns", array($this, 'setAdminColumns') );
                     add_action( "manage_{$post['type']}_posts_custom_column" , array($this, 'setAdminColumnsData'), 10, 2 );
                     add_filter( "manage_edit-{$post['type']}_sortable_columns", array($this, 'setAdminColumnsSortable') );
+
+                    // Menu action on Admin index rows
+                    add_filter('post_row_actions', array($this, 'setAdminRowActions'), 10, 1);
+
+                    // Post submission
+                    add_action('save_post', array($this, "postSubmission"));
                 }
             }
         }
 
         /**
-         * 
+         * Retrieve Posts config in config.php
          */
         private function setPost(array $post)
         {
@@ -200,7 +205,6 @@ if (!class_exists('Framework\Register\Posts'))
 
             return $this;
         }
-
         /**
          * 
          */
@@ -221,7 +225,6 @@ if (!class_exists('Framework\Register\Posts'))
             
             return $post;
         }
-
         /**
          * Define the label of the post
          * 
@@ -252,13 +255,6 @@ if (!class_exists('Framework\Register\Posts'))
         private function setLabels(array $post)
         {
             $post['labels'] = array();
-
-            // Add the name
-            // if (isset($post['label']))
-            // {
-
-            // }
-
 
             $post['labels'] = ['name' => $post['label']];
 
@@ -1088,6 +1084,69 @@ if (!class_exists('Framework\Register\Posts'))
         public function setAdminColumnsSortable($columns)
         {
             return $columns;
+        }
+
+        /**
+         * Set actions for items row in Admin table
+         */
+        public function setAdminRowActions($_actions)
+        {
+            // Retieve Post config
+            $post = $this->getPost();
+
+            // Default 
+            $edit = true;
+            $inline = true;
+            $trash = true;
+            $view = true;
+
+            // Rertieve Actions
+            if (isset($post['ui']['pages']['index']['rows']['actions']))
+            {
+                if (false === $post['ui']['pages']['index']['rows']['actions'])
+                {
+                    $edit = false;
+                    $inline = false;
+                    $trash = false;
+                    $view = false;
+                }
+                elseif (is_array($post['ui']['pages']['index']['rows']['actions']))
+                {
+                    if (isset($post['ui']['pages']['index']['rows']['actions']['edit']) && is_bool($post['ui']['pages']['index']['rows']['actions']['edit']))
+                    {
+                        $edit = $post['ui']['pages']['index']['rows']['actions']['edit'];
+                    }
+                    if (isset($post['ui']['pages']['index']['rows']['actions']['inline']) && is_bool($post['ui']['pages']['index']['rows']['actions']['inline']))
+                    {
+                        $inline = $post['ui']['pages']['index']['rows']['actions']['inline'];
+                    }
+                    if (isset($post['ui']['pages']['index']['rows']['actions']['trash']) && is_bool($post['ui']['pages']['index']['rows']['actions']['trash']))
+                    {
+                        $trash = $post['ui']['pages']['index']['rows']['actions']['trash'];
+                    }
+                    if (isset($post['ui']['pages']['index']['rows']['actions']['view']) && is_bool($post['ui']['pages']['index']['rows']['actions']['view']))
+                    {
+                        $view = $post['ui']['pages']['index']['rows']['actions']['view'];
+                    }
+                }
+            }
+
+            if (!$edit)   unset( $_actions['edit'] );
+            if (!$inline) unset( $_actions['inline hide-if-no-js'] );
+            if (!$trash)  unset( $_actions['trash'] );
+            if (!$view)   unset( $_actions['view'] );
+
+            return $_actions;
+        }
+
+        // -- Post Submission
+
+        public function postSubmission($_PID)
+        {
+            $response = new Response( $this->bs, $this->getPost(), $_PID);
+            $response->response()->validate();
+
+            exit;
         }
     }
 }

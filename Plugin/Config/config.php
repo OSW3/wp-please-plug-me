@@ -1555,8 +1555,54 @@ $config = [
                          */
                         'rows' => [
 
+                            /**
+                             * Action of row admin
+                             * 
+                             * If is array, values are 'edit', 'inline', trash'
+                             * & 'view'
+                             * 
+                             * @param Optional
+                             * @type bool|array
+                             * @default true
+                             */
+                            // 'actions' => false,
                             'actions' => [
-                                'display' => true,
+
+                                /**
+                                 * Display the action "edit" in row action menu
+                                 * 
+                                 * @param Optional
+                                 * @type bool
+                                 * @default true
+                                 */ 
+                                'edit' => true,
+
+                                /**
+                                 * Display the action "Quick Edit" in row action menu
+                                 * 
+                                 * @param Optional
+                                 * @type bool
+                                 * @default true
+                                 */ 
+                                'inline' => true,
+
+                                /**
+                                 * Display the action "Trash" in row action menu
+                                 * 
+                                 * @param Optional
+                                 * @type bool
+                                 * @default true
+                                 */ 
+                                'trash' => true,
+
+                                /**
+                                 * Display the action "View" in row action menu
+                                 * 
+                                 * @param Optional
+                                 * @type bool
+                                 * @default true
+                                 */ 
+                                'view' => true
                             ]
 
                         ],
@@ -1787,22 +1833,16 @@ $config = [
                                 'display' => true,
                                 'schema' => [
                                     'demo_text',
-                                    'demo_textarea',
                                     'demo_password',
+                                    'demo_password_confirm',
                                     'demo_email',
                                     'demo_tel',
-                                    'demo_number',
                                     'demo_url',
-                                    'demo_date',
-                                    'demo_time',
-                                    'demo_datetime',
-                                    'demo_month',
-                                    'demo_week',
                                     'demo_search',
                                     'demo_range',
                                     'demo_output',
                                     'demo_color',
-                                    'demo_file',
+                                    'demo_checkbox',
                                     'demo_hidden',
                                 ]
                             ],
@@ -1887,6 +1927,7 @@ $config = [
                                     'demo_datetime',
                                     'demo_month',
                                     'demo_week',
+                                    'demo_year',
                                     'demo_date_with_default',
                                     'demo_date_with_default_today',
                                     'demo_time_with_default',
@@ -1935,7 +1976,7 @@ $config = [
 
                             
                             /**
-                             * Demo Metabox : File
+                             * Demo Metabox : WYSIWYG
                              */
                             [
                                 'key' => 'demo_metabox_wysiwyg',
@@ -2599,8 +2640,9 @@ $config = [
                      * 
                      * Possible value :
                      * choices, collection, color, date, datetime, email, file, 
-                     * hidden, month, number, output, password, range, search, 
-                     * tel, text, textarea, time, url, week, wysiwyg.
+                     * hidden, month, number, output, password, password_confirm, 
+                     * range, search, tel, text, textarea, time, url, week, 
+                     * wysiwyg, year.
                      * 
                      * @param optional
                      * @type string
@@ -2625,6 +2667,8 @@ $config = [
                      * 
                      * Define the default value
                      * 
+                     * If type is "checkbox" : "default":"on" to check by default
+                     * 
                      * @param optional
                      * @type string
                      * @default null
@@ -2643,6 +2687,41 @@ $config = [
                      * @field-type: all
                      */
                     'helper' => "Demo helper text",
+
+                    /**
+                     * Error messages
+                     * 
+                     * Define error message
+                     * 
+                     * @param Optional
+                     * @type string|array
+                     * @Default null
+                     */
+                    // 'error' => "This field is required",
+                    'messages' => [
+                        'required'      => "This field is required",
+                        'email'         => "This field is not a valid email address",
+                        'url'           => "This field is not a valid url",
+                        'time'          => "This field is not a valid time",
+                        'date'          => "This field is not a valid date",
+                        'year'          => "This field is not a valid year",
+                        'color'         => "This field is not a valid color",
+                        'pattern'       => "This field is not valid",
+                        'type'          => "This field is not valid",
+                        'size'          => "This file size is not valid",
+                        'allowed_types' => "This file is not valid",
+                        'password_confirmation' => "Password is not confirmed",
+                    ],
+
+                    /**
+                     * Choices
+                     * 
+                     * @param Optional
+                     * @type array
+                     */
+                    'choices' => [
+                        'value' => "Label"
+                    ],
 
                     /**
                      * Attributes
@@ -2857,6 +2936,63 @@ $config = [
                          * @field-type: file
                          */
                         'allowed_types' => null,
+
+                        /**
+                         * Confirm
+                         */
+                        'confirm' => "paswword_key"
+                    ],
+
+                    /**
+                     * Algo
+                     * 
+                     * If used with a type "password" => A password 
+                     * algorithm constant. more info at 
+                     * http://php.net/manual/en/function.password-hash.php
+                     * 
+                     * @param Optional
+                     * @type string|array
+                     * @default null
+                     */
+                    // 'algo' => "PASSWORD_DEFAULT",
+                    'algo' => [
+
+                        /**
+                         * @param Optional
+                         * @type string
+                         */
+                        'type' => "PASSWORD_DEFAULT",
+
+                        /**
+                         * @param Optional
+                         * @type string
+                         */
+                        'salt' => null,
+
+                        /**
+                         * @param Optional
+                         * @type integer
+                         */
+                        'cost' => null,
+
+                        /**
+                         * @param Optional
+                         * @type integer
+                         */
+                        'memory_cost' => null,
+
+                        /**
+                         * @param Optional
+                         * @type integer
+                         */
+                        'time_cost' => null,
+
+                        /**
+                         * @param Optional
+                         * @type integer
+                         */
+                        'threads' => null
+
                     ],
 
                     /**
@@ -2912,6 +3048,7 @@ $config = [
                     'key' => 'demo_text',
                     'type' => 'text',
                     'label' => "Text",
+                    'error' => "This field has an error",
                 ],
                 
                 /**
@@ -2930,6 +3067,22 @@ $config = [
                     'key' => 'demo_password',
                     'type' => 'password',
                     'label' => "Password",
+                    'algo' => [
+                        'type' => "PASSWORD_BCRYPT",
+                        'salt' => "azert"
+                    ]
+                ],
+                
+                /**
+                 * Password Confirmation
+                 */
+                [
+                    'key' => 'demo_password_confirm',
+                    'type' => 'password',
+                    'label' => "Password Confirmation",
+                    'rules' => [
+                        'confirm' => 'demo_password'
+                    ]
                 ],
                 
                 /**
@@ -2948,7 +3101,7 @@ $config = [
                     'key' => 'demo_tel',
                     'type' => 'tel',
                     'label' => "Tel",
-                    'rule' => [
+                    'rules' => [
                         'pattern' => '/^((\+\d{1,3}(-| )?\(?\d\)?(-| )?\d{1,5})|(\(?\d{2,6}\)?))(-| )?(\d{3,4})(-| )?(\d{4})(( x| ext)\d{1,5}){0,1}$/'
                     ]
                 ],
@@ -3060,6 +3213,16 @@ $config = [
                     'key' => 'demo_file',
                     'type' => 'file',
                     'label' => "File",
+                ],
+                
+                /**
+                 * Checkbox
+                 */
+                [
+                    'key' => 'demo_checkbox',
+                    'type' => 'checkbox',
+                    'label' => "Checkbox",
+                    'default' => "on"
                 ],
                 
                 /**
@@ -3304,6 +3467,18 @@ $config = [
                 // Date & Time
                 
                 /**
+                 * Date Year
+                 */
+                [
+                    'key' => 'demo_year',
+                    'type' => 'year',
+                    'label' => "Date year",
+                    'default' => '1982',
+                    // 'range' => [date('Y'), date('Y')+2]
+
+                ],
+                
+                /**
                  * Date with default
                  */
                 [
@@ -3428,6 +3603,13 @@ $config = [
             ]
 
         ]
+    ],
+
+    /**
+     * Widgets
+     */
+    'widgets' => [
+        
     ]
 ];
 

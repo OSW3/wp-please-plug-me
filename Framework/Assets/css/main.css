@@ -1,13 +1,22 @@
+/* ****************************** *\
+ * Metaboxes
+\* ****************************** */
+
 .metabox-header {
-    /* border-top: 1px solid #ddd; */
     border-bottom: 1px solid #eee;
-    /* background: #f5f5f5; */
     margin: -6px -12px;
     padding: 8px 12px;
 }
 .metabox-header p {
     margin: 0;
 }
+
+
+
+
+/* ****************************** *\
+ * Choices
+\* ****************************** */
 
 .choices-expanded .choices-option {
     display: block;
@@ -27,7 +36,7 @@
 
 textarea.ppm-control.autosize {
     height: auto;
-    transition:max-height 0.3s ease-out;
+    transition: max-height 0.3s ease-out;
     min-height: 64px;
     max-height: 600px;
 }

@@ -16,8 +16,8 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 {
     abstract class Form
     {
-        const TYPES = ['Accept','Choices','Cols','Disabled','Expanded','Helper',
-            'Label','Max','MaxLength','Min','Multiple','Name',
+        const TYPES = ['Accept','Choices','Cols','Disabled','Expanded',
+            'Helper','Label','Max','MaxLength','Min','Multiple','Name',
             'Placeholder','Readonly','Required','Rows','Step','Type','Value',
             'Width','Id','Class'];
 
@@ -25,6 +25,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          * Field Accept
          */
         private $accept;
+
+        /**
+         * Field Algo
+         */
+        private $algo;
 
         /**
          * Field Attrs
@@ -125,6 +130,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          * 
          */ 
         private $rules;
+        
+        /**
+         * 
+         */ 
+        private $selected;
         
         /**
          * 
@@ -296,7 +306,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         private function tagFile()
         {
-
             $tag = "<table>";
             $tag.=  "<tr>";
             $tag.=      "<td>";
@@ -373,6 +382,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 $options = array_merge($this->config,[
                     "label"     => $label,
                     "value"     => $value,
+                    // "selected"  => $this->selected === $value,
                     "choices"   => []
                 ]);
 
@@ -472,7 +482,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          * 
          */
         private function tagTemplate()
-        {            
+        {
             switch ($this->getType())
             {
                 case 'select':
@@ -534,7 +544,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getConfig(string $key = '')
+        protected function getConfig(string $key = '')
         {
             if (isset( $this->config[$key] )) 
             {
@@ -673,7 +683,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         }
         protected function getAttrClass()
         {
-            if (null != $this->getClass())
+            if (null != $this->getClass() && !in_array($this->getType(), ['option']))
             {
                 return ' class="'.$this->getClass().'"';
             }
@@ -684,10 +694,10 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         /**
          * Choices
          */
-        protected function setChoices()
+        protected function setChoices(array $choices=[])
         {
             // Default choices
-            $this->choices = [];
+            $this->choices = $choices;
 
             if (!in_array($this->getType(), ['option']))
             {
@@ -819,7 +829,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             if ('wysiwyg' == $this->getType())
             {
-                $this->id = $this->getName();
+                $this->id = preg_replace("/\\[|\\]/", "_", $this->getName());
             }
 
             return $this;
@@ -992,7 +1002,12 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         }
         protected function getAttrName()
         {
-            return ' name="'.$this->getName().'"';
+            if (!in_array($this->getType(), ['option'])) 
+            {
+                return ' name="'.$this->getName().'"';
+            }
+
+            return null;
         }
 
         /**
@@ -1221,7 +1236,23 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         }
         protected function getAttrValue()
         {
-            return $this->getValue() ? ' value="'.$this->getValue().'"' : null;
+            if ($this->getValue() && !in_array($this->getType(), ['select']))
+            {
+                if ('checkbox' == $this->getType() && 'on' === strtolower($this->getValue()))
+                {
+                    return ' checked="checked"';
+                } 
+                elseif ('option' == $this->getType() && $this->getValue() == $this->getConfig('default'))
+                {
+                    return ' selected="selected"';
+                } 
+                else 
+                {
+                    return ' value="'.$this->getValue().'"';
+                }
+            }
+
+            return null;
         }
 
         /**
