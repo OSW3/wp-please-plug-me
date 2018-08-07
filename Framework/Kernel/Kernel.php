@@ -27,10 +27,12 @@ if (!class_exists('Framework\Kernel\Kernel'))
          */
         public function start($bs)
         {
-            // Start the PHP Session
-            empty(session_id()) ? session_start() : null;
-
-            // Start Assets Register
+            if (empty(session_id()))
+            {
+                session_start();
+            }
+            
+            // new \Framework\Kernel\Session($bs->getNamespace());
             new \Framework\Register\Assets($bs);
             new \Framework\Register\Filters($bs);
             new \Framework\Register\Hooks($bs);
@@ -39,43 +41,17 @@ if (!class_exists('Framework\Kernel\Kernel'))
             new \Framework\Register\Posts($bs);
             // new \Framework\Register\Widgets($bs);
 
+            // Do on Admin
             if (is_admin()) 
             {
                 new \Framework\Kernel\Updater($bs);
             }
-            
 
+            // Do on Front
+            else 
+            {
 
-
-            // global $wp_styles, $wp_scripts;
-            // print_r($wp_styles->registered['colors']);
-            // print_r($wp_scripts);
-            // global $wp_filter;
-            // print_r($wp_filter);
-
-            // print_r( "\n\n\n");            
-            // print_r( "Root: ".$this->getRoot() ."\n");
-            // print_r( "URI: ".$this->getUri() ."\n");
-            // print_r( "Title: ".$this->getTitle() ."\n");
-            // print_r( "Title HTML: ".$this->getTitleHTML() ."\n");
-            // print_r( "Name: ".$this->getName() ."\n");
-            // print_r( "Namespace: ".$this->getNamespace() ."\n");
-            // print_r( "Author: ".$this->getAuthor() ."\n");
-            // print_r( "Author URI: ".$this->getAuthorURI() ."\n");
-            // print_r( "Environement: ".$this->getEnvironment() ."\n");
-            // print_r( "Version: ".$this->getVersion() ."\n");
-            // print_r( "Description: ".$this->getDescription() ."\n");
-            // print_r( "Plugin URI: ".$this->getPluginURI() ."\n");
-            // print_r( "Text Domain: ".$this->getTextDomain() ."\n");
-            // print_r( "Domain Path: ".$this->getDomainPath() ."\n");
-            // print_r( "Network: ".$this->getNetwork() ."\n");
-            // print_r( "License: ".$this->getLicense() ."\n");
-            // print_r( $this->getOptions());
-            // var_dump( $this->getFilters());
-            // var_dump( $this->getHooks());
-            // var_dump( $this->getShortcodes());
-            // print_r( "\n\n\n");
-            // print_r( $this->getFullConfig());
+            }
         }
 
 

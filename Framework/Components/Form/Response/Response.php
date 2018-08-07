@@ -10,6 +10,9 @@ if (!defined('WPINC'))
 	exit;
 }
 
+use \Framework\Components\Notices;
+use \Framework\Kernel\Session;
+
 if (!class_exists('Framework\Components\Form\Response\Response'))
 {
     class Response
@@ -17,7 +20,15 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         const RE_TIME = "/^(00|[0-1][0-9]|2[0-3]):([0-5][0-9])$/";
         const RE_COLOR = "/#([a-f0-9]{3}){1,2}\b/i";
 
-        const ALGO = ['PASSWORD_BCRYPT','PASSWORD_ARGON2I','PASSWORD_ARGON2_DEFAULT_MEMORY_COST','PASSWORD_ARGON2_DEFAULT_TIME_COST','PASSWORD_ARGON2_DEFAULT_THREADS','PASSWORD_DEFAULT'];
+        /**
+         * Available Encryption engine
+         */
+        const ALGO = [
+            'PASSWORD_BCRYPT','PASSWORD_ARGON2I',
+            'PASSWORD_ARGON2_DEFAULT_MEMORY_COST',
+            'PASSWORD_ARGON2_DEFAULT_TIME_COST',
+            'PASSWORD_ARGON2_DEFAULT_THREADS','PASSWORD_DEFAULT'
+        ];
 
         /**
          * The instance of the bootstrap class
@@ -77,18 +88,18 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         }
 
         /**
-         * Set config
+         * Set Post config
          */
         private function setConfig(array $config)
         {
-            $this->config = $config;
+            $this->config = $config;          
 
             return $this;
         }
         /**
-         * Get config
+         * Get Post config
          */
-        protected function getConfig(string $key)
+        private function getConfig(string $key)
         {
             if (isset($this->config[$key])) 
             {
@@ -99,7 +110,7 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         }
 
         /**
-         * Set ID
+         * Set Post ID
          */
         private function setID(int $id)
         {
@@ -108,26 +119,26 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             return $this;
         }
         /**
-         * Get ID
+         * Get Post ID
          */
-        protected function getID()
+        private function getID()
         {
             return $this->id;
         }
 
         /**
-         * Set ID
+         * Set Post Type
          */
-        protected function setType(string $type)
+        private function setType(string $type)
         {
             $this->type = $type;
 
             return $this;
         }
         /**
-         * Get ID
+         * Get Post Type
          */
-        protected function getType()
+        private function getType()
         {
             return $this->type;
         }
@@ -135,7 +146,7 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         /**
          * Set Schema used in UI > edit > metaboxes
          */
-        protected function setSchema()
+        private function setSchema()
         {
             $metaboxes = [];
 
@@ -177,12 +188,14 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         /**
          * Get Shecma
          */
-        protected function getSchema()
+        public function getSchema()
         {
             return $this->schema;
         }
-
-        protected function updateSchema(string $key, string $index, $value)
+        /**
+         * 
+         */
+        private function updateSchema(string $key, string $index, $value)
         {
             foreach ($this->schema as $k => $schema) 
             {
@@ -226,81 +239,26 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             $item['messages']               = isset($item['messages'])                  ? $item['messages']                 : [];
             $item['algo']                   = isset($item['algo'])                      ? $item['algo']                     : [];
 
-            // -- Default messages
+            // -- Default error messages
 
-            // Field is required
-            if (!isset($item['messages']['required'])) 
-            {
-                $item['messages']['required'] = __("This field is required.", $this->bs->getTextDomain());
-            }
+            $item['messages']['required']   = isset($item['messages']['required'])      ? $item['messages']['required']     : "This field is required.";
+            $item['messages']['email']      = isset($item['messages']['email'])         ? $item['messages']['email']        : "This field is not a valid email.";
+            $item['messages']['url']        = isset($item['messages']['url'])           ? $item['messages']['url']          : "This field is not a valid url.";
+            $item['messages']['time']       = isset($item['messages']['time'])          ? $item['messages']['time']         : "This field is not a valid time.";
+            $item['messages']['date']       = isset($item['messages']['date'])          ? $item['messages']['date']         : "This field is not a valid date.";
+            $item['messages']['year']       = isset($item['messages']['year'])          ? $item['messages']['year']         : "This field is not a valid year.";
+            $item['messages']['color']      = isset($item['messages']['color'])         ? $item['messages']['color']        : "This field is not a valid color";
+            $item['messages']['confirm']    = isset($item['messages']['confirm'])       ? $item['messages']['confirm']      : "Password is not confirmed.";
+            $item['messages']['pattern']    = isset($item['messages']['pattern'])       ? $item['messages']['pattern']      : "This field is not valid.";
+            $item['messages']['type']       = isset($item['messages']['type'])          ? $item['messages']['type']         : "This field is not valid.";
+            $item['messages']['min']        = isset($item['messages']['min'])           ? $item['messages']['min']          : "This value must not be less than $1.";
+            $item['messages']['max']        = isset($item['messages']['max'])           ? $item['messages']['max']          : "This value must not be greater than $1.";
+            $item['messages']['maxlength']  = isset($item['messages']['maxlength'])     ? $item['messages']['maxlength']    : "This value is too long.";
+            $item['messages']['size']       = isset($item['messages']['size'])          ? $item['messages']['size']         : "This file size is not valid.";
+            $item['messages']['file_types'] = isset($item['messages']['file_types'])    ? $item['messages']['file_types']   : "This file is not valid.";
 
-            // Email type
-            if (!isset($item['messages']['email'])) 
-            {
-                $item['messages']['email'] = __("This field is not a valid email address.", $this->bs->getTextDomain());
-            }
+            // -- Default algo for password
 
-            // URL type
-            if (!isset($item['messages']['url'])) 
-            {
-                $item['messages']['url'] = __("This field is not a valid url.", $this->bs->getTextDomain());
-            }
-
-            // Time type
-            if (!isset($item['messages']['time'])) 
-            {
-                $item['messages']['time'] = __("This field is not a valid time.", $this->bs->getTextDomain());
-            }
-
-            // Date type
-            if (!isset($item['messages']['date'])) 
-            {
-                $item['messages']['date'] = __("This field is not a valid date.", $this->bs->getTextDomain());
-            }
-
-            // Year type
-            if (!isset($item['messages']['year'])) 
-            {
-                $item['messages']['year'] = __("This field is not a valid year.", $this->bs->getTextDomain());
-            }
-
-            // Color type
-            if (!isset($item['messages']['color'])) 
-            {
-                $item['messages']['color'] = __("This field is not a valid color.", $this->bs->getTextDomain());
-            }
-
-            // Password Confirmation type
-            if (!isset($item['messages']['password_confirmation'])) 
-            {
-                $item['messages']['password_confirmation'] = __("Password is not confirmed.", $this->bs->getTextDomain());
-            }
-
-            // Invalid rule
-            if (!isset($item['messages']['pattern'])) 
-            {
-                $item['messages']['pattern'] = __("This field is not valid.", $this->bs->getTextDomain());
-            }
-
-            // Invalide type
-            if (!isset($item['messages']['type'])) 
-            {
-                $item['messages']['type'] = __("This field is not valid.", $this->bs->getTextDomain());
-            }
-
-            // Invalid file size
-            if (null != $item['rules']['size'] && !isset($item['messages']['size'])) 
-            {
-                $item['messages']['size'] = __("This file size is not valid.", $this->bs->getTextDomain());
-            }
-
-            // Invalid file type
-            if (null != $item['rules']['allowed_types'] && !isset($item['messages']['allowed_types'])) 
-            {
-                $item['messages']['allowed_types'] = __("This file is not valid.", $this->bs->getTextDomain());
-            }
-
-            // Default algo for password
             if ('password' == $item['type']) 
             {
                 // default $algo
@@ -338,22 +296,19 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             return $item;
         }
 
-
-
-
-
-
-
-
-
-
-
-
+        /** 
+         * Retrieve response
+         * 
+         * Retrieve response form the Request and store the response 
+         * into the field schema
+         */
         public function response()
         {
             // Define default response
             $response_request = [];
             $response_files = [];
+
+            $session = new Session( $this->bs->getNamespace() );
 
             // Define Post Type
             $this->setType($_REQUEST['post_type']);
@@ -368,10 +323,19 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                     // Retrieve response from Request Header
                     if (isset($_REQUEST[$this->getType()])) {
                         $response_request = $_REQUEST[$this->getType()];
+
+                        foreach ($_REQUEST as $key => $value) 
+                        {
+                            if (preg_match("/^".$_REQUEST['post_type']."____(.+)____$/", $key, $m))
+                            {
+                                $response_request += [$m[1] => $value];
+                            }
+                        }
                     }
                     if (isset($_FILES[$this->getType()])) {
                         $response_files = $_FILES[$this->getType()];
                     }
+
 
                     // Add response to schema
                     foreach ($this->getSchema() as $key => $schema) 
@@ -388,12 +352,11 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
 
                                 // Hash the Password
                                 case 'password':
-                                    $value = $response_request[$schema['key']];
-                                    $this->updateSchema($schema['key'], "plaintext", $value);
-                                    $value = !empty($value) 
-                                        ? password_hash($value, constant($schema['algo']['type'])) 
+                                    $plaintext = $response_request[$schema['key']];
+                                    $this->updateSchema($schema['key'], "plaintext", $plaintext);
+                                    $value = !empty($plaintext) 
+                                        ? password_hash($plaintext, constant($schema['algo']['type'])) 
                                         : null;
-                                    
                                     break;
 
                                 case 'file':
@@ -423,96 +386,84 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                                     if (isset($response_request[$schema['key']])) {
                                         $value = $response_request[$schema['key']];
                                     }
-                                    break;
                             }
                         }
 
+                        // Set value to the schema
                         $this->updateSchema($schema['key'], "value", $value);
-                    }
 
+                        // Set value to the session
+                        if ($schema['type'] == 'password') {
+                            $session->responses($this->getType(), [$schema['key'] => $plaintext]);
+                        } else {
+                            $session->responses($this->getType(), [$schema['key'] => $value]);
+                        }
+                    }
                 }
             }
+            
+            // Set values to the session
+            // $session->responses($this->getType(), $this->getSchema());
+            
 
 
+            // echo "<pre>";
+            // print_r(
+            //     $this->getSchema()
+            // );
+            // echo "</pre>";
 
-
-
-            // $schema = $this->getSchema();
-
-            // foreach ($this->getSchema() as $key => $field)
-            // {
-            //     echo "<pre>";
-            //     print_r($field);
-            //     echo "</pre>";
-            // }
-            // return $this->getSchema();
-
+            // exit;
             return $this;
         }
 
+
+        /**
+         * Validate response
+         * 
+         * Read each response, check rules and add a message error into 
+         * the field schema
+         */
         public function validate()
         {
+            $errors = [];
+
+            $session = new Session( $this->bs->getNamespace() );
+            $notices = new Notices( $this->bs->getNamespace() );
+            
             foreach ($this->getSchema() as $key => $schema) 
             {
-
-                // Default
-                $error = [
-                    'valid' => true,
-                    'state' => 'success',
-                    'message' => null,
-                ];
-
-                // $schema['attr']['required'] = true;
-                // $schema['type'] = 'year';
-                // $schema['value'] = 'Ba1985';
-
-                // $schema['rules']['pattern'] = "/^a/";
-            
+                // Default State
+                $error_message = null;
 
                 // Is String
 
                 // Is required
                 if ($schema['attr']['required'] && empty(trim($schema['value'])))
                 {
-                    $error = [
-                        'valid' => false,
-                        'state' => 'danger',
-                        'message' => $schema['messages']['required'],
-                    ];
+                    $error_message = $schema['messages']['required'];
                 }
 
                 // Is email
                 elseif ('email' == $schema['type'] && !empty($schema['value']) && !filter_var($schema['value'], FILTER_VALIDATE_EMAIL))
                 {
-                    $error = [
-                        'valid' => false,
-                        'state' => 'danger',
-                        'message' => $schema['messages']['email'],
-                    ];
+                    $error_message = $schema['messages']['email'];
                 }
 
                 // Is URL
                 elseif ('url' == $schema['type'] && !empty($schema['value']) && !filter_var($schema['value'], FILTER_VALIDATE_URL))
                 {
-                    $error = [
-                        'valid' => false,
-                        'state' => 'danger',
-                        'message' => $schema['messages']['email'],
-                    ];
+                    $error_message = $schema['messages']['url'];
                 }
                 
                 // Is Number
-                elseif ('number' == $schema['type'] && !empty($schema['value']) && !(is_int($schema['value']) || is_double($schema['value']) || is_float($schema['value'])))
+                elseif ('number' == $schema['type'] && !empty($schema['value']) && !(is_int(intval($schema['value'])) || is_double($schema['value']) || is_float($schema['value'])))
                 {
-                    $error = [
-                        'valid' => false,
-                        'state' => 'danger',
-                        'message' => $schema['messages']['type'],
-                    ];
+                    $error_message = $schema['messages']['type'];
                 }
 
                 // Is Date
-                elseif ('date' == $schema['type'])
+                elseif ('date' == $schema['type'] && !empty($schema['value']))
                 {
                     $date = explode("-", $schema['value']);
 
@@ -522,48 +473,35 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
 
                     if (null == $year || null == $month || null == $day || !checkdate($month, $day, $year)) 
                     {
-                        $error = [
-                            'valid' => false,
-                            'state' => 'danger',
-                            'message' => $schema['messages']['date'],
-                        ];
+                        $error_message = $schema['messages']['date'];
                     }
                 }
 
                 // Is Time
                 elseif ('time' == $schema['type'] && !empty($schema['value']) && !preg_match(self::RE_TIME, $schema['value']))
                 {
-                    $error = [
-                        'valid' => false,
-                        'state' => 'danger',
-                        'message' => $schema['messages']['time'],
-                    ];
+                    $error_message = $schema['messages']['time'];
                 }
 
                 // Is Datetime
+                // TODO: checking value
 
                 // Is Month
+                // TODO: checking value
 
                 // Is Week
+                // TODO: checking value
 
                 // Is Year
                 elseif ('year' == $schema['type'] && !empty($schema['value']) && !preg_match("/^\d{4}$/", $schema['value']))
                 {
-                    $error = [
-                        'valid' => false,
-                        'state' => 'danger',
-                        'message' => $schema['messages']['year'],
-                    ];
+                    $error_message = $schema['messages']['year'];
                 }
 
                 // Is Color
                 elseif ('color' == $schema['type'] && !empty($schema['value']) && !preg_match(self::RE_COLOR, $schema['value']))
                 {
-                    $error = [
-                        'valid' => false,
-                        'state' => 'danger',
-                        'message' => $schema['messages']['color'],
-                    ];
+                    $error_message = $schema['messages']['color'];
                 }
 
                 // Is Comfirmed password
@@ -579,15 +517,12 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                     }
 
                     if ($password !== $confirmation) {
-                        $error = [
-                            'valid' => false,
-                            'state' => 'danger',
-                            'message' => $schema['messages']['password_confirmation'],
-                        ];
+                        $error_message = $schema['messages']['confirm'];
                     }
                 }
 
                 // Is file
+                // TODO: checking value
 
                 // Rule pattern
                 elseif (!empty($schema['value']) && isset($schema['rules']['pattern']))
@@ -602,11 +537,7 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                     {
                         if (!preg_match($schema['rules']['pattern'], $schema['value']))
                         {
-                            $error = [
-                                'valid' => false,
-                                'state' => 'danger',
-                                'message' => $schema['messages']['pattern'],
-                            ];
+                            $error_message = $schema['messages']['pattern'];
                         }
                     }
 
@@ -614,31 +545,44 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                 }
 
                 // Is > to Min
+                elseif (!empty($schema['attr']['min']) && $schema['value'] < $schema['attr']['min']) 
+                {
+                    $error_message = preg_replace("/\\$1/", $schema['attr']['min'], $schema['messages']['min']);
+                }
 
                 // Is < to Max
+                elseif (!empty($schema['attr']['max']) && $schema['value'] > $schema['attr']['max']) 
+                {
+                    $error_message = preg_replace("/\\$1/", $schema['attr']['max'], $schema['messages']['max']);
+                }
 
                 // Is < to Maxlegth
+                elseif (!empty($schema['attr']['maxlength']) && $schema['attr']['maxlength'] > 0 && strlen($schema['value']) > $schema['attr']['maxlength']) 
+                {
+                    $error_message = $schema['messages']['maxlength'];
+                }
 
-                $this->updateSchema($schema['key'], "error", $error);
+                // Push the error to the errors collector
+                if (null != $error_message)
+                {
+                    array_push($errors, [
+                        'key' => $schema['key'],
+                        'message' => $error_message
+                    ]);
+                }
+
             }
 
+            // Add message to a notice
+            if (!empty($errors))
+            {
+                $notices->danger($this->getType(), "The form has not been saved.");
+            }
 
+            // Set errors to the session
+            $session->errors($this->getType(), $errors);
 
-            // echo "<pre>";
-            // print_r(
-            //     $_REQUEST['ppm_custom_post']
-            // );
-            // echo "</pre>";
-            // echo "<pre>";
-            // print_r(
-            //     $_POST
-            // );
-            // echo "</pre>";
-            echo "<pre>";
-            print_r(
-                $this->getSchema()
-            );
-            echo "</pre>";
+            return empty($errors);
         }
     }
 }

@@ -11,6 +11,7 @@ if (!defined('WPINC'))
 }
 
 use \Framework\Kernel\Config;
+use \Framework\Kernel\Session;
 
 if (!class_exists('Framework\Components\Form\Form\Form'))
 {
@@ -190,13 +191,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
 
             
-            
-            
-            
-            
-            
-            
-            
 
 
             // echo "<pre>";
@@ -302,7 +296,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         }
 
         /**
-         * Label
+         * File
          */
         private function tagFile()
         {
@@ -319,17 +313,58 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $tag;
         }
+
+        /**
+         * Collection
+         */
+        private function tagCollection()
+        {
+            $tag = '';
+            
+            $tag.= '<div '.$this->getAttrId().' class="collection-container">';
+            $tag.= '';
+            $tag.= 'Collection : '.$this->getId().'<br>';
+            $tag.= 'Collection : '.$this->getAttrId().'<br>';
+            $tag.= '';
+            $tag.= '</div>';
+            
+            $tag.= '<script id="'.$this->getId().'" type="">';
+            $tag.= '';
+            $tag.= '</scr>';
+
+            $tag.= '<div>';
+            $tag.= '<button class="button button-secondary button-large" type="button" data-collection="'.$this->getId().'">Add one</button>';
+            $tag.= '</div>';
+
+            return $tag;
+        }
+
         /**
          * Helper
          */
         private function tagHelper()
         {
+            $tag = null;
+
             if (!empty($this->getHelper()))
             {
-                return '<p class="description">' . $this->getHelper() . '</p>';
+                $helper = $this->getHelper();
+
+                if (!is_array($helper)) {
+                    $helper = [$helper];
+                }
+
+                foreach ($helper as $item) 
+                {
+                    if ('notice' == $item[0]) {
+                        $tag.= '<p class="description ppm-description has-error">' . $item[1] . '</p>';
+                    } else {
+                        $tag.= '<p class="description ppm-description">' . $item[1] . '</p>';
+                    }
+                }
             }
 
-            return null;
+            return $tag;
         }
         /**
          * <option>
@@ -485,6 +520,10 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         {
             switch ($this->getType())
             {
+                case 'collection':
+                    $template = $this->tagCollection();
+                    break;
+                
                 case 'select':
                 case 'choices_select':
                     $template = $this->tagChoicesSelect();
@@ -667,6 +706,16 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 $this->class.= ' regular-text';
             }
 
+            // Retrieve value from session (after submission)
+            $session = new Session($this->getConfig('namespace'));
+            foreach ($session->errors($this->getConfig('post_type')) as $error) 
+            {
+                if ($error['key'] == $this->getConfig('key')) 
+                {
+                    $this->class.= ' has-error';
+                }
+            }
+
             // Retrive Class parameters
             $class = $this->getAttr('class');
 
@@ -797,11 +846,21 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         protected function setHelper()
         {
             // Default helper
-            $this->helper = '';
+            $this->helper = [];
+
+            // Retrieve value from session (after submission)
+            $session = new Session($this->getConfig('namespace'));
+            foreach ($session->errors($this->getConfig('post_type')) as $error) 
+            {
+                if ($error['key'] == $this->getConfig('key')) 
+                {
+                    array_push($this->helper, ["notice", $error['message']]);
+                }
+            }
 
             if ($this->getConfig('helper'))
             {
-                $this->helper = $this->getConfig('helper');
+                array_push($this->helper, ["normal", $this->getConfig('helper')]);
             }
 
             return $this;
@@ -829,7 +888,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             if ('wysiwyg' == $this->getType())
             {
-                $this->id = preg_replace("/\\[|\\]/", "_", $this->getName());
+                $this->id = preg_replace("/\\[|\\]/", "____", $this->getName());
             }
 
             return $this;
@@ -1202,16 +1261,45 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             // Default Value
             $this->value = null;
 
-            // Retrive Default parameters
-            if ($this->getConfig('default'))
+            $hide_pwd_value = false;
+            
+            // Retrieve value from session (after submission)
+            $session = new Session($this->getConfig('namespace'));
+            foreach ($session->responses($this->getConfig('post_type')) as $key => $value) 
             {
-                $this->value = $this->getConfig('default');
+                if ($key == $this->getConfig('key')) 
+                {
+                    $this->value = $value;
+                }
             }
 
-            // Override default value
-            if ($this->getConfig('value'))
+
+            // Retrieve an existant value
+            if (null == $this->value && !empty(get_post()))
             {
-                $this->value = $this->getConfig('value');
+                $hide_pwd_value = true;
+                $this->value = get_post_meta(
+                    get_post()->ID, 
+                    $this->getConfig('key'), 
+                    true
+                );
+            }
+            
+
+            // Set default value
+            if (null == $this->value) 
+            {
+                // Retrive Default parameters
+                if ($this->getConfig('default'))
+                {
+                    $this->value = $this->getConfig('default');
+                }
+    
+                // Override default value
+                if ($this->getConfig('value'))
+                {
+                    $this->value = $this->getConfig('value');
+                }
             }
 
             switch ($this->getType()) 
@@ -1225,6 +1313,13 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 case 'time':
                     if ('now' == $this->value) {
                         $this->value = date('H:i');
+                    }
+                    break;
+
+                case 'password':
+                    if ($hide_pwd_value)
+                    {
+                        $this->value = '';
                     }
                     break;
             }

@@ -200,10 +200,8 @@ if (!class_exists('Framework\Register\Metaboxes'))
                     if ($field_key == $schema_field['key'])
                     {
                         $schema_field['post_type'] = $metabox['post_type'];
-                        // print_r($metabox);
-                        // print_r($field_key);
-                        // print_r($this->bs);
-
+                        $schema_field['namespace'] = $this->bs->getNamespace();
+                        
                         $fieldClass = ucfirst(strtolower($schema_field['type']));
                         $fieldClass = "\\Framework\\Components\\Form\\Fields\\".$fieldClass;
                         

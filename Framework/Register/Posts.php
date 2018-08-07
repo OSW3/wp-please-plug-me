@@ -16,6 +16,8 @@ use \Framework\Components\Strings;
 use \Framework\Components\FileSystem as FS;
 use \Framework\Register\Taxonomy;
 use \Framework\Components\Form\Response\Response;
+use \Framework\Components\Notices;
+use \Framework\Kernel\Session;
 
 if (!class_exists('Framework\Register\Posts'))
 {
@@ -69,6 +71,13 @@ if (!class_exists('Framework\Register\Posts'))
          * @param array
          */
         private $posts = array();
+
+        /**
+         * Response data
+         * 
+         * @param array
+         */
+        private $response = array();
 
         /**
          * 
@@ -191,7 +200,16 @@ if (!class_exists('Framework\Register\Posts'))
                     add_filter('post_row_actions', array($this, 'setAdminRowActions'), 10, 1);
 
                     // Post submission
-                    add_action('save_post', array($this, "postSubmission"));
+                    add_action('pre_post_update', array($this, "postValidation"));
+
+                    // Notice (flashbag)
+                    add_action('admin_notices', array(new Notices($this->bs->getNamespace()), "get"));
+
+
+                    // Clear the post session
+                    add_action('clear_post_session', function() use ($post) { $this->clearPostSession($post); });
+                    add_action('wp_footer', [$this, "clearPostSession"], 10);
+                    add_action('admin_footer', [$this, "clearPostSession"], 10);
                 }
             }
         }
@@ -1141,12 +1159,115 @@ if (!class_exists('Framework\Register\Posts'))
 
         // -- Post Submission
 
+        public function postValidation($_PID)
+        {
+            if (wp_is_post_revision($_PID))
+            {
+                return;
+            }
+            
+            $response = new Response( $this->bs, $this->getPost(), $_PID);
+            $this->response = $response->response();
+
+            if ($this->response->validate())
+            {
+                add_action('save_post', array($this, "postSubmission"));
+            }
+            else 
+            {
+                header('Location: '.get_edit_post_link($_PID, 'redirect'));
+                exit;
+            }
+        }
+
         public function postSubmission($_PID)
         {
-            $response = new Response( $this->bs, $this->getPost(), $_PID);
-            $response->response()->validate();
+            // -- Post Title replacement
 
-            exit;
+            $post = $this->getPost();
+
+            $metaboxes = new Metaboxes($this->bs, $post);
+            $supports = $metaboxes->getSupports();
+            $glue = " ";
+
+            foreach ($supports as $support) 
+            {
+                if ('title' == $support['key'] && !$support['display'] && isset($support['replace']))
+                {
+                    if (isset($support['glue']))
+                    {
+                        $glue = $support['glue'];
+                    }
+
+                    $replacements = $support['replace'];
+                    $replacements_val = [];
+
+                    if (!is_array($replacements))
+                    {
+                        $replacements = [$replacements];
+                    }
+
+                    // Check if replacement field (schema) exists
+                    foreach ($replacements as $replacement_key) 
+                    {
+                        foreach ($this->response->getSchema() as $item) 
+                        {
+                            if ($replacement_key == $item['key'] && 'password' != $item['type'])
+                            {
+                                array_push($replacements_val, $item['value']);
+                            }
+                        }
+                    }
+
+                    $replacement = trim(implode($glue, $replacements_val));
+
+                    // if $_POST['post_type'] == $post['type']
+                    global $wpdb;
+                    $wpdb->update( $wpdb->posts, [
+                        'post_title' => $replacement
+                    ],[
+                        'ID' => $_PID
+                    ]);
+
+                }
+            }
+            
+
+            // -- Save Post Meta 
+
+            foreach ($this->response->getSchema() as $item) 
+            {
+                // If  item type == file
+                
+                update_post_meta($_PID, $item['key'], $item['value']);
+            }
+
+
+            // echo "<pre>";
+            // print_r(
+            //     $this->response->getSchema()
+            // );
+            // echo "</pre>";
+
+            
+        }
+
+        /**
+         * Clear Post Session
+         */
+        public function clearPostSession( $post = null )
+        {
+            if (null == $post)
+            {
+                do_action('clear_post_session');
+                return;
+            }
+    
+            $session = new Session($this->bs->getNamespace());
+            $session->clear($post['type']);
+    
+            $notices = new Notices($this->bs->getNamespace());
+            $notices->clear();
         }
     }
 }

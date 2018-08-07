@@ -40,3 +40,38 @@ textarea.ppm-control.autosize {
     min-height: 64px;
     max-height: 600px;
 }
+
+
+
+
+/* ****************************** *\
+ * Notice
+\* ****************************** */
+
+.ppm-notice.error ,
+.ppm-notice.updated ,
+.ppm-notice.update-nag {
+    display: block;
+    padding: 11px 15px;
+    line-height: 1.4em;
+    font-size: 13px;
+}
+
+.ppm-notice ul {
+    margin: 0;
+}
+
+
+
+
+/* ****************************** *\
+ * Controls states
+\* ****************************** */
+
+.ppm-control.has-error {
+    border: 1px solid #AA0000;
+    background-color: rgba(255, 0, 0, 0.1);
+}
+.ppm-description.has-error {
+    color: #AA0000;
+}
