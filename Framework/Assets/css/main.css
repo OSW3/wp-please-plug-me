@@ -75,3 +75,60 @@ textarea.ppm-control.autosize {
 .ppm-description.has-error {
     color: #AA0000;
 }
+
+
+
+
+/* ****************************** *\
+ * Collection
+\* ****************************** */
+
+
+.form-table td.ppm-collection-row {
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+}
+
+.ppm-collection-item-actions {
+    float: right;
+}
+.ppm-collection-item-actions .button-link {
+    background-color: transparent;
+    color: #444444;
+    text-decoration: none;
+}
+.ppm-collection-item-actions .button-link:hover ,
+.ppm-collection-item-actions .button-link.active ,
+.ppm-collection-item-actions .button-link:active
+.ppm-collection-item-actions .button-link.focus ,
+.ppm-collection-item-actions .button-link:focus {
+    background-color: transparent;
+    color: #000000;
+    text-decoration: none;
+}
+
+
+.ppm-collection-container {
+    /* border: 1px solid #AA0000; */
+    margin-bottom: 1rem;
+}
+.ppm-collection-control {
+    border-top: 1px solid #e5e5e5;
+    text-align: right; 
+    padding-top: 1rem;
+}
+
+
+.ppm-collection-item+.ppm-collection-item {
+    margin-top: 1rem;
+}
+
+.ppm-collection-item-header {
+    border-bottom: 1px solid #e5e5e5;
+    /* padding: 8px 12px; */
+    padding: 8px 0;
+}
+.ppm-collection-item-header h4{
+    margin: 0;
+}

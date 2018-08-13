@@ -252,6 +252,15 @@ if (!class_exists('Framework\Kernel\Config'))
                 $method = ucfirst($key);
                 $setter = "set".$method;
                 
+
+                if ($key == 'posts')
+                {
+                    $value = null;
+                    // echo "<pre>";
+                    // print_r( $value );
+                    // echo "</pre>";
+                }
+
                 // execute the setter
                 $this->$setter($value);
             }
@@ -1004,9 +1013,42 @@ if (!class_exists('Framework\Kernel\Config'))
          * 
          * @return object instance
          */
-        public function setPosts()
+        public function setPosts($schema = null)
         {
-            $this->posts = $this->getConfig('posts');
+            if (null == $schema)
+            {
+                $this->posts = $this->getConfig('posts');
+            }
+
+            // // Retrieve schema declaration and search for Collection
+            // foreach ($this->posts as $post) 
+            // {
+            //     if (is_array($post['schema']))
+            //     {
+            //         foreach ($post['schema'] as $type) 
+            //         {
+            //             if ('collection' == $type['type'])
+            //             {
+
+            //                 echo "<pre>";
+            //                 print_r( $post['type']."__[". $type['key']."]");
+            //                 echo "</pre>";
+            //                 echo "<pre>";
+            //                 print_r($type);
+            //                 echo "</pre>";
+
+            //             }
+            //         }
+            //     }
+            // }
+
+
+            // echo "<pre>";
+            // echo count($this->posts);
+            // echo "</pre>";
+            // // echo "<pre>";
+            // // print_r($this->posts);
+            // // echo "</pre>";
 
             return $this;
         }

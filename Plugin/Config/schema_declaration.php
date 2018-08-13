@@ -984,12 +984,70 @@ $schema_declaration = [
     ],
     
     /**
-     * File with preview
+     * Collection
      */
     [
         'key' => 'demo_collection',
         'type' => 'collection',
-        'label' => "Collection",
+        'label' => "My default label {{number}}",
         'helper' => "Collection helper",
+
+        /**
+         * Schema of collection
+         * 
+         * ONLY FOR COLLECTION
+         * 
+         * @param Required
+         * @type array|string
+         */
+        // 'schema' => "demo_text",
+        'schema' => [
+            "demo_text",
+            "demo_textarea",
+            "demo_collection_2",
+            "demo_helper",
+            // "demo_choices_expanded_inline",
+            // "demo_wysiwyg"
+        ],
+        // 'loop' => 1,
+
+        'rules' => [
+            // 'label' => "My default label {{number}}",
+
+            /**
+             * Init
+             * 
+             * ONLY FOR COLLECTION
+             * 
+             * Number of items whene the plugin is loaded
+             * "0" for init with no loop
+             * 
+             * @param Optional
+             * @type integer
+             * @default 1
+             */
+            'init' => 1,
+        ]
+    ],
+
+    [
+        'key' => 'demo_collection_2',
+        'type' => 'collection',
+        'label' => "My second collection {{number}}",
+        'schema' => [
+            "demo_password",
+            
+            "demo_collection_4"
+        ]
+    ],
+
+    [
+        'key' => 'demo_collection_3',
+        'type' => 'collection',
+        'label' => "My second collection {{number}}",
+        'schema' => [
+            "demo_year",
+            // "demo_collection_2"
     ]
+    ],
 ];

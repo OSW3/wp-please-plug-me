@@ -17,10 +17,10 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 {
     abstract class Form
     {
-        const TYPES = ['Accept','Choices','Cols','Disabled','Expanded',
-            'Helper','Label','Max','MaxLength','Min','Multiple','Name',
-            'Placeholder','Readonly','Required','Rows','Step','Type','Value',
-            'Width','Id','Class'];
+        const ATTR_TYPES = ['Accept','Choices','Cols','Disabled','Expanded',
+            'Helper','Max','MaxLength','Min','Multiple','Name',
+            'Placeholder','Readonly','Required','Rows','Step','Type','Value','Label',
+            'Width','Id','Class','Schema','Loop'];
 
         /**
          * Field Accept
@@ -83,6 +83,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         private $label;
         
         /**
+         * Number of loop on collection init
+         */ 
+        private $loop;
+        
+        /**
          * 
          */ 
         private $max;
@@ -138,6 +143,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         private $selected;
         
         /**
+         * Schema for collection Type
+         */ 
+        private $schema;
+        
+        /**
          * 
          */ 
         private $step;
@@ -150,7 +160,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         /**
          * 
          */
-        private $tmplOptions;
+        private $template_type;
         
         /**
          * 
@@ -168,19 +178,20 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         private $width;
 
         /**
+         * Constructor
          * 
+         * @param array $config
+         * @param string $template, the type of field template ('metabox' | 'collection')
          */
-        public function __construct(array $config, array $template_options = [])
+        public function __construct(array $config, string $template_type = null)
         {
+            $this->template_type = $template_type;
+
             // define Field Type
             $this->setConfig($config);
-            $this->tmplOptions = array_merge([
-                "metabox" => false,
-                "choices" => false,
-            ],$template_options);
 
             // Call setter methods
-            foreach (self::TYPES as $type) 
+            foreach (self::ATTR_TYPES as $type) 
             {
                 $method = 'set'.$type;
                 $this->$method();
@@ -188,39 +199,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             // Build the field
             $this->builder();
-
-
-            
-
-
-            // echo "<pre>";
-            // print_r([
-            //     "type" => $this->getType(),
-
-
-
-            //     "Label" => $this->getLabel(),
-            //     "Helper" => $this->getHelper(),
-            //     "Value" => $this->getValue(),
-
-            //     "Multiple" => $this->getMultiple(),
-            //     "Expanded" => $this->getExpanded(),
-            //     "ID" => $this->getID(),
-            //     "Class" => $this->getClass(),
-            //     "Placeholder" => $this->getPlaceholder(),
-            //     "Required" => $this->getRequired(),
-            //     "Readonly" => $this->getReadonly(),
-            //     "Disabled" => $this->getDisabled(),
-            //     "MaxLength" => $this->getMaxLength(),
-            //     "Width" => $this->getWidth(),
-            //     "Min" => $this->getMin(),
-            //     "Max" => $this->getMax(),
-            //     "Step" => $this->getStep(),
-            //     "Cols" => $this->getCols(),
-            //     "Rows" => $this->getRows(),
-            //     "Choices" => $this->getChoices(),
-            // ]);
-            // echo "</pre>";
         }
 
         /**
@@ -235,30 +213,70 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         public function render()
         {
-            //  Template Options
-            $options = $this->tmplOptions;
+
+            // print_r( $this->getType() );
 
             // Init the Output
             $output = '';
 
-            // Output for metabox
-            if ($options['metabox']) 
+            switch ($this->template_type) 
             {
-                $output.= '<tr>';
-                $output.= '<th scope="row">';
-                $output.= $this->tagLabel();
-                $output.= '</th>';
-                $output.= '<td>';
-                $output.= $this->tagTemplate();
-                $output.= $this->tagHelper();
-                $output.= '</td>';
-                $output.= '</tr>';
-            }
+                case 'collection':
+                case 'metabox':
 
-            else {
+                    if ('collection' == $this->getType())
+                    {
+                        if (null != $this->tagHelper())
+                        {
+                            $output.= '<tr>';
+                            $output.= '<td class="ppm-collection-row ppm-collection-row-header">';
+                            // $output.= $this->tagLabel();
+                            $output.= $this->tagHelper();
+                            $output.= '</td>';
+                            $output.= '</tr>';
+                        }
+                        
+                        $output.= '<tr>';
+                        $output.= '<td class="ppm-collection-row">';
+                        $output.= $this->tagTemplate();
+                        $output.= '</td>';
+                        $output.= '</tr>';
+                    }
+                    else
+                    {
+                        $output.= '<tr>';
+                        $output.= '<th scope="row">';
+                        $output.= $this->tagLabel();
+                        $output.= '</th>';
+                        $output.= '<td>';
+                        $output.= $this->tagTemplate();
+                        $output.= $this->tagHelper();
+                        $output.= '</td>';
+                        $output.= '</tr>';
+                    }
+                    break;
 
-                $output.= $this->tagTemplate();
-                // $output.= preg_replace("/{{attributes}}/", $attributes, $this->getTemplate());
+                // case 'collection':
+                //     // $output.= '<div>';
+                //     // $output.= $this->tagLabel();
+                //     // $output.= $this->tagTemplate();
+                //     // $output.= $this->tagHelper();
+                //     // $output.= '</div>';
+
+                //     $output.= '<tr>';
+                //     $output.= '<th scope="row">';
+                //     $output.= $this->tagLabel();
+                //     $output.= '</th>';
+                //     $output.= '<td>';
+                //     $output.= $this->tagTemplate();
+                //     $output.= $this->tagHelper();
+                //     $output.= '</td>';
+                //     $output.= '</tr>';
+                //     break;
+                
+                default:
+                    $output.= $this->tagTemplate();
+                    break;
             }
 
             return $output;
@@ -319,23 +337,69 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         private function tagCollection()
         {
-            $tag = '';
+            $tag = "\n\n\n\n\n\n\n\n\n\n\n\n";
+
+            // echo "<pre>";
+            // print_r($this->config);
+            // echo "</pre>";
             
-            $tag.= '<div '.$this->getAttrId().' class="collection-container">';
-            $tag.= '';
-            $tag.= 'Collection : '.$this->getId().'<br>';
-            $tag.= 'Collection : '.$this->getAttrId().'<br>';
-            $tag.= '';
+            $tag.= '<div id="'.$this->getId().'" class="ppm-collection-container" data-collection="'.$this->getId().'" data-type="container" data-loop="'.$this->getLoop().'"></div>';
+            
+            $tag.= '<div class="ppm-collection-control">';
+            $tag.= '<button type="button" class="button button-secondary button-large" data-collection="'.$this->getId().'" data-type="control" data-action="add">Add</button>';
             $tag.= '</div>';
             
-            $tag.= '<script id="'.$this->getId().'" type="">';
-            $tag.= '';
-            $tag.= '</scr>';
+            $tag.= '<script type="text/html" data-collection="'.$this->getId().'" data-type="prototype">';
+            $tag.= '<div id="ppm-collection-item-{{number}}" class="ppm-collection-item">';
 
-            $tag.= '<div>';
-            $tag.= '<button class="button button-secondary button-large" type="button" data-collection="'.$this->getId().'">Add one</button>';
+            $tag.= '<div class="ppm-collection-item-header">';
+            $tag.= '<div class="ppm-collection-item-actions hidden">';
+            $tag.= '<button type="button" class="button button-link button-small dashicons-before dashicons-dismiss" data-collection="'.$this->getId().'" data-type="control" data-action="delete"></button>';
+            $tag.= '</div>';
+            $tag.= '<h4>'.$this->getLabel().'</h4>';
             $tag.= '</div>';
 
+            $tag.= '<table class="form-table ppm-collection">';
+            $tag.= '<tbody>';
+            foreach ($this->getSchema() as $schema) 
+            {
+                $schema['post_type'] = $this->getConfig('post_type');
+                $schema['namespace'] = $this->getConfig('namespace');
+                $schema['collection'] = $this->getId();
+
+                $fieldClass = ucfirst(strtolower($schema['type']));
+                $fieldClass = "\\Framework\\Components\\Form\\Fields\\".$fieldClass;
+                $field = new $fieldClass($schema, 'collection');
+                
+                
+                
+                // $attr_name = $this->getConfig('post_type').'['.$this->getId().']['.$schema['key'].'][{{number}}]';
+
+                $attr_name = $this->getConfig('post_type').'['.implode("][", explode("-", $schema['key'])).'][{{number}}]';
+                $field->setName($attr_name);
+
+
+
+
+                // $tag.= $field->getAttrId();
+                // $tag.= '<br>';
+
+                // $tag.= $field->getAttrName();
+                // $tag.= '<br>';
+
+                // $tag.= $field->getAttrClass();
+                // $tag.= '<br>';
+                
+                $tag.= $field->render();
+                // $tag.= '<br>';
+            }
+            $tag.= '</tbody>';
+            $tag.= '</table>';
+            $tag.= '</div>';
+            $tag.= '</script>';
+
+            $tag.= "\n\n\n\n\n\n\n\n\n\n\n\n";
+            
             return $tag;
         }
 
@@ -459,11 +523,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         private function tagOutput()
         {
-            // TODO: Inject JS calculation into <form> --> https://www.w3schools.com/tags/tag_output.asp
-
-            // $for = $this->getConfig('post_type');
-            // $for.= '['.$this->getValue().']';
-
             $for = $this->getValue();
 
             return '<output name="'.$this->getName().'" for="'.$for.'"></output>';
@@ -700,7 +759,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             
             if (
                 is_admin() && 
-                $this->tmplOptions['metabox'] &&
+                ($this->template_type == 'metabox' || $this->template_type == 'collection')&&
                 !in_array($this->getType(), ['color'])
             ){
                 $this->class.= ' regular-text';
@@ -886,6 +945,13 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 $this->id = $this->getConfig('key');
             }
 
+
+            if ('collection' == $this->template_type)
+            {
+                $this->id.= '-{{number}}';
+            }
+
+
             if ('wysiwyg' == $this->getType())
             {
                 $this->id = preg_replace("/\\[|\\]/", "____", $this->getName());
@@ -920,11 +986,44 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 $this->label = $this->getConfig('label');
             }
 
+            // if ($this->getType() == 'collection')
+            // {
+            //     $this->label = "Item {{number}}";
+
+            //     if (is_string($this->getRule('label')))
+            //     {
+            //         $this->label = $this->getRule('label');
+            //     }
+            // }
+
             return $this;
         }
         protected function getLabel()
         {
             return $this->label;
+        }
+
+        /**
+         * Loop
+         */
+        protected function setLoop()
+        {
+            // default loop value
+            $this->loop = 1;
+
+            // $loop = $this->getConfig('loop');
+            $loop = $this->getRule('init');
+
+            if (is_int($loop) && $loop >= 0 ) 
+            {
+                $this->loop = $loop;
+            }
+
+            return $this;
+        }
+        protected function getLoop()
+        {
+            return $this->loop;
         }
 
         /**
@@ -1183,6 +1282,36 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         }
 
         /**
+         * Schema
+         * 
+         * Define schema for Collection Type
+         */
+        protected function setSchema()
+        {
+            // Default Schema
+            $this->schema = [];
+
+            // Retrive Schema parameters
+            $schema = $this->getConfig('schema');
+
+            if (is_string($schema) || is_array($schema))
+            {
+                if (is_string($schema))
+                {
+                    $schema = [$schema];
+                }
+
+                $this->schema = $schema;
+            }
+
+            return $this;
+        }
+        protected function getSchema()
+        {
+            return $this->schema;
+        }
+
+        /**
          * Step
          */
         protected function setStep()
@@ -1340,6 +1469,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 elseif ('option' == $this->getType() && $this->getValue() == $this->getConfig('default'))
                 {
                     return ' selected="selected"';
+                } 
+                elseif ('collection' == $this->getType())
+                {
+                    // TODO: Value of collection 
+                    // return ' selected="selected"';
                 } 
                 else 
                 {

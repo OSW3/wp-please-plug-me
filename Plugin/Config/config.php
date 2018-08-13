@@ -21,7 +21,8 @@ $config = [
      * define the execution environment, Default is "auto"
      * Set "auto" to define query from localhost as "development"
      */
-    'environment' => 'production',
+    // 'environment' => 'production',
+    'environment' => 'auto',
 
     /**
      * Namespace
@@ -1837,7 +1838,7 @@ $config = [
                                  * Schema
                                  */
                                 'schema' => [
-                                    'demo_select',
+                                    // 'demo_url',
                                 ]
 
                             ],
@@ -1861,7 +1862,7 @@ $config = [
                                     // 'demo_tel',
                                     // 'demo_url',
                                     // 'demo_search',
-                                    // 'demo_range',
+                                    'demo_range',
                                     // 'demo_number',
                                     // 'demo_output',
                                     // 'demo_color',
@@ -2001,33 +2002,33 @@ $config = [
                             /**
                              * Demo Metabox : WYSIWYG
                              */
-                            // [
-                            //     'key' => 'demo_metabox_wysiwyg',
-                            //     'title' => 'Metabox : WYSIWYG',
-                            //     'src' => null,
-                            //     'context' => 'normal',
-                            //     'priority' => 'high',
-                            //     'display' => true,
-                            //     'schema' => [
-                            //         'demo_wysiwyg',
-                            //     ]
-                            // ],
-
-                            
-                            /**
-                             * Demo Metabox : WYSIWYG
-                             */
                             [
-                                'key' => 'demo_metabox_collection',
-                                'title' => 'Metabox : Collection',
+                                'key' => 'demo_metabox_wysiwyg',
+                                'title' => 'Metabox : WYSIWYG',
                                 'src' => null,
                                 'context' => 'normal',
                                 'priority' => 'high',
                                 'display' => true,
                                 'schema' => [
-                                    'demo_collection',
+                                    'demo_wysiwyg',
                                 ]
                             ],
+
+                            
+                            /**
+                             * Demo Metabox : Collection
+                             */
+                            // [
+                            //     'key' => 'demo_metabox_collection',
+                            //     'title' => 'Metabox : Collection',
+                            //     'src' => null,
+                            //     'context' => 'normal',
+                            //     'priority' => 'high',
+                            //     'display' => true,
+                            //     'schema' => [
+                            //         'demo_collection',
+                            //     ]
+                            // ],
 
                         ],
 

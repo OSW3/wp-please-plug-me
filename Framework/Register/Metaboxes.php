@@ -75,6 +75,16 @@ if (!class_exists('Framework\Register\Metaboxes'))
             // Retrieve the Metaboxes settings
             $this->setMetaboxes();
 
+
+            // echo "<pre>";
+            // print_r($post);
+            // echo "</pre>";
+
+
+            // echo "<pre>";
+            // print_r($this->metaboxes);
+            // echo "</pre>";
+
             // Retrieve Metaboxes global options
             $this->setMetaboxesOptions();
 
@@ -85,7 +95,7 @@ if (!class_exists('Framework\Register\Metaboxes'))
             add_action('add_meta_boxes',[$this, 'add_meta_boxes']);
 
             // Form tag
-            add_action('post_edit_form_tag', [$this, 'post_edit_form_tag']);
+            // add_action('post_edit_form_tag', [$this, 'post_edit_form_tag']);
 
             // Metabox Options
             add_action( 'admin_init', [$this, 'set_meta_boxes_options']);
@@ -104,6 +114,10 @@ if (!class_exists('Framework\Register\Metaboxes'))
             {
                 foreach ($this->metaboxes as $metabox) 
                 {
+                    // echo "<pre>";
+                    // print_r($metabox);
+                    // echo "</pre>";
+
                     // Default display
                     $display = true;
 
@@ -195,7 +209,9 @@ if (!class_exists('Framework\Register\Metaboxes'))
 
             foreach ($metabox_fields as $field_key) 
             {
-                foreach ($schema as $schema_field) 
+
+                
+                foreach ($schema as $key => $schema_field) 
                 {
                     if ($field_key == $schema_field['key'])
                     {
@@ -205,7 +221,7 @@ if (!class_exists('Framework\Register\Metaboxes'))
                         $fieldClass = ucfirst(strtolower($schema_field['type']));
                         $fieldClass = "\\Framework\\Components\\Form\\Fields\\".$fieldClass;
                         
-                        $field = new $fieldClass($schema_field, ['metabox' => true]);
+                        $field = new $fieldClass($schema_field, 'metabox');
                         $content.= $field->render();
                         
                     }
@@ -431,6 +447,10 @@ if (!class_exists('Framework\Register\Metaboxes'))
 
             // Array of valid fields
             $schema_fields = array();
+            
+            // echo "<pre>";
+            // print_r($this->metaboxes);
+            // echo "</pre>";
 
             // Retrieve list of fields 
             foreach ($this->metaboxes as $metabox) 

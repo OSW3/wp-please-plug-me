@@ -380,6 +380,8 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                                         //     }
                                         // }
                                     break;
+                                
+            
 
                                 // Add value
                                 default:
@@ -402,18 +404,6 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                 }
             }
             
-            // Set values to the session
-            // $session->responses($this->getType(), $this->getSchema());
-            
-
-
-            // echo "<pre>";
-            // print_r(
-            //     $this->getSchema()
-            // );
-            // echo "</pre>";
-
-            // exit;
             return $this;
         }
 

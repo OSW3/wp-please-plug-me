@@ -26,12 +26,19 @@ if (!class_exists('Framework\Register\Posts'))
         /**
          * Max size for the custom post type identifier
          */
-        const TYPE_MAX_SIZE = 20;
+        const POSTTYPE_MAX_SIZE = 20;
+
+        /**
+         * List of valid Types
+         */
+        const TYPES = ['checkbox','choices','collection','color','date',
+            'datetime','email','file','hidden','month','number','option',
+            'output','password','radio','range','search','tel','text','textarea',
+            'time','url','week','wysiwyg','year'];
 
         /**
          * List of custom post parameters we want to internationalize
          */
-        // const I18N = ['label','description'];
         const LABELS_UI = ['singular_name','add_new','add_new_item','edit_item',
             'new_item','view_item','view_items','search_items','not_found',
             'not_found_in_trash','parent_item_colon','all_items','archives',
@@ -66,11 +73,34 @@ if (!class_exists('Framework\Register\Posts'))
         protected $bs;
 
         /**
-         * List of custom posts
+         * Posts register
          * 
          * @param array
          */
         private $posts = array();
+
+        /**
+         * Types register
+         */
+        private $types = array();
+
+        /**
+         * Types (collection) register
+         */
+        private $collections = array();
+
+
+
+
+
+
+
+        /**
+         * Current post 
+         * 
+         * @param array
+         */
+        private $post = array();
 
         /**
          * Response data
@@ -87,162 +117,492 @@ if (!class_exists('Framework\Register\Posts'))
             // Retrieve the bootstrap class instance
             $this->bs = $bs;
 
+            // Set custom Posts to $this->posts register
+            $this->setPosts();
+
+            // Set Types to $this->types register
+            $this->setTypes();
+
+
+            // echo "<pre>";
+            // print_r($this->getTypes());
+            // echo "</pre>";
+
+            // echo "<pre>";
+            // print_r($this->collections);
+            // echo "</pre>";
+            
+            // echo "<pre>";
+            // print_r($this->getPosts());
+            // echo "</pre>";
+
             // Define the list of Custom Posts
             $this->WP_Posts();
         }
 
         /**
-         * 
+         * Posts
          */
-        private function WP_Posts()
+        private function setPosts()
         {
-            // Retrieve the list of custom posts
+            // Retrieve Posts declaration from config
             $posts = $this->bs->getPosts();
+
+            // ReDefine default $_posts as array
             $posts = is_array($posts) ? $posts : [];
 
-            // Verify eah parameters and format the Post array and finaly,
-            // add the post to the register
+            // Add each post to $this->posts
             foreach ($posts as $post) 
             {
-                if ($this->isValidType($post) && $this->isValidLabel($post)) 
-                {
-                    $this->setPost($post);
-
-                    // Define the Type
-                    $post = $this->setType($post);
-
-                    // Define the Label(s)
-                    $post = $this->setLabel($post);
-                    $post = $this->setLabels($post);
-                    
-                    // Define the Description
-                    $post = $this->setDescription($post);
-
-                    // Is public post ?
-                    $post = $this->setPublic($post);
-
-                    // Is Hierarchical post ?
-                    $post = $this->setHierarchical($post);
-
-                    // Show UI
-                    $post = $this->setShowUI($post);
-
-                    // Show in Menu
-                    $post = $this->setShowInMenu($post);
-
-                    // Show the custom posts in Menus Manager
-                    $post = $this->setShowInNavMenus($post);
-
-                    // Show in Menu Bar (topbar)
-                    $post = $this->setShowInMenuBar($post);
-
-                    // Menu Position
-                    $post = $this->setMenuPosition($post);
-
-                    // Menu Icon
-                    $post = $this->setMenuIcon($post);
-
-                    // Has Archive
-                    $post = $this->setHasArchive($post);
-
-                    // Define if is exportable
-                    $post = $this->setCanExport($post);
-
-                    // Define query rules
-                    $post = $this->setQuery($post);
-
-                    // REST
-                    $post = $this->setREST($post);
-
-                    // Define rewrite rules
-                    $post = $this->setRewrite($post);
-
-                    // Define Capabilities
-                    $post = $this->setCapability($post);
-
-                    // Define Edit Link (_edit_link)
-                    $post = $this->setEditLink($post);
-
-                    // Define Categories
-                    new Taxonomy($this->bs, 'categories', $post);
-
-                    // Define Tags
-                    new Taxonomy($this->bs, 'tags', $post);
-
-                    // Add Metaboxes (and supports)
-                    $metaboxes = new Metaboxes($this->bs, $post);
-                    $supports = $metaboxes->getSupports();
-
-                    // Define Supports
-                    $post = $this->setSupports($supports, $post);
-
-                    // TODO : 'map_meta_cap'
-                    // (bool) Whether to use the internal default meta capability handling. Default false.
-
-                    // TODO : 'register_meta_box_cb'
-                    // (callable) Provide a callback function that sets up the meta boxes for the edit form. Do remove_meta_box() and add_meta_box() calls in the callback. Default null.
-
-                    // TODO : '_builtin'
-                    // (bool) FOR INTERNAL USE ONLY! True if this post type is a native or "built-in" post_type. Default false.
-
-                    // Internationalize the post data
-                    // $post = $this->i18n($post);
-
-                    // Add the custom post to the register
-                    register_post_type( $post['type'], $post );
-
-                    // Manage Post Column 
-                    add_filter( "manage_{$post['type']}_posts_columns", array($this, 'setAdminColumns') );
-                    add_action( "manage_{$post['type']}_posts_custom_column" , array($this, 'setAdminColumnsData'), 10, 2 );
-                    add_filter( "manage_edit-{$post['type']}_sortable_columns", array($this, 'setAdminColumnsSortable') );
-
-                    // Menu action on Admin index rows
-                    add_filter('post_row_actions', array($this, 'setAdminRowActions'), 10, 1);
-
-                    // Post submission
-                    add_action('pre_post_update', array($this, "postValidation"));
-
-                    // Notice (flashbag)
-                    add_action('admin_notices', array(new Notices($this->bs->getNamespace()), "get"));
-
-
-                    // Clear the post session
-                    add_action('clear_post_session', function() use ($post) { $this->clearPostSession($post); });
-                    add_action('wp_footer', [$this, "clearPostSession"], 10);
-                    add_action('admin_footer', [$this, "clearPostSession"], 10);
-                }
+                $this->addPost($post);
             }
-        }
 
-        /**
-         * Retrieve Posts config in config.php
-         */
+            return $this;
+        }
         private function setPost(array $post)
         {
             $this->post = $post;
 
             return $this;
         }
-        /**
-         * 
-         */
+        public function getPosts()
+        {
+            return $this->posts;
+        }
         private function getPost()
         {
             return $this->post;
         }
+        private function isValidPostType(array $post)
+        {
+            // Default $type
+            $posttype = null;
+
+            // Default Is Valid (true)
+            $isValid = true;
+
+            // Retrieve the type
+            if (isset($post['type']) && is_string($post['type'])) 
+            {
+                $posttype = $post['type'];
+            }
+
+            // Define error if $posttype is empty
+            if (empty($posttype)) 
+            {
+                $isValid = false;
+                $errorMessage = "<strong>Invalid Post Type</strong> : The post type can't be empty.";
+            }
+
+            // Check chars length
+            if (strlen($posttype) > self::POSTTYPE_MAX_SIZE) 
+            {
+                $isValid = false;
+                $errorMessage = "<strong>Invalid Post Type</strong> : The post type (".$post['type'].") must have ".self::POSTTYPE_MAX_SIZE." chars max.";
+            }
+
+            // Check chars type
+            if (!preg_match("/^[a-z0-9_]*$/i", $posttype))
+            {
+                $isValid = false;
+                $errorMessage = "<strong>Invalid Post Type</strong> : The post type (".$post['type'].") must content only alpha, numeric and underscore.";
+            }
+
+            // Display error
+            if (!$isValid && 'development' == $this->bs->getEnvironment()) 
+            {
+                trigger_error($errorMessage, E_USER_WARNING);
+            }
+
+            return $isValid;
+        }
+        private function postExists(string $posttype)
+        {
+            foreach ($this->posts as $post) 
+            {
+                if (isset($post['type']) && null != $posttype && $post['type'] == $posttype)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        private function addPost(array $post)
+        {
+            // Check the Post Type and Post Existance
+            if ($this->isValidPostType($post) && !$this->postExists($post['type']))
+            {
+                array_push($this->posts, $post);
+            }
+
+            return $this;
+        }
 
         /**
-         * Define the Post type key
-         * 
-         * @param array $post
-         * @return array $post
+         * Types
          */
-        private function setType(array $post)
+        private function setTypes()
         {
-            $post['type'] = isset($post['type']) ? $post['type'] : null;
-            
-            return $post;
+
+            // Retrieve each Posts
+            foreach ($this->posts as $post) 
+            {
+                // Search for Schema parameter
+                if (isset($post['schema']) && is_array($post['schema']))
+                {
+                    // Retrieve each Types
+                    foreach ($post['schema'] as $type) 
+                    {
+                        $this->addType($type, $post);
+                    }
+                }
+            }
+
+            // Rebuild Collection Type
+            $this->rebuildCollectionTypes();
+
+            // Add Virtual post
+            foreach ($this->types as $posttype => $types) 
+            {
+                foreach ($types as $index => $type) 
+                {
+                    if ('collection' == $type['type'])
+                    {
+                        $vp_type = $posttype.".".$type['key'];
+                        $vp_hash = substr(hash("sha256", $vp_type), 0, 10);
+                        $vp_name = "vp_".$vp_hash;
+
+                        $this->addPost([
+                            'type' => $vp_name,
+                            'name' => $vp_name,
+                            'public' => false,
+                            'schema' => [$type]
+                        ]);
+                    }
+                }
+            }
+
+            foreach ($this->posts as $key => $post) 
+            {
+                // Search for Schema parameter
+                if (isset($this->posts[$key]['schema']) && is_array($this->posts[$key]['schema']))
+                {
+                    if (isset($this->types[$post['type']]))
+                    {
+                        $this->posts[$key]['schema'] = [];
+                        // $this->types[$post['type']];
+                        foreach ($this->types[$post['type']] as $type) 
+                        {
+                            array_push($this->posts[$key]['schema'], $type);
+                        }
+                    }
+                }
+            }
+
+            return $this;
         }
+        private function getTypes()
+        {
+            return $this->types;
+        }
+        private function getType(string $key)
+        {
+            if (isset($this->types[$key]))
+            {
+                return $this->types[$key];
+            }
+
+            return null;
+        }
+        public function isValidType(array $type)
+        {
+            // Default Is Valid (true)
+            $isValid = true;
+
+            // Check Type Key
+            if (!isset($type['key']))
+            {
+                $isValid = false;
+                $errorMessage = "<strong>Undefined Type Key</strong> : The type key parameter is required.";
+            }
+
+            if (isset($type['key']) && !preg_match("/^[a-z0-9_]*$/i", $type['key']))
+            {
+                $isValid = false;
+                $errorMessage = "<strong>Invalid Type Key</strong> : The type key (".$type['key'].") must content only alpha, numeric and underscore.";
+            }
+
+            // Check Type Type
+            if (!isset($type['type']))
+            {
+                $isValid = false;
+                $errorMessage = "<strong>Undefined Type Field</strong> : The field type parameter is required. Valid types field are ".implode(", ", self::TYPES).".";
+            }
+
+            if (isset($type['type']) && !in_array($type['type'], self::TYPES))
+            {
+                $isValid = false;
+                $errorMessage = "<strong>Invalid Type Field</strong> : The field type \"".$type['type']."\" is not valid. Valid types field are ".implode(", ", self::TYPES).".";
+            }
+
+            // Display error
+            if (!$isValid && 'development' == $this->bs->getEnvironment()) 
+            {
+                trigger_error($errorMessage, E_USER_WARNING);
+            }
+
+            return $isValid;
+        }
+        public function addType(array $type, array $post)
+        {
+            if (!isset($this->types[$post['type']]) || !is_array($this->types[$post['type']]))
+            {
+                $this->types[$post['type']] = array();
+            }
+
+            if ($this->isValidType($type))
+            {
+                // Add Type to $this->types register
+                $this->types[$post['type']] += [
+                    $type['key'] => $type
+                ];
+            }
+
+            return $this;
+        }
+        public function rebuildCollectionTypes()
+        {
+            // Retrieve collections type
+            $this->setCollections();
+
+            // Check each collections
+            $this->setSchemaCollection();
+        }
+        private function setCollections()
+        {
+            foreach ($this->types as $posttype => $types)
+            {
+                if (!isset($this->collections[$posttype]))
+                {
+                    $this->collections[$posttype] = array();
+                }
+
+                foreach ($types as $index => $type) 
+                {
+                    if ('collection' == $type['type'])
+                    {
+                        array_push($this->collections[$posttype], $type['key']);
+
+                        // Prepare for rebuild recursion
+                        $this->types[$posttype][$index]['_X'] = true;
+
+                        // Define Virtual Post name
+                        $vp_type = $posttype.".".$this->types[$posttype][$index]['key'];
+                        $vp_hash = substr(hash("sha256", $vp_type), 0, 10);
+                        $vp_name = "vp_".$vp_hash;
+                        $this->types[$posttype][$index]['_VPOST'] = $vp_name;
+                    }
+                }
+            }
+        }
+        private function setSchemaCollection()
+        {
+            $_collections = $this->collections;
+            $this->collections = array();
+
+            foreach ($_collections as $posttype => $collections)
+            {
+                foreach ($collections as $collection_name)
+                {
+                    // retrieve the schema of the collection
+                    if (isset($this->types[$posttype][$collection_name]) && isset($this->types[$posttype][$collection_name]['schema']) && is_array($this->types[$posttype][$collection_name]['schema']))
+                    {
+                        foreach ($this->types[$posttype][$collection_name]['schema'] as $key => $collection_type) 
+                        {
+                            if (is_string($collection_type))
+                            {
+
+                                if (!isset($this->types[$posttype][$collection_type]))
+                                {
+                                    unset($this->types[$posttype][$collection_name]['schema'][$key]);
+                                }
+
+                                else
+                                {
+                                    if ('collection' != $this->types[$posttype][$collection_type]['type'])
+                                    {
+                                        $this->types[$posttype][$collection_name]['schema'][$key] = $this->types[$posttype][$collection_type];
+                                    }
+                                    else
+                                    {
+                                        if (!isset($this->types[$posttype][$collection_type]['_X']))
+                                        {
+                                            $this->types[$posttype][$collection_name]['schema'][$key] = $this->types[$posttype][$collection_type];
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach ($_collections as $posttype => $collections)
+            {
+                foreach ($collections as $collection_name)
+                {
+                    $_RECURSION = false;
+
+                    if (isset($this->types[$posttype][$collection_name]))
+                    {
+                        if (isset($this->types[$posttype][$collection_name]['schema']) && is_array($this->types[$posttype][$collection_name]['schema']))
+                        {
+                            foreach ($this->types[$posttype][$collection_name]['schema'] as $key => $collection_type) 
+                            {
+                                if (is_string($collection_type))
+                                {
+                                    $_RECURSION = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!$_RECURSION)
+                    {
+                        unset($this->types[$posttype][$collection_name]['_X']);
+                    }
+                    else
+                    {
+                        if (!isset($this->collections[$posttype]))
+                        {
+                            $this->collections[$posttype] = array();
+                        }
+                        array_push($this->collections[$posttype], $collection_name);
+                    }
+                }
+            }
+
+            if (!empty($this->collections))
+            {
+                $this->setSchemaCollection();
+            }
+        }
+
+        /**
+         * WP_Posts
+         */
+        private function WP_Posts()
+        {
+            // Verify each parameters and format the Post array and finaly,
+            // add the post to the register
+            foreach ($this->getPosts() as $post) 
+            {
+                // Set current Post in loop
+                $this->setPost($post);
+
+                // Define the Label(s)
+                $post = $this->setLabel($post);
+                $post = $this->setLabels($post);
+                
+                // Define the Description
+                $post = $this->setDescription($post);
+
+                // Is public post ?
+                $post = $this->setPublic($post);
+
+                // Is Hierarchical post ?
+                $post = $this->setHierarchical($post);
+
+                // Show UI
+                $post = $this->setShowUI($post);
+
+                // Show in Menu
+                $post = $this->setShowInMenu($post);
+
+                // Show the custom posts in Menus Manager
+                $post = $this->setShowInNavMenus($post);
+
+                // Show in Menu Bar (topbar)
+                $post = $this->setShowInMenuBar($post);
+
+                // Menu Position
+                $post = $this->setMenuPosition($post);
+
+                // Menu Icon
+                $post = $this->setMenuIcon($post);
+
+                // Has Archive
+                $post = $this->setHasArchive($post);
+
+                // Define if is exportable
+                $post = $this->setCanExport($post);
+
+                // Define query rules
+                $post = $this->setQuery($post);
+
+                // REST
+                $post = $this->setREST($post);
+
+                // Define rewrite rules
+                $post = $this->setRewrite($post);
+
+                // Define Capabilities
+                $post = $this->setCapability($post);
+
+                // Define Edit Link (_edit_link)
+                $post = $this->setEditLink($post);
+
+                // Define Categories
+                new Taxonomy($this->bs, 'categories', $post);
+
+                // Define Tags
+                new Taxonomy($this->bs, 'tags', $post);
+
+                // Add Metaboxes (and supports)
+                $metaboxes = new Metaboxes($this->bs, $post);
+                $supports = $metaboxes->getSupports();
+
+                // Define Supports
+                $post = $this->setSupports($supports, $post);
+
+                // TODO : 'map_meta_cap'
+                // (bool) Whether to use the internal default meta capability handling. Default false.
+
+                // TODO : 'register_meta_box_cb'
+                // (callable) Provide a callback function that sets up the meta boxes for the edit form. Do remove_meta_box() and add_meta_box() calls in the callback. Default null.
+
+                // TODO : '_builtin'
+                // (bool) FOR INTERNAL USE ONLY! True if this post type is a native or "built-in" post_type. Default false.
+
+                // Internationalize the post data
+                // $post = $this->i18n($post);
+
+                // Add the custom post to the register
+                register_post_type( $post['type'], $post );
+
+                // Manage Post Column 
+                add_filter( "manage_{$post['type']}_posts_columns", array($this, 'setAdminColumns') );
+                add_action( "manage_{$post['type']}_posts_custom_column" , array($this, 'setAdminColumnsData'), 10, 2 );
+                add_filter( "manage_edit-{$post['type']}_sortable_columns", array($this, 'setAdminColumnsSortable') );
+
+                // Menu action on Admin index rows
+                add_filter('post_row_actions', array($this, 'setAdminRowActions'), 10, 1);
+
+                // Post submission
+                add_action('pre_post_update', array($this, "postValidation"));
+
+                // Notice (flashbag)
+                add_action('admin_notices', array(new Notices($this->bs->getNamespace()), "get"));
+
+                // Clear the post session
+                add_action('clear_post_session', function() use ($post) { $this->clearPostSession($post); });
+                add_action('wp_footer', [$this, "clearPostSession"], 10);
+                add_action('admin_footer', [$this, "clearPostSession"], 10);
+            }
+        }
+
         /**
          * Define the label of the post
          * 
@@ -992,42 +1352,42 @@ if (!class_exists('Framework\Register\Posts'))
          * @param array $post
          * @return bool
          */
-        private function isValidType(array $post)
-        {
-            // Default $type
-            $type = null;
+        // private function isValidType(array $post)
+        // {
+        //     // Default $type
+        //     $type = null;
 
-            // Default Is Valid (true)
-            $isValid = true;
+        //     // Default Is Valid (true)
+        //     $isValid = true;
 
-            // Default error message
-            $errorMessage = null;
+        //     // Default error message
+        //     $errorMessage = null;
 
-            // Retrieve the type
-            if (isset($post['type']) && is_string($post['type'])) {
-                $type = $post['type'];
-            }
+        //     // Retrieve the type
+        //     if (isset($post['type']) && is_string($post['type'])) {
+        //         $type = $post['type'];
+        //     }
 
-            // Define error if $type is empty
-            if (empty($type)) {
-                $isValid = false;
-                $errorMessage = "<strong>Invalid Post Type</strong> : The post type can't be empty.";
-            }
+        //     // Define error if $type is empty
+        //     if (empty($type)) {
+        //         $isValid = false;
+        //         $errorMessage = "<strong>Invalid Post Type</strong> : The post type can't be empty.";
+        //     }
 
-            // Define error if $type length > 20 chars
-            if (strlen($type) > self::TYPE_MAX_SIZE) {
-                $isValid = false;
-                $errorMessage = "<strong>Invalid Post Type</strong> : The post type (".$post['type'].") must have ".self::TYPE_MAX_SIZE." chars max.";
-            }
+        //     // Define error if $type length > 20 chars
+        //     if (strlen($type) > self::POSTTYPE_MAX_SIZE) {
+        //         $isValid = false;
+        //         $errorMessage = "<strong>Invalid Post Type</strong> : The post type (".$post['type'].") must have ".self::POSTTYPE_MAX_SIZE." chars max.";
+        //     }
 
-            // Set error
-            if (!$isValid) 
-            {
-                trigger_error($errorMessage, E_USER_WARNING);
-            }
+        //     // Set error
+        //     if (!$isValid) 
+        //     {
+        //         trigger_error($errorMessage, E_USER_WARNING);
+        //     }
 
-            return $isValid;
-        }
+        //     return $isValid;
+        // }
 
         /**
          * Verify the validity of the Name of a custom post
@@ -1238,18 +1598,9 @@ if (!class_exists('Framework\Register\Posts'))
             foreach ($this->response->getSchema() as $item) 
             {
                 // If  item type == file
-                
+
                 update_post_meta($_PID, $item['key'], $item['value']);
             }
-
-
-            // echo "<pre>";
-            // print_r(
-            //     $this->response->getSchema()
-            // );
-            // echo "</pre>";
-
-            
         }
 
         /**
