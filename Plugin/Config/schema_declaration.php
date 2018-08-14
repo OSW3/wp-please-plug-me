@@ -1003,9 +1003,9 @@ $schema_declaration = [
         // 'schema' => "demo_text",
         'schema' => [
             "demo_text",
-            "demo_textarea",
-            "demo_collection_2",
-            "demo_helper",
+            // "demo_textarea",
+            // "demo_collection_2",
+            // "demo_helper",
             // "demo_choices_expanded_inline",
             // "demo_wysiwyg"
         ],

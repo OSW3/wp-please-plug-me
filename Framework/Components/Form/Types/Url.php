@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Components\Form\Fields;
+namespace Framework\Components\Form\Types;
 
 // Make sure we don't expose any info if called directly
 if (!defined('WPINC'))
@@ -12,9 +12,9 @@ if (!defined('WPINC'))
 
 use \Framework\Components\Form\Form\Form;
 
-if (!class_exists('Framework\Components\Form\Fields\Color'))
+if (!class_exists('Framework\Components\Form\Types\Url'))
 {
-    class Color extends Form 
+    class Url extends Form 
     {
     }
 }

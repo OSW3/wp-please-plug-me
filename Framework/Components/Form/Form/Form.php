@@ -55,7 +55,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         /**
          * Field config
          */
-        private $config;
+        protected $config;
 
         /**
          * 
@@ -312,97 +312,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $tag;
         }
-
-        /**
-         * File
-         */
-        private function tagFile()
-        {
-            $tag = "<table>";
-            $tag.=  "<tr>";
-            $tag.=      "<td>";
-            // $tag.=          '<img src="'..'Framework/Assets/images/default.svg'.'">';
-            $tag.=      "</td>";
-            $tag.=      "<td>";
-            $tag.=          $this->tagInput();
-            $tag.=      "</td>";
-            $tag.=  "</tr>";
-            $tag.= "</table>";
-
-            return $tag;
-        }
-
-        /**
-         * Collection
-         */
-        private function tagCollection()
-        {
-            $tag = "\n\n\n\n\n\n\n\n\n\n\n\n";
-
-            // echo "<pre>";
-            // print_r($this->config);
-            // echo "</pre>";
-            
-            $tag.= '<div id="'.$this->getId().'" class="ppm-collection-container" data-collection="'.$this->getId().'" data-type="container" data-loop="'.$this->getLoop().'"></div>';
-            
-            $tag.= '<div class="ppm-collection-control">';
-            $tag.= '<button type="button" class="button button-secondary button-large" data-collection="'.$this->getId().'" data-type="control" data-action="add">Add</button>';
-            $tag.= '</div>';
-            
-            $tag.= '<script type="text/html" data-collection="'.$this->getId().'" data-type="prototype">';
-            $tag.= '<div id="ppm-collection-item-{{number}}" class="ppm-collection-item">';
-
-            $tag.= '<div class="ppm-collection-item-header">';
-            $tag.= '<div class="ppm-collection-item-actions hidden">';
-            $tag.= '<button type="button" class="button button-link button-small dashicons-before dashicons-dismiss" data-collection="'.$this->getId().'" data-type="control" data-action="delete"></button>';
-            $tag.= '</div>';
-            $tag.= '<h4>'.$this->getLabel().'</h4>';
-            $tag.= '</div>';
-
-            $tag.= '<table class="form-table ppm-collection">';
-            $tag.= '<tbody>';
-            foreach ($this->getSchema() as $schema) 
-            {
-                $schema['post_type'] = $this->getConfig('post_type');
-                $schema['namespace'] = $this->getConfig('namespace');
-                $schema['collection'] = $this->getId();
-
-                $fieldClass = ucfirst(strtolower($schema['type']));
-                $fieldClass = "\\Framework\\Components\\Form\\Fields\\".$fieldClass;
-                $field = new $fieldClass($schema, 'collection');
-                
-                
-                
-                // $attr_name = $this->getConfig('post_type').'['.$this->getId().']['.$schema['key'].'][{{number}}]';
-
-                $attr_name = $this->getConfig('post_type').'['.implode("][", explode("-", $schema['key'])).'][{{number}}]';
-                $field->setName($attr_name);
-
-
-
-
-                // $tag.= $field->getAttrId();
-                // $tag.= '<br>';
-
-                // $tag.= $field->getAttrName();
-                // $tag.= '<br>';
-
-                // $tag.= $field->getAttrClass();
-                // $tag.= '<br>';
-                
-                $tag.= $field->render();
-                // $tag.= '<br>';
-            }
-            $tag.= '</tbody>';
-            $tag.= '</table>';
-            $tag.= '</div>';
-            $tag.= '</script>';
-
-            $tag.= "\n\n\n\n\n\n\n\n\n\n\n\n";
-            
-            return $tag;
-        }
-
         /**
          * Helper
          */
@@ -430,121 +339,21 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $tag;
         }
-        /**
-         * <option>
-         */
-        private function tagOption()
-        {
-            return '<option{{attributes}}>'.$this->getLabel().'</option>';
-        }
-        private function tagOptionChoice( $field )
-        {
-            $tag = '<div class="choices-option"><label>$1 $2</label></div>';
 
-            if ('checkbox' == $field->getType())
-            {
-                $field->setName( $field->getName().'['.$field->getValue().']' );
-            }
-
-            $tag = preg_replace("/\\$1/", $field->render(), $tag);
-            $tag = preg_replace("/\\$2/", $field->getLabel(), $tag);
-
-            return $tag;
-        }
-        /**
-         * Choices Container for not expanded Choices
-         * <select>
-         */
-        private function tagChoicesSelect()
-        {
-            return '<select{{attributes}}>'.$this->tagChoicesOption().'</select>';
-        }
-        /**
-         * Choices Container for expanded Choices
-         * <input type="checkbox">
-         * <input type="radio">
-         */
-        private function tagChoicesInput()
-        {
-            return '<div class="choices-expanded '.$this->getClass().'">'.$this->tagChoicesOption().'</div>';
-        }
-        /**
-         * Choice item
-         */
-        private function tagChoicesOption()
-        {
-            $tag = '';
-
-            foreach ($this->getChoices() as $value => $label) 
-            {
-                // Tag options
-                $options = array_merge($this->config,[
-                    "label"     => $label,
-                    "value"     => $value,
-                    // "selected"  => $this->selected === $value,
-                    "choices"   => []
-                ]);
-
-                // Tag object (checkbox)
-                if ($this->getExpanded() && $this->getMultiple()) {
-                    $tag.= $this->tagOptionChoice(new \Framework\Components\Form\Fields\Checkbox($options));
-                }
-
-                // Tag object (radio)
-                elseif ($this->getExpanded() && !$this->getMultiple()) {
-                    $tag.= $this->tagOptionChoice(new \Framework\Components\Form\Fields\Radio($options));
-                }
-
-                // Tag object (select)
-                else {
-                    $field = new \Framework\Components\Form\Fields\Option($options);
-                    $tag.= $field->render();
-                }
-            }
-
-            return $tag;
-        }
         /**
          * <input/>
          */
-        private function tagInput()
+        protected function tagInput()
         {
             return '<input{{attributes}} />';
         }
-        /**
-         * <textarea>
-         */
-        private function tagTextarea()
-        {
-            return '<textarea{{attributes}}>'.$this->getValue().'</textarea>';
-        }
-        /**
-         * <output>
-         */
-        private function tagOutput()
-        {
-            $for = $this->getValue();
 
-            return '<output name="'.$this->getName().'" for="'.$for.'"></output>';
-        }
         /**
-         * wp_editor
+         * Tag Template
          */
-        private function tagWysiwyg()
+        protected function tag()
         {
-            $settings = array(
-                'media_buttons' => false,
-                // 'quicktags' => array( 
-                //     'buttons' => 'strong,em,del,ul,ol,li,close' 
-                // ),
-                'editor_class' => $this->getClass(),
-                'textarea_name' => $this->getId(),
-                'textarea_rows' => 8
-            );
-
-            ob_start();
-            wp_editor( $this->getValue(), $this->getId(), $settings );
-            return ob_get_clean();
+            return $this->tagInput();
         }
 
         private function tagAttributes()
@@ -577,50 +386,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         private function tagTemplate()
         {
-            switch ($this->getType())
-            {
-                case 'collection':
-                    $template = $this->tagCollection();
-                    break;
-                
-                case 'select':
-                case 'choices_select':
-                    $template = $this->tagChoicesSelect();
-                    break;
-
-                case 'choices_checkbox':
-                case 'choices_radio':
-                    $template = $this->tagChoicesInput();
-                    break;
-                
-                case 'option':
-                    $template = $this->tagOption();
-                    break;
-                
-                case 'output':
-                    $template = $this->tagOutput();
-                    break;
-                
-                case 'textarea':
-                    $template = $this->tagTextarea();
-                    break;
-                
-                case 'wysiwyg':
-                    $template = $this->tagWysiwyg();
-                    break;
-                
-                case 'file':
-                    if ($this->getConfig('preview')) 
-                    {
-                        $template = $this->tagFile();
-                        break;
-                    }
-
-                default:
-                    $template = $this->tagInput();
-            }
-
-            return preg_replace("/{{attributes}}/", $this->tagAttributes(), $template);
+            return preg_replace(
+                "/{{attributes}}/", 
+                $this->tagAttributes(), 
+                $this->tag()
+            );
         }
 
 

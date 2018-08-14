@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Components\Form\Fields;
+namespace Framework\Components\Form\Types;
 
 // Make sure we don't expose any info if called directly
 if (!defined('WPINC'))
@@ -12,16 +12,9 @@ if (!defined('WPINC'))
 
 use \Framework\Components\Form\Form\Form;
 
-if (!class_exists('Framework\Components\Form\Fields\Option'))
+if (!class_exists('Framework\Components\Form\Types\Week'))
 {
-    class Option extends Form 
+    class Week extends Form 
     {
-        /**
-         * Field Builder
-         */
-        public function builder()
-        {
-            $this->setType('option');
-        }
     }
 }

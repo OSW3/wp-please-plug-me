@@ -1347,49 +1347,6 @@ if (!class_exists('Framework\Register\Posts'))
         }
 
         /**
-         * Verify the validity of the Type of a custom post
-         * 
-         * @param array $post
-         * @return bool
-         */
-        // private function isValidType(array $post)
-        // {
-        //     // Default $type
-        //     $type = null;
-
-        //     // Default Is Valid (true)
-        //     $isValid = true;
-
-        //     // Default error message
-        //     $errorMessage = null;
-
-        //     // Retrieve the type
-        //     if (isset($post['type']) && is_string($post['type'])) {
-        //         $type = $post['type'];
-        //     }
-
-        //     // Define error if $type is empty
-        //     if (empty($type)) {
-        //         $isValid = false;
-        //         $errorMessage = "<strong>Invalid Post Type</strong> : The post type can't be empty.";
-        //     }
-
-        //     // Define error if $type length > 20 chars
-        //     if (strlen($type) > self::POSTTYPE_MAX_SIZE) {
-        //         $isValid = false;
-        //         $errorMessage = "<strong>Invalid Post Type</strong> : The post type (".$post['type'].") must have ".self::POSTTYPE_MAX_SIZE." chars max.";
-        //     }
-
-        //     // Set error
-        //     if (!$isValid) 
-        //     {
-        //         trigger_error($errorMessage, E_USER_WARNING);
-        //     }
-
-        //     return $isValid;
-        // }
-
-        /**
          * Verify the validity of the Name of a custom post
          * 
          * @param array $post
@@ -1526,7 +1483,7 @@ if (!class_exists('Framework\Register\Posts'))
                 return;
             }
             
-            $response = new Response( $this->bs, $this->getPost(), $_PID);
+            $response = new Response( $this->bs, $this->getPosts(), $_PID);
             $this->response = $response->response();
 
             if ($this->response->validate())
@@ -1544,54 +1501,72 @@ if (!class_exists('Framework\Register\Posts'))
         {
             // -- Post Title replacement
 
-            $post = $this->getPost();
-
-            $metaboxes = new Metaboxes($this->bs, $post);
-            $supports = $metaboxes->getSupports();
-            $glue = " ";
-
-            foreach ($supports as $support) 
+            foreach ($this->getPosts() as $key => $post) 
             {
-                if ('title' == $support['key'] && !$support['display'] && isset($support['replace']))
+                if ($post['type'] == $this->bs->request()->getPostType())
                 {
-                    if (isset($support['glue']))
+                    $metaboxes = new Metaboxes($this->bs, $post);
+                    $supports = $metaboxes->getSupports();
+                    $glue = " ";
+        
+                    foreach ($supports as $support) 
                     {
-                        $glue = $support['glue'];
-                    }
-
-                    $replacements = $support['replace'];
-                    $replacements_val = [];
-
-                    if (!is_array($replacements))
-                    {
-                        $replacements = [$replacements];
-                    }
-
-                    // Check if replacement field (schema) exists
-                    foreach ($replacements as $replacement_key) 
-                    {
-                        foreach ($this->response->getSchema() as $item) 
+                        if ('title' == $support['key'] && !$support['display'] && isset($support['replace']))
                         {
-                            if ($replacement_key == $item['key'] && 'password' != $item['type'])
+                            if (isset($support['glue']))
                             {
-                                array_push($replacements_val, $item['value']);
+                                $glue = $support['glue'];
                             }
+        
+                            $replacements = $support['replace'];
+                            $replacements_val = [];
+        
+                            if (!is_array($replacements))
+                            {
+                                $replacements = [$replacements];
+                            }
+        
+                            // Check if replacement field (schema) exists
+                            foreach ($replacements as $replacement_key) 
+                            {
+                                foreach ($this->response->getSchema() as $item) 
+                                {
+                                    if ($replacement_key == $item['key'] && 'password' != $item['type'])
+                                    {
+                                        array_push($replacements_val, $item['value']);
+                                    }
+                                }
+                            }
+
+
+            // echo "<pre>";
+            // print_r($replacements_val);
+            // echo "</pre>";
+        
+                            $replacement = trim(implode($glue, $replacements_val));
+        
+                            // if $_POST['post_type'] == $post['type']
+                            global $wpdb;
+                            $wpdb->update( $wpdb->posts, [
+                                'post_title' => $replacement
+                            ],[
+                                'ID' => $_PID
+                            ]);
+        
                         }
                     }
-
-                    $replacement = trim(implode($glue, $replacements_val));
-
-                    // if $_POST['post_type'] == $post['type']
-                    global $wpdb;
-                    $wpdb->update( $wpdb->posts, [
-                        'post_title' => $replacement
-                    ],[
-                        'ID' => $_PID
-                    ]);
-
                 }
             }
+        
+
             
+            echo "<pre>";
+            print_r($_REQUEST);
+            echo "</pre>";
+            echo "<pre>";
+            print_r($this->response->getSchema());
+            echo "</pre>";
+            exit;
 
             // -- Save Post Meta 
 

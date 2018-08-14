@@ -13,6 +13,7 @@ if (!defined('WPINC'))
 use \Framework\Components\Notices;
 use \Framework\Kernel\Session;
 
+
 if (!class_exists('Framework\Components\Form\Response\Response'))
 {
     class Response
@@ -75,24 +76,35 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         /**
          * 
          */
-        public function __construct($bs, array $config, int $id)
+        public function __construct($bs, array $posts, int $id)
         {
             // Retrieve the bootstrap class instance
             $this->bs = $bs;
-
+            
             // Define CustomPost config
-            $this->setConfig($config);
-
+            $this->setConfig($posts);
+            
             // Define Post ID
             $this->setID($id);
+
+            // Define Post Type
+            $this->setType($this->bs->request()->getPostType());
         }
 
         /**
-         * Set Post config
+         * Retrieve the config of Current custom Post
+         * 
+         * @param array $posts List of Posts
          */
-        private function setConfig(array $config)
+        private function setConfig(array $posts)
         {
-            $this->config = $config;          
+            foreach ($posts as $post) 
+            {
+                if ($post['type'] == $this->bs->request()->getPostType())
+                {
+                    $this->config = $post;          
+                }
+            }
 
             return $this;
         }
@@ -310,10 +322,7 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
 
             $session = new Session( $this->bs->getNamespace() );
 
-            // Define Post Type
-            $this->setType($_REQUEST['post_type']);
-
-            if ('POST' === $_SERVER['REQUEST_METHOD']) 
+            if ($this->bs->request()->isPost())
             {
                 if ($this->getConfig('type') == $this->getType())
                 {
@@ -403,10 +412,9 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                     }
                 }
             }
-            
+
             return $this;
         }
-
 
         /**
          * Validate response

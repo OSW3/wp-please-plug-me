@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Components\Form\Fields;
+namespace Framework\Components\Form\Types;
 
 // Make sure we don't expose any info if called directly
 if (!defined('WPINC'))
@@ -10,18 +10,18 @@ if (!defined('WPINC'))
 	exit;
 }
 
-use \Framework\Components\Form\Fields\Text;
+use \Framework\Components\Form\Types\Text;
 
-if (!class_exists('Framework\Components\Form\Fields\Checkbox'))
+if (!class_exists('Framework\Components\Form\Types\Radio'))
 {
-    class Checkbox extends Text 
+    class Radio extends Text 
     {
         /**
          * Field Builder
          */
         public function builder()
         {
-            $this->setType('checkbox');
+            $this->setType('radio');
         }
     }
 }

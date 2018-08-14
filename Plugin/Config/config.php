@@ -1855,14 +1855,15 @@ $config = [
                                 'priority' => 'high',
                                 'display' => true,
                                 'schema' => [
-                                    'demo_text',
+                                    'demo_choices_expanded',
+                                    // 'demo_text',
                                     // 'demo_password',
                                     // 'demo_password_confirm',
                                     // 'demo_email',
                                     // 'demo_tel',
                                     // 'demo_url',
                                     // 'demo_search',
-                                    'demo_range',
+                                    // 'demo_range',
                                     // 'demo_number',
                                     // 'demo_output',
                                     // 'demo_color',
@@ -2002,17 +2003,17 @@ $config = [
                             /**
                              * Demo Metabox : WYSIWYG
                              */
-                            [
-                                'key' => 'demo_metabox_wysiwyg',
-                                'title' => 'Metabox : WYSIWYG',
-                                'src' => null,
-                                'context' => 'normal',
-                                'priority' => 'high',
-                                'display' => true,
-                                'schema' => [
-                                    'demo_wysiwyg',
-                                ]
-                            ],
+                            // [
+                            //     'key' => 'demo_metabox_wysiwyg',
+                            //     'title' => 'Metabox : WYSIWYG',
+                            //     'src' => null,
+                            //     'context' => 'normal',
+                            //     'priority' => 'high',
+                            //     'display' => true,
+                            //     'schema' => [
+                            //         'demo_wysiwyg',
+                            //     ]
+                            // ],
 
                             
                             /**

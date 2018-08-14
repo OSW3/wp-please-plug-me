@@ -12,6 +12,7 @@ if (!defined('WPINC'))
 
 use \Framework\Components\Strings;
 use \Framework\Components\FileSystem as FS;
+use \Framework\Kernel\Session;
 
 if (!class_exists('Framework\Kernel\Config'))
 {
@@ -419,6 +420,14 @@ if (!class_exists('Framework\Kernel\Config'))
             }
 
             return $this->plugin;
+        }
+
+        /**
+         * Define Request Instance
+         */
+        public function request()
+        {
+            return new Request;
         }
 
 
