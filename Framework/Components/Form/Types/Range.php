@@ -16,5 +16,14 @@ if (!class_exists('Framework\Components\Form\Types\Range'))
 {
     class Range extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: List
+            // TODO: Dirname
+            return ['type', 'id', 'name', 'class', 'value', 'autofocus', 'disabled', 'max', 'min', 'readonly', 'required'];
+        }
     }
 }

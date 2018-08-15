@@ -16,5 +16,14 @@ if (!class_exists('Framework\Components\Form\Types\Tel'))
 {
     class Tel extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: List
+            // TODO: Dirname
+            return ['type', 'id', 'name', 'class', 'value', 'autocomplete', 'autofocus', 'disabled', 'maxlength', 'pattern', 'placeholder', 'readonly', 'required', 'size'];
+        }
     }
 }

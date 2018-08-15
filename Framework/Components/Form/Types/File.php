@@ -17,9 +17,17 @@ if (!class_exists('Framework\Components\Form\Types\File'))
     class File extends Form 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            return ['type', 'id', 'name', 'class', 'value', 'accept', 'autocomplete', 'autofocus', 'disabled', 'multiple', 'placeholder', 'readonly', 'required', 'size'];
+        }
+
+        /**
          * Tag Template
          */
-        protected function tag()
+        public function tag()
         {
             if ($this->getConfig('preview'))
             {
@@ -29,6 +37,9 @@ if (!class_exists('Framework\Components\Form\Types\File'))
             return $this->tagInput();            
         }
 
+        /**
+         * 
+         */
         private function tagWithPreview()
         {
             $tag = "<table>";

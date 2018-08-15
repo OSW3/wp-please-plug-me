@@ -16,5 +16,14 @@ if (!class_exists('Framework\Components\Form\Types\Hidden'))
 {
     class Hidden extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: List
+            // TODO: Dirname
+            return ['type', 'id', 'name', 'value', 'disabled', 'max', 'maxlength', 'min', 'pattern', 'required'];
+        }
     }
 }

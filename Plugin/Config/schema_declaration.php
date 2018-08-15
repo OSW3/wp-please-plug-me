@@ -431,6 +431,8 @@ $schema_declaration = [
         'key' => 'demo_text',
         'type' => 'text',
         'label' => "Text",
+        'attr' => [
+        ]
     ],
     
     /**
@@ -558,6 +560,8 @@ $schema_declaration = [
         'key' => 'demo_search',
         'type' => 'search',
         'label' => "Search",
+        'attr' => [
+        ]
     ],
     
     /**
@@ -567,6 +571,9 @@ $schema_declaration = [
         'key' => 'demo_range',
         'type' => 'range',
         'label' => "Range",
+        'attr' => [
+            'min' => 42
+        ]
     ],
     
     /**
@@ -577,6 +584,9 @@ $schema_declaration = [
         'type' => 'output',
         'label' => "Output",
         'value' => "demo_range demo_number",
+        'attr' => [
+            'readonly' => true
+        ]
     ],
     
     /**
@@ -586,6 +596,11 @@ $schema_declaration = [
         'key' => 'demo_color',
         'type' => 'color',
         'label' => "Color",
+    ],
+    [// Todo
+        'key' => 'demo_color_list',
+        'type' => 'color',
+        'label' => "Color List",
     ],
     
     /**
@@ -623,6 +638,14 @@ $schema_declaration = [
         'key' => 'demo_wysiwyg',
         'type' => 'wysiwyg',
         'label' => "WYSIWYG",
+        'attr' => [
+            // 'required' => true,
+
+            'placeholder' => "With placeholder data",
+            'cols' => 5,
+
+            'autofocus' => true
+        ]
     ],
 
     // Options
@@ -756,6 +779,7 @@ $schema_declaration = [
         'key' => 'demo_choices',
         'type' => 'choices',
         'label' => "Choices Simple",
+        'default' => "b",
         'choices' => array(
             'a' => 'Choice A',
             'b' => 'Choice B',
@@ -769,6 +793,8 @@ $schema_declaration = [
         'key' => 'demo_choices_multiple',
         'type' => 'choices',
         'label' => "Choices Multiple",
+        // 'default' => "c",
+        'default' => ["a", "c"],
         'choices' => array(
             'a' => 'Choice A',
             'b' => 'Choice B',
@@ -799,6 +825,7 @@ $schema_declaration = [
         'key' => 'demo_choices_expanded_multiple',
         'type' => 'choices',
         'label' => "Choices Expanded Multiple",
+        'default' => ["a", "c"],
         'choices' => array(
             'a' => 'Choice A',
             'b' => 'Choice B',
@@ -817,6 +844,7 @@ $schema_declaration = [
         'key' => 'demo_choices_expanded_inline',
         'type' => 'choices',
         'label' => "Expanded Simple Inline",
+        'default' => "c",
         'choices' => array(
             'a' => 'Choice A',
             'b' => 'Choice B',
@@ -834,6 +862,7 @@ $schema_declaration = [
         'key' => 'demo_choices_expanded_multiple_inline',
         'type' => 'choices',
         'label' => "Expanded Multiple Inline",
+        'default' => ["a", "b"],
         'choices' => array(
             'a' => 'Choice A',
             'b' => 'Choice B',
@@ -857,7 +886,12 @@ $schema_declaration = [
         'label' => "Date year",
         'default' => '1982',
         // 'range' => [date('Y'), date('Y')+2]
-
+        // 'range' => [2000, null],
+        'attr' => [
+            'size' => 5,
+            'multiple' => true,
+            'autofocus' => true
+        ]
     ],
     
     /**
@@ -919,7 +953,9 @@ $schema_declaration = [
         'type' => 'textarea',
         'label' => "Textarea with rows",
         'attr' => [
-            'rows' => 10
+            'rows' => 10,
+            'placeholder' => "With placeholder data",
+            'cols' => 5,
         ]
     ],
     
@@ -979,7 +1015,7 @@ $schema_declaration = [
     [
         'key' => 'demo_file_preview',
         'type' => 'file',
-        'label' => "File (allowed preview)",
+        'label' => "File (preview)",
         'preview' => true
     ],
     

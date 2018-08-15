@@ -17,12 +17,27 @@ if (!class_exists('Framework\Components\Form\Types\Output'))
     class Output extends Form 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            return ['id', 'name', 'class', 'value', 'disabled', 'required'];
+        }
+
+        /**
          * Tag Template
          */
-        protected function tag()
+        public function tag()
         {
-            $for = $this->getValue();
-            return '<output name="'.$this->getName().'" for="'.$for.'"></output>';
+            return '<output{{attributes}}></output>';
+        }
+
+        /**
+         * Override Attr Value
+         */
+        public function getAttrValue()
+        {
+            return $this->getValue() ? ' for="'.$this->getValue().'"' : null;
         }
     }
 }

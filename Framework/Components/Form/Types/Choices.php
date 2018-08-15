@@ -20,9 +20,17 @@ if (!class_exists('Framework\Components\Form\Types\Choices'))
     class Choices extends Form 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            return ['id', 'name', 'class', 'multiple'];
+        }
+
+        /**
          * Tag Template
          */
-        protected function tag()
+        public function tag()
         {
             switch ($this->getType())
             {
@@ -30,10 +38,29 @@ if (!class_exists('Framework\Components\Form\Types\Choices'))
                 case 'choices_radio':
                     return $this->tagChoices();
 
-                // case 'select':
-                // case 'choices_select':
+                case 'select':
+                case 'choices_select':
                 default:
                     return $this->tagSelect();
+            }
+        }
+
+        /**
+         * Field Builder
+         */
+        public function builder()
+        {
+            $this->setChoices();
+            $this->setExpanded();
+
+            if ($this->getExpanded() && $this->getMultiple()) {
+                $this->setType("choices_checkbox");
+            }
+            elseif ($this->getExpanded() && !$this->getMultiple()) {
+                $this->setType("choices_radio");
+            }
+            else {
+                $this->setType("choices_select");
             }
         }
 
@@ -70,20 +97,20 @@ if (!class_exists('Framework\Components\Form\Types\Choices'))
                     "choices"   => []
                 ]);
 
-                // Tag object (checkbox)
-                if ($this->getExpanded() && $this->getMultiple()) {
-                    $tag.= $this->tagOptionChoice(new \Framework\Components\Form\Types\Checkbox($options));
-                }
+                switch ($this->getType())
+                {
+                    case 'choices_checkbox':
+                        $tag.= $this->tagOptionChoice(new Checkbox($options));
+                        break;
 
-                // Tag object (radio)
-                elseif ($this->getExpanded() && !$this->getMultiple()) {
-                    $tag.= $this->tagOptionChoice(new \Framework\Components\Form\Types\Radio($options));
-                }
+                    case 'choices_radio':
+                        $tag.= $this->tagOptionChoice(new Radio($options));
+                        break;
 
-                // Tag object (select)
-                else {
-                    $field = new \Framework\Components\Form\Types\Option($options);
-                    $tag.= $field->render();
+                    case 'choices_select':
+                        $field = new Option($options);
+                        $tag.= $field->render();
+                        break;
                 }
             }
 

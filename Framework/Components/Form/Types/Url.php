@@ -16,5 +16,15 @@ if (!class_exists('Framework\Components\Form\Types\Url'))
 {
     class Url extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: List
+            // TODO: Dirname
+            // TODO: Pattern
+            return ['type', 'id', 'name', 'class', 'value', 'autocomplete', 'autofocus', 'disabled', 'maxlength', 'placeholder', 'readonly', 'required', 'size'];
+        }
     }
 }

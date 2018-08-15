@@ -16,5 +16,14 @@ if (!class_exists('Framework\Components\Form\Types\Number'))
 {
     class Number extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: Dirname
+            // TODO: Pattern
+            return ['type', 'id', 'name', 'class', 'value', 'autocomplete', 'autofocus', 'disabled', 'max', 'maxlength', 'min', 'placeholder', 'readonly', 'required', 'size', 'step'];
+        }
     }
 }

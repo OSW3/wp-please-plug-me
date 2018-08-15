@@ -16,5 +16,21 @@ if (!class_exists('Framework\Components\Form\Types\Week'))
 {
     class Week extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: List
+            // TODO: Step
+            return ['type', 'id', 'name', 'class', 'value', 'list', 'disabled', 'max', 'min', 'readonly', 'required', 'step'];
+        }
+
+// <input type="week" name="thedate" min="2018-03" list="dates">
+
+// <datalist id="dates">
+//     <option value="1982-W10">
+//     <option value="1982-W11">
+// </datalist>
     }
 }

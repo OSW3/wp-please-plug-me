@@ -17,9 +17,27 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
     class Collection extends Form 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            return ['id', 'class'];
+        }
+
+        /**
+         * Field Builder
+         */
+        public function builder()
+        {
+            $this->setType('collection');
+            $this->setSchema();
+            $this->setLoop();
+        }
+
+        /**
          * Tag Template
          */
-        protected function tag()
+        public function tag()
         {
             
             $tag = "\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -30,9 +48,7 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
             
             $tag.= '<div id="'.$this->getId().'" class="ppm-collection-container" data-collection="'.$this->getId().'" data-type="container" data-loop="'.$this->getLoop().'"></div>';
             
-            $tag.= '<div class="ppm-collection-control">';
-            $tag.= '<button type="button" class="button button-secondary button-large" data-collection="'.$this->getId().'" data-type="control" data-action="add">Add</button>';
-            $tag.= '</div>';
+            $tag.= $this->add_button();
             
             $tag.= '<script type="text/html" data-collection="'.$this->getId().'" data-type="prototype">';
             $tag.= '<div id="ppm-collection-item-{{number}}" class="ppm-collection-item">';
@@ -53,7 +69,7 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
                 $schema['collection'] = $this->getId();
 
                 $fieldClass = ucfirst(strtolower($schema['type']));
-                $fieldClass = "\\Framework\\Components\\Form\\Fields\\".$fieldClass;
+                $fieldClass = "\\Framework\\Components\\Form\\Types\\".$fieldClass;
                 $field = new $fieldClass($schema, 'collection');
                 
                 
@@ -87,6 +103,44 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
             $tag.= "\n\n\n\n\n\n\n\n\n\n\n\n";
             
             return $tag;
+        }
+
+        /**
+         * Template of Add Button
+         */
+        public function add_button()
+        {
+            $tag = '<div class="ppm-collection-control">';
+            $tag.= '<button type="button" class="button button-secondary button-large" data-collection="'.$this->getId().'" data-type="control" data-action="add">Add</button>';
+            $tag.= '</div>';
+
+            return $tag;
+        }
+
+        /**
+         * Temple of the collection container
+         */
+        public function render()
+        {
+            $output = '';
+            
+            if (null != $this->tagHelper())
+            {
+                $output.= '<tr>';
+                $output.= '<td class="ppm-collection-row ppm-collection-row-header">';
+                // $output.= $this->tagLabel();
+                $output.= $this->tagHelper();
+                $output.= '</td>';
+                $output.= '</tr>';
+            }
+            
+            $output.= '<tr>';
+            $output.= '<td class="ppm-collection-row">';
+            $output.= $this->tagTemplate();
+            $output.= '</td>';
+            $output.= '</tr>';
+
+            return $output;
         }
     }
 }

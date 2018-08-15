@@ -17,9 +17,17 @@ if (!class_exists('Framework\Components\Form\Types\Textarea'))
     class Textarea extends Form 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            return ['id', 'name', 'class', 'value', 'autofocus', 'disabled', 'maxlength', 'required', 'readonly', 'placeholder', 'cols', 'rows'];
+        }
+
+        /**
          * Tag Template
          */
-        protected function tag()
+        public function tag()
         {
             return '<textarea{{attributes}}>'.$this->getValue().'</textarea>';
         }

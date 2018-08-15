@@ -17,23 +17,57 @@ if (!class_exists('Framework\Components\Form\Types\Wysiwyg'))
     class Wysiwyg extends Form 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: Placeholder alternative
+            // TODO: Maxlength alternative
+            // TODO: Autofocus alternative
+            return ['type', 'id', 'name', 'class', 'value', 'autofocus', 'disabled', 'required', 'readonly', 'rows'];
+        }
+
+        /**
          * Tag Template
          */
-        protected function tag()
+        public function tag()
         {
-            $settings = array(
-                'media_buttons' => false,
-                // 'quicktags' => array( 
-                //     'buttons' => 'strong,em,del,ul,ol,li,close' 
-                // ),
-                'editor_class' => $this->getClass(),
-                'textarea_name' => $this->getId(),
-                'textarea_rows' => 8
-            );
+            // -- Define Editor Settings
+            $settings = array();
+
+            // Display the button "Medias"
+            $settings['media_buttons'] = false;
+
+            // Editor class
+            $settings['editor_class'] = $this->getClass();
+
+            // Editor Name Attribute
+            // $settings['textarea_name'] = $this->getId();
+            $settings['textarea_name'] = $this->getName();
+
+            // Editor Height
+            $settings['textarea_rows'] = $this->getRows() ? $this->getRows() : 10;
+
 
             ob_start();
             wp_editor( $this->getValue(), $this->getId(), $settings );
             return ob_get_clean();
+        }
+
+        /**
+         * Builder
+         */
+        public function builder()
+        {
+            // $id = preg_replace("/\\[|\\]/", "____", $this->getName());
+            $id = preg_replace("/\\[|\\]/", "†", $this->getName());
+            $this->setId($id);
+
+            // Readonly or Disabled attribute
+            add_filter( 'tiny_mce_before_init', function( $args ) {
+                $args['readonly'] = $this->getReadonly() || $this->getDisabled();
+                return $args;
+            });
         }
     }
 }

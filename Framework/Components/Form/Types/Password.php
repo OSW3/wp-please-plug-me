@@ -16,5 +16,14 @@ if (!class_exists('Framework\Components\Form\Types\Password'))
 {
     class Password extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: Dirname
+            // TODO: Pattern
+            return ['type', 'id', 'name', 'class', 'value', 'autocomplete', 'autofocus', 'disabled', 'maxlength', 'placeholder', 'readonly', 'required', 'size'];
+        }
     }
 }

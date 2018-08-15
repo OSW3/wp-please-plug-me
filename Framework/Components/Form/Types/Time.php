@@ -16,5 +16,14 @@ if (!class_exists('Framework\Components\Form\Types\Time'))
 {
     class Time extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: List
+            // TODO: Step
+            return ['type', 'id', 'name', 'class', 'value', 'list', 'disabled', 'max', 'min', 'readonly', 'required', 'step'];
+        }
     }
 }

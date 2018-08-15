@@ -219,11 +219,6 @@ if (!class_exists('Framework\Register\Metaboxes'))
                         $fieldClass = ucfirst(strtolower($schema_field['type']));
                         $fieldClass = "\\Framework\\Components\\Form\\Types\\".$fieldClass;
                         
-
-            // echo "<pre>";
-            // print_r($metabox);
-            // echo "</pre>";
-
                         $field = new $fieldClass($schema_field, 'metabox');
                         $content.= $field->render();
                         

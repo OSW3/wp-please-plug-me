@@ -17,6 +17,24 @@ if (!class_exists('Framework\Components\Form\Types\Option'))
     class Option extends Form 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: Disabled
+            // TODO: OptGroup
+            return ['value', 'disabled'];
+        }
+
+        /**
+         * Tag Template
+         */
+        public function tag()
+        {
+            return '<option{{attributes}}>'.$this->getLabel().'</option>';
+        }
+
+        /**
          * Field Builder
          */
         public function builder()
@@ -25,11 +43,31 @@ if (!class_exists('Framework\Components\Form\Types\Option'))
         }
 
         /**
-         * Tag Template
+         * Override Attr Value
          */
-        protected function tag()
+        public function getAttrValue()
         {
-            return '<option{{attributes}}>'.$this->getLabel().'</option>';
+            // Retrieve default value
+            $defaults = $this->getConfig('default');
+
+            // Make sure $defaults is array (array needed for multiple)
+            if (!is_array($defaults))
+            {
+                $defaults = [$defaults];
+            }
+
+
+            $attr = parent::getAttrValue();
+
+            foreach ($defaults as $default) 
+            {
+                if ($this->getValue() === $default)
+                {
+                    $attr.= ' selected="selected"';
+                }
+            }
+
+            return $attr;
         }
     }
 }

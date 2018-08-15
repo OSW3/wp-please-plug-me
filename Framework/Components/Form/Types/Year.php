@@ -17,50 +17,77 @@ if (!class_exists('Framework\Components\Form\Types\Year'))
     class Year extends Choices 
     {
         /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            return ['type', 'id', 'name', 'class', 'value', 'autofocus', 'disabled', 'multiple', 'readonly', 'required', 'size'];
+        }
+
+        /**
          * Field Builder
          */
         public function builder()
         {
+            $this->setType('select');
+            $this->setChoices($this->choices());
+        }
+
+        /**
+         * Define list of choices dates
+         */
+        private function choices()
+        {
+            // Default dates range
+            $default_start = date('Y');
+            $default_end = $default_start-100;
+
+            // Define Dates range
+            $start = null;
+            $end = null;
+
             // Define choices
             $choices = [];
-
-            // Default range
-            $_range = [date('Y'), date('Y')-100];
-            $range = [];
 
             // Retrieve Range parameter
             if ($this->getConfig('range'))
             {
                 $range = $this->getConfig('range');
+
+                // ReDefine Dates range
+                $start = isset($range[0]) ? $range[0] : null;
+                $end = isset($range[1]) ? $range[1] : null;
+            }
+            
+            if (null == $start)
+            {
+                $start = $default_start;
+                $end = $default_end;
+            }
+            elseif (null == $end)
+            {
+                $end = $start-100;
             }
 
-            // Check range
-            if (isset($range[0]) && isset($range[1]))
-            {
-                $_range = [
-                    intval($range[0]),
-                    intval($range[1])
-                ];
-            }
+            $start = intval($start);
+            $end = intval($end);
 
             // Check direction
-            if ($_range[0] > $_range[1])
+            if ($start > $end)
             {
-                for ($i = $_range[0]; $i >= $_range[1]; $i--) 
+                for ($i = $start; $i >= $end; $i--) 
                 {
                     $choices[$i] = $i;
                 }
             }
             else {
-                for ($i = $_range[0]; $i <= $_range[1]; $i++) 
+                for ($i = $start; $i <= $end; $i++) 
                 {
                     $choices[$i] = $i;
                 }
             }
-            
 
-            $this->setType('select');
-            $this->setChoices($choices);
+            return $choices;
         }
     }
 }

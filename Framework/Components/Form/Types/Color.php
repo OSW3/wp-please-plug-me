@@ -16,5 +16,13 @@ if (!class_exists('Framework\Components\Form\Types\Color'))
 {
     class Color extends Form 
     {
+        /**
+         * Tag Attributes
+         */
+        public function attributes()
+        {
+            // TODO: List
+            return ['type', 'id', 'name', 'class', 'value', 'list', 'disabled'];
+        }
     }
 }

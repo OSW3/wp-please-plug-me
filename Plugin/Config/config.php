@@ -1847,30 +1847,29 @@ $config = [
                             /**
                              * Demo Metabox : Text
                              */
-                            [
-                                'key' => 'demo_metabox_fieldtypes',
-                                'title' => 'Metabox : Fields types',
-                                'src' => null,
-                                'context' => 'normal',
-                                'priority' => 'high',
-                                'display' => true,
-                                'schema' => [
-                                    'demo_choices_expanded',
-                                    // 'demo_text',
-                                    // 'demo_password',
-                                    // 'demo_password_confirm',
-                                    // 'demo_email',
-                                    // 'demo_tel',
-                                    // 'demo_url',
-                                    // 'demo_search',
-                                    // 'demo_range',
-                                    // 'demo_number',
-                                    // 'demo_output',
-                                    // 'demo_color',
-                                    // 'demo_checkbox',
-                                    // 'demo_hidden',
-                                ]
-                            ],
+                            // [
+                            //     'key' => 'demo_metabox_fieldtypes',
+                            //     'title' => 'Metabox : Fields types',
+                            //     'src' => null,
+                            //     'context' => 'normal',
+                            //     'priority' => 'high',
+                            //     'display' => true,
+                            //     'schema' => [
+                            //         // 'demo_text',
+                            //         // 'demo_password',
+                            //         // 'demo_password_confirm',
+                            //         // 'demo_email',
+                            //         // 'demo_tel',
+                            //         // 'demo_url',
+                            //         // 'demo_search',
+                            //         // 'demo_range',
+                            //         // 'demo_number',
+                            //         // 'demo_output',
+                            //         // 'demo_color',
+                            //         'demo_checkbox',
+                            //         // 'demo_hidden',
+                            //     ]
+                            // ],
 
                             
                             /**
@@ -1947,16 +1946,16 @@ $config = [
                             //     'priority' => 'high',
                             //     'display' => true,
                             //     'schema' => [
-                            //         'demo_date',
-                            //         'demo_time',
-                            //         'demo_datetime',
-                            //         'demo_month',
-                            //         'demo_week',
+                            //         // 'demo_date',
+                            //         // 'demo_time',
+                            //         // 'demo_datetime',
+                            //         // 'demo_month',
+                            //         // 'demo_week',
                             //         'demo_year',
-                            //         'demo_date_with_default',
-                            //         'demo_date_with_default_today',
-                            //         'demo_time_with_default',
-                            //         'demo_time_with_default_now',
+                            //         // 'demo_date_with_default',
+                            //         // 'demo_date_with_default_today',
+                            //         // 'demo_time_with_default',
+                            //         // 'demo_time_with_default_now',
                             //     ]
                             // ],
 
@@ -2019,17 +2018,17 @@ $config = [
                             /**
                              * Demo Metabox : Collection
                              */
-                            // [
-                            //     'key' => 'demo_metabox_collection',
-                            //     'title' => 'Metabox : Collection',
-                            //     'src' => null,
-                            //     'context' => 'normal',
-                            //     'priority' => 'high',
-                            //     'display' => true,
-                            //     'schema' => [
-                            //         'demo_collection',
-                            //     ]
-                            // ],
+                            [
+                                'key' => 'demo_metabox_collection',
+                                'title' => 'Metabox : Collection',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_collection',
+                                ]
+                            ],
 
                         ],
 
