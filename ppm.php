@@ -45,3 +45,13 @@ foreach ($ppm_required as $file)
 {
 	file_exists($file) ? include_once $file : die("<strong>Plugin Error</strong>: A required file ($file) is not found for the plugin \"$ppm_folder_name\".");
 }
+
+
+
+// function wpb_remove_screen_options() { 
+// 	// if(!current_user_can('manage_options')) {
+// 	return false;
+// 	// }
+// 	// return true; 
+// }
+// add_filter('screen_options_show_screen', 'wpb_remove_screen_options');

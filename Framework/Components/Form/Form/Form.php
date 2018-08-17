@@ -146,6 +146,11 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          * 
          */ 
         private $selected;
+
+        /**
+         * 
+         */
+        protected $session;
         
         /**
          * Schema for collection Type
@@ -200,6 +205,9 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             // define Field Type
             $this->setConfig($config);
 
+            // 
+            $this->session = new Session($this->getConfig('namespace'));
+
             // Init the Label
             $this->setLabel();
 
@@ -231,9 +239,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         public function render()
         {
-
-            // print_r( $this->getType() );
-
             // Init the Output
             $output = '';
 
@@ -314,6 +319,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $tag;
         }
+
         /**
          * Helper
          */
@@ -345,24 +351,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         public function tagAttributes()
         {
             $attr = '';
-            // $attr.= $this->getAttrType();
-            // $attr.= $this->getAttrId();
-            // $attr.= $this->getAttrName();
-            // $attr.= $this->getAttrClass();
-            // $attr.= $this->getAttrPlaceholder();
-            // $attr.= $this->getAttrRequired();
-            // $attr.= $this->getAttrReadonly();
-            // $attr.= $this->getAttrDisabled();
-            // $attr.= $this->getAttrMaxLength();
-            // $attr.= $this->getAttrMultiple();
-            // $attr.= $this->getAttrMin();
-            // $attr.= $this->getAttrMax();
-            // $attr.= $this->getAttrStep();
-            // $attr.= $this->getAttrCols();
-            // $attr.= $this->getAttrRows();
-            // $attr.= $this->getAttrWidth();
-            // $attr.= $this->getAttrValue();
-            // $attr.= $this->getAttrAccept();
 
             foreach ($this->attributes() as $attribute) 
             {
@@ -584,7 +572,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             $session = new Session($this->getConfig('namespace'));
             foreach ($session->errors($this->getConfig('post_type')) as $error) 
             {
-                if ($error['key'] == $this->getConfig('key')) 
+                if (isset($error['key']) && $error['key'] == $this->getConfig('key')) 
                 {
                     $this->class.= ' has-error';
                 }
@@ -721,7 +709,12 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             $session = new Session($this->getConfig('namespace'));
             foreach ($session->errors($this->getConfig('post_type')) as $error) 
             {
-                if ($error['key'] == $this->getConfig('key')) 
+
+            // echo "<pre>";
+            // print_r($error);
+            // echo "</pre>";
+
+                if (isset($error['key']) && $error['key'] == $this->getConfig('key')) 
                 {
                     array_push($this->helper, ["notice", $error['message']]);
                 }
@@ -824,13 +817,15 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         /**
          * Loop
          */
-        protected function setLoop()
+        protected function setLoop($loop = null)
         {
             // default loop value
             $this->loop = 1;
 
-            // $loop = $this->getConfig('loop');
-            $loop = $this->getRule('init');
+            if (null === $loop)
+            {
+                $loop = $this->getRule('init');
+            }
 
             if (is_int($loop) && $loop >= 0 ) 
             {
@@ -1241,32 +1236,35 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         protected function setValue()
         {
             // Default Value
-            $this->value = null;
+            // $this->value = null;
 
             $hide_pwd_value = false;
             
-            // Retrieve value from session (after submission)
-            $session = new Session($this->getConfig('namespace'));
-            foreach ($session->responses($this->getConfig('post_type')) as $key => $value) 
-            {
-                if ($key == $this->getConfig('key')) 
+            // if ($value === null)
+            // {
+                // Retrieve value from session (after submission)
+                $session = new Session($this->getConfig('namespace'));
+                foreach ($session->responses($this->getConfig('post_type')) as $key => $response) 
                 {
-                    $this->value = $value;
+                    if ($key == $this->getConfig('key')) 
+                    {
+                        $value = $response;
+                    }
                 }
-            }
+    
+                // Retrieve an existant value
+                if (null == $this->value && !empty(get_post()))
+                {
+                    $hide_pwd_value = true;
+                    $value = get_post_meta(
+                        get_post()->ID, 
+                        $this->getConfig('key'), 
+                        true
+                    );
+                }
+            // }
 
-
-            // Retrieve an existant value
-            if (null == $this->value && !empty(get_post()))
-            {
-                $hide_pwd_value = true;
-                $this->value = get_post_meta(
-                    get_post()->ID, 
-                    $this->getConfig('key'), 
-                    true
-                );
-            }
-            
+            $this->value = $value;
 
             // Set default value
             if (null == $this->value) 
@@ -1314,25 +1312,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         public function getAttrValue()
         {
             return $this->getValue() ? ' value="'.$this->getValue().'"' : null;
-            
-            // if ($this->getValue() && !in_array($this->getType(), ['select']))
-            // {
-            //     // if ('option' == $this->getType() && $this->getValue() == $this->getConfig('default'))
-            //     // {
-            //     //     return ' selected="selected"';
-            //     // } 
-            //     if ('collection' == $this->getType())
-            //     {
-            //         // TODO: Value of collection 
-            //         // return ' selected="selected"';
-            //     } 
-            //     else 
-            //     {
-            //         return ' value="'.$this->getValue().'"';
-            //     }
-            // }
-
-            // return null;
         }
 
         /**

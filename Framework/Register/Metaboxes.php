@@ -10,7 +10,6 @@ if (!defined('WPINC'))
 	exit;
 }
 
-
 if (!class_exists('Framework\Register\Metaboxes'))
 {
 	class Metaboxes
@@ -40,6 +39,13 @@ if (!class_exists('Framework\Register\Metaboxes'))
         protected $bs;
 
         /**
+         * Current post type
+         * 
+         * @param string
+         */
+        private $posttype;
+
+        /**
          * The post data
          * 
          * @param array
@@ -49,17 +55,17 @@ if (!class_exists('Framework\Register\Metaboxes'))
         /**
          * Metaboxes config defined in the config.php
          */
-        private $metaboxes;
+        private $metaboxes = array();
 
         /**
          * Metaboxes Options defined in the config.php
          */
-        private $metaboxes_options;
+        private $metaboxes_options = array();
 
         /**
          * Supports fields
          */
-        private $supports;
+        private $supports = array();
 
         /**
          * 
@@ -75,49 +81,144 @@ if (!class_exists('Framework\Register\Metaboxes'))
             // Retrieve the Metaboxes settings
             $this->setMetaboxes();
 
-
-            // echo "<pre>";
-            // print_r($post);
-            // echo "</pre>";
-
-
-            // echo "<pre>";
-            // print_r($this->metaboxes);
-            // echo "</pre>";
-
             // Retrieve Metaboxes global options
             $this->setMetaboxesOptions();
 
             // Retrieve Supports
             $this->setSupports();
 
-            // Add metaboxes to the WP register
-            add_action('add_meta_boxes',[$this, 'add_meta_boxes']);
-
-            // Form tag
-            // add_action('post_edit_form_tag', [$this, 'post_edit_form_tag']);
-
-            // Metabox Options
-            add_action( 'admin_init', [$this, 'set_meta_boxes_options']);
-
-            $this->bs->codeInjection('head', "<style>.js .postbox .handlediv {display: none;}</style>");
+            if ($this->bs->request()->getPostType() == $this->getPost('type'))
+            {
+                // Add metaboxes to the WP register
+                add_action('add_meta_boxes',[$this, 'add_meta_boxes']);
+    
+                // Form tag
+                add_action('post_edit_form_tag', [$this, 'post_edit_form_tag']);
+    
+                // Metabox Options
+                add_action( 'admin_init', [$this, 'set_meta_boxes_options']);
+    
+                $this->bs->codeInjection('head', "<style>.js .postbox .handlediv {display: none;}</style>");
+            }
         }
 
-        // --
+
+        /**
+         * ----------------------------------------
+         * Post Config Getter / Setter
+         * ----------------------------------------
+         */
+
+        /**
+         * Current Post configuration
+         */
+        private function setPost(array $post)
+        {
+            $this->post = $post;
+
+            return $this;
+        }
+        private function getPost(string $key = '')
+        {
+            if (isset($this->post[$key])) 
+            {
+                return $this->post[$key];
+            }
+
+            return $this->post;
+        }
+
+        /**
+         * Metaboxes configuration
+         */
+        private function setMetaboxes()
+        {
+            // $this->metaboxes = array();
+
+            $post_ui = $this->getPost('ui');
+
+            if (isset($post_ui['pages']['edit']['metaboxes']))
+            {
+                $this->metaboxes = $post_ui['pages']['edit']['metaboxes'];
+            }
+
+            return $this;
+        }
+        private function getMetaboxes()
+        {
+            return $this->metaboxes;
+        }
+        private function deleteMetaboxe($key)
+        {
+            if (isset($this->metaboxes[$key]))
+            {
+                unset($this->metaboxes[$key]);
+            }
+
+            return $this;
+        }
+
+        /**
+         * Retrive Metaboxes Options
+         */
+        private function setMetaboxesOptions()
+        {
+            // $this->metaboxes_options = array();
+
+            $post_ui = $this->getPost('ui');
+
+            if (isset($post_ui['pages']['edit']['metaboxes_options']))
+            {
+                $this->metaboxes_options = $post_ui['pages']['edit']['metaboxes_options'];
+            }
+
+            return $this;
+        }
+        private function getMetaboxesOptions()
+        {
+            return $this->metaboxes_options;
+        }
+
+        /**
+         * Supports
+         */
+        private function setSupports()
+        {
+            foreach ($this->getMetaboxes() as $key => $metaboxe) 
+            {
+                if (isset($metaboxe['key']) && in_array($metaboxe['key'], self::SUPPORTS))
+                {
+                    array_push(
+                        $this->supports,
+                        $metaboxe
+                    );
+                    $this->deleteMetaboxe($key);
+                }
+            }
+
+            return $this;
+        }
+        public function getSupports()
+        {
+            return $this->supports;
+        }
+
+
+        /**
+         * ----------------------------------------
+         * Metaboxes Actions / Hooks
+         * ----------------------------------------
+         */
 
         /**
          * Add Metaboxes
          */
         public function add_meta_boxes()
         {
-            if (is_array($this->metaboxes))
+            if ($this->bs->request()->getPostType() == $this->getPost('type'))
             {
-                foreach ($this->metaboxes as $metabox) 
+                foreach ($this->getMetaboxes() as $metabox) 
                 {
-                    // echo "<pre>";
-                    // print_r($metabox);
-                    // echo "</pre>";
-
                     // Default display
                     $display = true;
 
@@ -143,7 +244,6 @@ if (!class_exists('Framework\Register\Metaboxes'))
                             $this->getPriority($metabox), 
                             $metabox
                         );
-
                     }
                 }
             }
@@ -156,16 +256,19 @@ if (!class_exists('Framework\Register\Metaboxes'))
          */
         public function post_edit_form_tag()
         {
-            // Add No Validate
-            if ($this->isNoValidate())
+            if ($this->bs->request()->getPostType() == $this->getPost('type'))
             {
-                echo ' novalidate="novalidate"';
-            }
-
-            // Add Enctype
-            if ($this->hasEnctype())
-            {
-                echo ' enctype="multipart/form-data"';
+                // Add No Validate
+                if ($this->isNoValidate())
+                {
+                    echo ' novalidate="novalidate"';
+                }
+    
+                // Add Enctype
+                if ($this->hasEnctype())
+                {
+                    echo ' enctype="multipart/form-data"';
+                }
             }
         }
 
@@ -174,16 +277,19 @@ if (!class_exists('Framework\Register\Metaboxes'))
          */
         public function set_meta_boxes_options()
         {
-            // Unset metabox sortable
-            if (!$this->isSortable())
+            if ($this->bs->request()->getPostType() == $this->getPost('type'))
             {
-                wp_deregister_script('postbox');
-                $this->bs->codeInjection('head', "<style>.js .postbox .hndle, .js .widget .widget-top {cursor: default;}</style>");
+                // Unset metabox sortable
+                if (!$this->isSortable())
+                {
+                    wp_deregister_script('postbox');
+                    $this->bs->codeInjection('head', "<style>.js .postbox .hndle, .js .widget .widget-top {cursor: default;}</style>");
+                }
             }
         }
 
         /**
-         * 
+         * Content of metabox
          */
         public function set_meta_box_content($wp_post, $args)
         {
@@ -232,107 +338,12 @@ if (!class_exists('Framework\Register\Metaboxes'))
             echo $content;
         }
 
-        // --
 
         /**
-         * Retrieve Post data
-         * 
-         * @param array $post
-         * @return object $this
+         * ----------------------------------------
+         * Define / Retrieve Metaboxes parameters
+         * ----------------------------------------
          */
-        private function setPost(array $post)
-        {
-            $this->post = $post;
-
-            return $this;
-        }
-
-        /**
-         * Get Post data
-         * 
-         * @param string $key of $post data
-         * @return mixed
-         */
-        private function getPost(string $key = '')
-        {
-            if (isset($this->post[$key])) 
-            {
-                return $this->post[$key];
-            }
-
-            return $this->post;
-        }
-
-        /**
-         * 
-         */
-        private function setMetaboxes()
-        {
-            $post_ui = $this->getPost('ui');
-
-            if (isset($post_ui['pages']['edit']['metaboxes']))
-            {
-                $this->metaboxes = $post_ui['pages']['edit']['metaboxes'];
-            }
-
-            return $this;
-        }
-
-        /**
-         * Retrive Metaboxes Options
-         */
-        private function setMetaboxesOptions()
-        {
-            $post_ui = $this->getPost('ui');
-
-            if (isset($post_ui['pages']['edit']['metaboxes_options']))
-            {
-                $this->metaboxes_options = $post_ui['pages']['edit']['metaboxes_options'];
-            }
-
-            return $this;
-        }
-
-        /**
-         * Define Supports Array
-         * Read metaboxes and unset row if row key is a Supports key
-         */
-        private function setSupports()
-        {
-            $metaboxes = $this->metaboxes;
-
-            if (is_array($metaboxes))
-            {
-                if (!is_array($this->supports))
-                {
-                    $this->supports = array();
-                }
-
-                foreach ($metaboxes as $key => $metaboxe) 
-                {
-                    if (isset($metaboxe['key']) && in_array($metaboxe['key'], self::SUPPORTS))
-                    {
-                        array_push(
-                            $this->supports,
-                            $metaboxe
-                        );
-                        unset($metaboxes[$key]);
-                    }
-                }
-            }
-
-            $this->metaboxes = $metaboxes;
-
-            return $this;
-        }
-
-        /**
-         * Get Supports
-         */
-        public function getSupports()
-        {
-            return $this->supports;
-        }
 
         /**
          * Generate Metabox ID
@@ -422,9 +433,10 @@ if (!class_exists('Framework\Register\Metaboxes'))
         {
             // Default No Validate
             $novalidate = true;
-
+            
             // Define NoValidate
             $post_ui = $this->getPost('ui');
+
             if (isset($post_ui['pages']['edit']['form']['novalidate']) && is_bool($post_ui['pages']['edit']['form']['novalidate']))
             {
                 $novalidate = $post_ui['pages']['edit']['form']['novalidate'];
@@ -447,17 +459,20 @@ if (!class_exists('Framework\Register\Metaboxes'))
             $schema_fields = array();
 
             // Retrieve list of fields 
-            foreach ($this->metaboxes as $metabox) 
+            if (is_array($this->metaboxes))
             {
-                if (
-                    isset($metabox['key']) && 
-                    isset($metabox['display']) && is_bool($metabox['display']) && $metabox['display'] == true &&
-                    isset($metabox['schema']) && is_array($metabox['schema'])
-                ) 
+                foreach ($this->metaboxes as $metabox) 
                 {
-                    foreach ($metabox['schema'] as $field) 
+                    if (
+                        isset($metabox['key']) && 
+                        isset($metabox['display']) && is_bool($metabox['display']) && $metabox['display'] == true &&
+                        isset($metabox['schema']) && is_array($metabox['schema'])
+                    ) 
                     {
-                        array_push($schema_fields, $field);
+                        foreach ($metabox['schema'] as $field) 
+                        {
+                            array_push($schema_fields, $field);
+                        }
                     }
                 }
             }

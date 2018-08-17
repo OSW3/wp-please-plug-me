@@ -144,14 +144,21 @@ if (!class_exists('Framework\Kernel\Session'))
         /**
          * Clear plugin session
          */
-        public function clear(string $posttype)
+        public function clear(string $posttype = '')
         {
             // Retrieve the plugin Namespace
             $namespace = $this->getNamespace();
 
-            if (isset($_SESSION[$namespace]['posts'][$posttype])) 
+            if (!empty($posttype))
             {
-                unset($_SESSION[$namespace]['posts'][$posttype]);
+                if (isset($_SESSION[$namespace]['posts'][$posttype])) 
+                {
+                    unset($_SESSION[$namespace]['posts'][$posttype]);
+                }
+            }
+            else
+            {
+                unset($_SESSION[$namespace]);
             }
         }
     }

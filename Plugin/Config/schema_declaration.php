@@ -442,6 +442,9 @@ $schema_declaration = [
         'key' => 'demo_textarea',
         'type' => 'textarea',
         'label' => "Textarea",
+        'attr' => [
+            'required' => true
+        ]
     ],
     
     /**
@@ -1039,7 +1042,7 @@ $schema_declaration = [
         // 'schema' => "demo_text",
         'schema' => [
             "demo_text",
-            // "demo_textarea",
+            "demo_textarea",
             // "demo_collection_2",
             // "demo_helper",
             // "demo_choices_expanded_inline",
@@ -1062,7 +1065,7 @@ $schema_declaration = [
              * @type integer
              * @default 1
              */
-            'init' => 1,
+            'init' => 2,
         ]
     ],
 

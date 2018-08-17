@@ -17,6 +17,16 @@ if (!class_exists('Framework\Components\Form\Types\Password'))
     class Password extends Form 
     {
         /**
+         * Available Encryption engine
+         */
+        const ALGO = [
+            'PASSWORD_BCRYPT','PASSWORD_ARGON2I',
+            'PASSWORD_ARGON2_DEFAULT_MEMORY_COST',
+            'PASSWORD_ARGON2_DEFAULT_TIME_COST',
+            'PASSWORD_ARGON2_DEFAULT_THREADS','PASSWORD_DEFAULT'
+        ];
+        
+        /**
          * Tag Attributes
          */
         public function attributes()

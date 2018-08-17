@@ -1847,29 +1847,30 @@ $config = [
                             /**
                              * Demo Metabox : Text
                              */
-                            // [
-                            //     'key' => 'demo_metabox_fieldtypes',
-                            //     'title' => 'Metabox : Fields types',
-                            //     'src' => null,
-                            //     'context' => 'normal',
-                            //     'priority' => 'high',
-                            //     'display' => true,
-                            //     'schema' => [
-                            //         // 'demo_text',
-                            //         // 'demo_password',
-                            //         // 'demo_password_confirm',
-                            //         // 'demo_email',
-                            //         // 'demo_tel',
-                            //         // 'demo_url',
-                            //         // 'demo_search',
-                            //         // 'demo_range',
-                            //         // 'demo_number',
-                            //         // 'demo_output',
-                            //         // 'demo_color',
-                            //         'demo_checkbox',
-                            //         // 'demo_hidden',
-                            //     ]
-                            // ],
+                            [
+                                'key' => 'demo_metabox_fieldtypes',
+                                'title' => 'Metabox : Fields types',
+                                'src' => null,
+                                'context' => 'normal',
+                                'priority' => 'high',
+                                'display' => true,
+                                'schema' => [
+                                    'demo_text',
+                                    // 'demo_password',
+                                    // 'demo_password_confirm',
+                                    // 'demo_email',
+                                    // 'demo_tel',
+                                    // 'demo_url',
+                                    // 'demo_search',
+                                    // 'demo_range',
+                                    // 'demo_number',
+                                    // 'demo_output',
+                                    // 'demo_color',
+                                    'demo_checkbox',
+                                    'demo_textarea',
+                                    // 'demo_hidden',
+                                ]
+                            ],
 
                             
                             /**
@@ -2667,33 +2668,5 @@ $config = [
     /**
      * Widgets
      */
-    'widgets' => [
-        
-    ]
+    'widgets' => []
 ];
-
-        
-
-        // @ Name : show_error (optional)
-        // @ Type : boolean
-        // @ Default value : true
-        // --
-        // If False, the error message was not printed for this field
-        
-        // @ Name : error_messages (optional)
-        // @ Type : string | array 
-        // @ Default value : is an array
-        // @ Exemple : "error_messages": "You write something wrong."
-        // @ Exemple : "error_messages": {
-        //     "email": "WTF !? This is not an email address !"
-        // }
-        // -- 
-        // The default array values content
-        // - "required" : "This field is required.", 
-        // - "email" : "This field is not a valid email address.", 
-        // - "url" : "This field is not a valid url.", 
-        // - "rule" : "This field is not valid."
-        // --
-        // If String, the message was apply on all errors type : "error_messages": "Has error !"
-        // If Array, you can specify each error type message
-

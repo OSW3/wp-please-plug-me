@@ -65,12 +65,45 @@ if (!class_exists('Framework\Kernel\Request'))
             {
                 $this->posttype = $_REQUEST['post_type'];
             }
+            elseif (isset($_GET['post']))
+            {
+                $this->posttype = get_post_type($_GET['post']);
+            }
 
             return $this;
         }
         public function getPostType()
         {
             return $this->posttype;
+        }
+
+        /**
+         * Retrieve request responses
+         */
+        public function responses()
+        {
+            if (isset($_REQUEST[$this->getPostType()]))
+            {
+                return $_REQUEST[$this->getPostType()];
+            }
+            //     foreach ($_REQUEST as $key => $value) 
+            //     {
+            //         if (preg_match("/^".$_REQUEST['post_type']."____(.+)____$/", $key, $m))
+            //         {
+            //             $responses += [$m[1] => $value];
+            //         }
+            //     }
+        }
+
+        /**
+         * Retrieve request files
+         */
+        public function files()
+        {
+            if (isset($_FILES[$this->getPostType()]))
+            {
+                return $_FILES[$this->getPostType()];
+            }
         }
     }
 }
