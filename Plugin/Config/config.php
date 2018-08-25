@@ -21,7 +21,6 @@ $config = [
      * define the execution environment, Default is "auto"
      * Set "auto" to define query from localhost as "development"
      */
-    // 'environment' => 'production',
     'environment' => 'auto',
 
     /**
@@ -1296,6 +1295,24 @@ $config = [
                      * custom posts.
                      */
                     'index' => [
+
+                        /**
+                         * Page Options
+                         * 
+                         * @param Optional
+                         * @type array
+                         */
+                        'options' => [
+
+                            /**
+                             * Display Screen Options Tab
+                             * 
+                             * @param Optional
+                             * @type boolean
+                             * @default true
+                             */
+                            'screen_options' => false
+                        ],
     
                         /**
                          * Columns
@@ -1307,6 +1324,8 @@ $config = [
                          */
                         'columns' => [
 
+                            // TODO : set data clickable
+
                             // Column Checkbox
                             [
                                 /**
@@ -1315,7 +1334,8 @@ $config = [
                                  * @param required
                                  * @type string
                                  */
-                                'key' => "cb",
+                                // 'key' => "cb",
+                                'key' => "checkbox",
 
                                 /**
                                  * Is column displayed
@@ -1344,7 +1364,7 @@ $config = [
                                  * @type boolean
                                  * @default false
                                  */
-                                'sortable' => true,
+                                'sortable' => false,
 
                                 /**
                                  * Is column displayed
@@ -1354,6 +1374,64 @@ $config = [
                                  * @default true
                                  */
                                 'display' => true
+                            ],
+
+                            // Column parent
+                            [
+                                /**
+                                 * Column Key
+                                 * 
+                                 * @param required
+                                 * @type string
+                                 */
+                                'key' => "parent",
+
+                                /**
+                                 * Is column sortable
+                                 * 
+                                 * @param optional
+                                 * @type boolean
+                                 * @default true
+                                 */
+                                'sortable' => false,
+
+                                // /**
+                                //  * Is column displayed
+                                //  * 
+                                //  * @param optional
+                                //  * @type boolean
+                                //  * @default true
+                                //  */
+                                // 'display' => true
+                            ],
+
+                            // Column comments
+                            [
+                                /**
+                                 * Column Key
+                                 * 
+                                 * @param required
+                                 * @type string
+                                 */
+                                'key' => "comments",
+
+                                /**
+                                 * Is column sortable
+                                 * 
+                                 * @param optional
+                                 * @type boolean
+                                 * @default true
+                                 */
+                                'sortable' => false,
+
+                                // /**
+                                //  * Is column displayed
+                                //  * 
+                                //  * @param optional
+                                //  * @type boolean
+                                //  * @default true
+                                //  */
+                                // 'display' => true
                             ],
 
                             // Column Date
@@ -1373,7 +1451,7 @@ $config = [
                                  * @type boolean
                                  * @default false
                                  */
-                                'sortable' => true,
+                                'sortable' => false,
 
                                 /**
                                  * Is column displayed
@@ -1382,7 +1460,7 @@ $config = [
                                  * @type boolean
                                  * @default true
                                  */
-                                'display' => true
+                                'display' => false
                             ],
 
                             // Column Categories, based on Categories settings
@@ -1431,7 +1509,7 @@ $config = [
                                  * @type boolean
                                  * @default false
                                  */
-                                'sortable' => true,
+                                'sortable' => false,
 
                                 /**
                                  * Is column displayed
@@ -1469,7 +1547,7 @@ $config = [
                                  * @type boolean
                                  * @default true
                                  */
-                                'display' => true
+                                'display' => false
                             ],
 
                             // Column Comments, only if the metaboxes Author is displayed
@@ -1498,7 +1576,7 @@ $config = [
                                  * @type boolean
                                  * @default true
                                  */
-                                'display' => true
+                                'display' => false
                             ],
 
                             // Custom column
@@ -1518,7 +1596,7 @@ $config = [
                                  * @type boolean
                                  * @default false
                                  */
-                                'sortable' => true,
+                                'sortable' => false,
 
                                 /**
                                  * Is column displayed
@@ -1548,9 +1626,41 @@ $config = [
                                  * 
                                  * @param required
                                  * @type string|array
+                                 * @values title|date|content|status|guid|slug|id
                                  */
-                                'data' => ["glue", "field_a", "field_b"],
-                            ]
+                                // 'data' => ["glue", "field_a", "field_b"],
+                                'data' => [" - ", "id", "demo_text"],
+                                // 'data' => 'id',
+                            ],
+
+                            // Column Date
+                            [
+                                /**
+                                 * Column Key
+                                 * 
+                                 * @param required
+                                 * @type string
+                                 */
+                                'key' => "date",
+
+                                /**
+                                 * Is column sortable
+                                 * 
+                                 * @param optional
+                                 * @type boolean
+                                 * @default false
+                                 */
+                                'sortable' => false,
+
+                                /**
+                                 * Is column displayed
+                                 * 
+                                 * @param optional
+                                 * @type boolean
+                                 * @default true
+                                 */
+                                'display' => true
+                            ],
                         ],
 
                         /**
@@ -1618,6 +1728,24 @@ $config = [
                      * custom posts.
                      */
                     'edit' => [
+
+                        /**
+                         * Page Options
+                         * 
+                         * @param Optional
+                         * @type array
+                         */
+                        'options' => [
+
+                            /**
+                             * Display Screen Options Tab
+                             * 
+                             * @param Optional
+                             * @type boolean
+                             * @default true
+                             */
+                            'screen_options' => false
+                        ],
                         
                         /**
                          * Link (_edit_link)
@@ -1838,7 +1966,8 @@ $config = [
                                  * Schema
                                  */
                                 'schema' => [
-                                    // 'demo_url',
+                                    'demo_text',
+                                    'demo_textarea',
                                 ]
 
                             ],
@@ -1847,30 +1976,30 @@ $config = [
                             /**
                              * Demo Metabox : Text
                              */
-                            [
-                                'key' => 'demo_metabox_fieldtypes',
-                                'title' => 'Metabox : Fields types',
-                                'src' => null,
-                                'context' => 'normal',
-                                'priority' => 'high',
-                                'display' => true,
-                                'schema' => [
-                                    'demo_text',
-                                    // 'demo_password',
-                                    // 'demo_password_confirm',
-                                    // 'demo_email',
-                                    // 'demo_tel',
-                                    // 'demo_url',
-                                    // 'demo_search',
-                                    // 'demo_range',
-                                    // 'demo_number',
-                                    // 'demo_output',
-                                    // 'demo_color',
-                                    'demo_checkbox',
-                                    'demo_textarea',
-                                    // 'demo_hidden',
-                                ]
-                            ],
+                            // [
+                            //     'key' => 'demo_metabox_fieldtypes',
+                            //     'title' => 'Metabox : Fields types',
+                            //     'src' => null,
+                            //     'context' => 'normal',
+                            //     'priority' => 'high',
+                            //     'display' => true,
+                            //     'schema' => [
+                            //         // 'demo_text',
+                            //         // 'demo_password',
+                            //         // 'demo_password_confirm',
+                            //         // 'demo_email',
+                            //         // 'demo_tel',
+                            //         // 'demo_url',
+                            //         // 'demo_search',
+                            //         // 'demo_range',
+                            //         // 'demo_number',
+                            //         // 'demo_output',
+                            //         // 'demo_color',
+                            //         'demo_checkbox',
+                            //         'demo_textarea',
+                            //         // 'demo_hidden',
+                            //     ]
+                            // ],
 
                             
                             /**

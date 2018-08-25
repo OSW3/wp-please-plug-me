@@ -431,6 +431,7 @@ $schema_declaration = [
         'key' => 'demo_text',
         'type' => 'text',
         'label' => "Text",
+        'default' => "Ceci est un Texte",
         'attr' => [
         ]
     ],
@@ -443,7 +444,7 @@ $schema_declaration = [
         'type' => 'textarea',
         'label' => "Textarea",
         'attr' => [
-            'required' => true
+            // 'required' => true
         ]
     ],
     
@@ -1028,7 +1029,14 @@ $schema_declaration = [
     [
         'key' => 'demo_collection',
         'type' => 'collection',
-        'label' => "My default label {{number}}",
+
+        /**
+         * Label of each item of the collection
+         * 
+         * use the string {{number}} 
+         * use the string {{serial}} 
+         */
+        'label' => "My default label {{serial}}",
         'helper' => "Collection helper",
 
         /**
@@ -1044,7 +1052,7 @@ $schema_declaration = [
             "demo_text",
             "demo_textarea",
             // "demo_collection_2",
-            // "demo_helper",
+            "demo_checkbox",
             // "demo_choices_expanded_inline",
             // "demo_wysiwyg"
         ],
@@ -1065,28 +1073,29 @@ $schema_declaration = [
              * @type integer
              * @default 1
              */
-            'init' => 2,
+            // 'init' => 2,
+            'init' => 0,
         ]
     ],
 
-    [
-        'key' => 'demo_collection_2',
-        'type' => 'collection',
-        'label' => "My second collection {{number}}",
-        'schema' => [
-            "demo_password",
+    // [
+    //     'key' => 'demo_collection_2',
+    //     'type' => 'collection',
+    //     'label' => "My second collection {{number}}",
+    //     'schema' => [
+    //         "demo_password",
             
-            "demo_collection_4"
-        ]
-    ],
+    //         "demo_collection_4"
+    //     ]
+    // ],
 
-    [
-        'key' => 'demo_collection_3',
-        'type' => 'collection',
-        'label' => "My second collection {{number}}",
-        'schema' => [
-            "demo_year",
-            // "demo_collection_2"
-    ]
-    ],
+    // [
+    //     'key' => 'demo_collection_3',
+    //     'type' => 'collection',
+    //     'label' => "My second collection {{number}}",
+    //     'schema' => [
+    //         "demo_year",
+    //         // "demo_collection_2"
+    //     ]
+    // ],
 ];

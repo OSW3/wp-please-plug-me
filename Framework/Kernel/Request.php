@@ -20,9 +20,19 @@ if (!class_exists('Framework\Kernel\Request'))
         private $method;
 
         /**
+         * Post ID
+         */
+        private $postid;
+
+        /**
          * Post Type (of the request)
          */
         private $posttype;
+
+        /**
+         * Action
+         */
+        private $action;
 
         /**
          * 
@@ -33,8 +43,14 @@ if (!class_exists('Framework\Kernel\Request'))
             // Define Request Method
             $this->setMethod();
 
+            // Retrieve the ID
+            $this->setPostID();
+
             // Retrieve the PostType of the request
             $this->setPostType();
+
+            // Retrieve the action
+            $this->setAction();
         }
 
         /**
@@ -54,6 +70,61 @@ if (!class_exists('Framework\Kernel\Request'))
         public function isPost()
         {
             return 'POST' === $this->getMethod();
+        }
+
+        /**
+         * Post ID
+         */
+        private function setPostID()
+        {
+            // if (isset($_REQUEST['post_type']))
+            // {
+            //     $this->postid = $_REQUEST['post_type'];
+            // }
+            if (isset($_GET['post']))
+            {
+                $this->postid = $_GET['post'];
+            }
+
+            return $this;
+        }
+        public function getPostID()
+        {
+            return $this->postid;
+        }
+
+        /**
+         * Action
+         */
+        private function setAction()
+        {
+            if (isset($_GET['action']))
+            {
+                $this->action = $_GET['action'];
+            }
+
+            return $this;
+        }
+        public function getAction()
+        {
+            return $this->action;
+        }
+
+        public function isActionEdit()
+        {
+            return 'edit' === $this->getAction();
+        }
+        public function isActionTrash()
+        {
+            return 'trash' === $this->getAction();
+        }
+        public function isActionUntrash()
+        {
+            return 'untrash' === $this->getAction();
+        }
+        public function isActionDelete()
+        {
+            return 'delete' === $this->getAction();
         }
 
         /**

@@ -90,19 +90,23 @@ textarea.ppm-control.autosize {
     padding-bottom: 0;
 }
 
-.ppm-collection-item-actions {
-    float: right;
+.ppm-collection-item-header {
+    position: relative;
 }
-.ppm-collection-item-actions .button-link {
+.ppm-collection-item-header .button-link {
     background-color: transparent;
     color: #444444;
     text-decoration: none;
+    /* float: right; */
+    position: absolute;
+    bottom: 0;
+    right: 0;
 }
-.ppm-collection-item-actions .button-link:hover ,
-.ppm-collection-item-actions .button-link.active ,
-.ppm-collection-item-actions .button-link:active
-.ppm-collection-item-actions .button-link.focus ,
-.ppm-collection-item-actions .button-link:focus {
+.ppm-collection-item-header .button-link:hover ,
+.ppm-collection-item-header .button-link.active ,
+.ppm-collection-item-header .button-link:active
+.ppm-collection-item-header .button-link.focus ,
+.ppm-collection-item-header .button-link:focus {
     background-color: transparent;
     color: #000000;
     text-decoration: none;
@@ -113,10 +117,17 @@ textarea.ppm-control.autosize {
     /* border: 1px solid #AA0000; */
     margin-bottom: 1rem;
 }
+
+.ppm-collection-alert {
+    background-color: #fffdfd;
+    color: #a00;
+    padding: 1rem;
+}
+
 .ppm-collection-control {
     border-top: 1px solid #e5e5e5;
     text-align: right; 
-    padding-top: 1rem;
+    padding-top: .5rem;
 }
 
 

@@ -118,19 +118,6 @@ if (!class_exists('Framework\Register\Posts'))
             // Set Types to $this->types register
             $this->setTypes();
 
-
-            // echo "<pre style=\"padding-left: 180px;\">";
-            // print_r($this->getTypes());
-            // echo "</pre>";
-
-            // echo "<pre style=\"padding-left: 180px;\">";
-            // print_r($this->collections);
-            // echo "</pre>";
-            
-            // echo "<pre style=\"padding-left: 180px;\">";
-            // print_r($this->getPosts());
-            // echo "</pre>";
-
             // Verify each parameters and format the Post array and finaly,
             // add the post to the register
             foreach ($this->getPosts() as $post) 
@@ -138,96 +125,102 @@ if (!class_exists('Framework\Register\Posts'))
                 // Set current Post in loop
                 $this->setPost($post);
 
-                if ($this->bs->request()->getPostType() == $this->getPost('type'))
+                // Define the Label(s)
+                $post = $this->setLabel($post);
+                $post = $this->setLabels($post);
+                
+                // Define the Description
+                $post = $this->setDescription($post);
+
+                // Is public post ?
+                $post = $this->setPublic($post);
+
+                // Is Hierarchical post ?
+                $post = $this->setHierarchical($post);
+
+                // Show UI
+                $post = $this->setShowUI($post);
+
+                // Show in Menu
+                $post = $this->setShowInMenu($post);
+
+                // Show the custom posts in Menus Manager
+                $post = $this->setShowInNavMenus($post);
+
+                // Show in Menu Bar (topbar)
+                $post = $this->setShowInMenuBar($post);
+
+                // Menu Position
+                $post = $this->setMenuPosition($post);
+
+                // Menu Icon
+                $post = $this->setMenuIcon($post);
+
+                // Has Archive
+                $post = $this->setHasArchive($post);
+
+                // Define if is exportable
+                $post = $this->setCanExport($post);
+
+                // Define query rules
+                $post = $this->setQuery($post);
+
+                // REST
+                $post = $this->setREST($post);
+
+                // Define rewrite rules
+                $post = $this->setRewrite($post);
+
+                // Define Capabilities
+                $post = $this->setCapability($post);
+
+                // Define Edit Link (_edit_link)
+                $post = $this->setEditLink($post);
+
+                // Define Categories
+                new Taxonomy($this->bs, 'categories', $post);
+
+                // Define Tags
+                new Taxonomy($this->bs, 'tags', $post);
+
+                // Add Metaboxes (and supports)
+                $metaboxes = new Metaboxes($this->bs, $post);
+                $supports = $metaboxes->getSupports();
+
+                // Define Supports
+                $post = $this->setSupports($supports, $post);
+
+                // TODO : 'map_meta_cap'
+                // (bool) Whether to use the internal default meta capability handling. Default false.
+
+                // TODO : 'register_meta_box_cb'
+                // (callable) Provide a callback function that sets up the meta boxes for the edit form. Do remove_meta_box() and add_meta_box() calls in the callback. Default null.
+
+                // TODO : '_builtin'
+                // (bool) FOR INTERNAL USE ONLY! True if this post type is a native or "built-in" post_type. Default false.
+
+                // Internationalize the post data
+                // $post = $this->i18n($post);
+
+                // Add the custom post to the register
+                register_post_type( $post['type'], $post );
+
+                if ($this->bs->request()->getPostType() == $post['type'])
                 {
-                    // Define the Label(s)
-                    $post = $this->setLabel($post);
-                    $post = $this->setLabels($post);
-                    
-                    // Define the Description
-                    $post = $this->setDescription($post);
-    
-                    // Is public post ?
-                    $post = $this->setPublic($post);
-    
-                    // Is Hierarchical post ?
-                    $post = $this->setHierarchical($post);
-    
-                    // Show UI
-                    $post = $this->setShowUI($post);
-    
-                    // Show in Menu
-                    $post = $this->setShowInMenu($post);
-    
-                    // Show the custom posts in Menus Manager
-                    $post = $this->setShowInNavMenus($post);
-    
-                    // Show in Menu Bar (topbar)
-                    $post = $this->setShowInMenuBar($post);
-    
-                    // Menu Position
-                    $post = $this->setMenuPosition($post);
-    
-                    // Menu Icon
-                    $post = $this->setMenuIcon($post);
-    
-                    // Has Archive
-                    $post = $this->setHasArchive($post);
-    
-                    // Define if is exportable
-                    $post = $this->setCanExport($post);
-    
-                    // Define query rules
-                    $post = $this->setQuery($post);
-    
-                    // REST
-                    $post = $this->setREST($post);
-    
-                    // Define rewrite rules
-                    $post = $this->setRewrite($post);
-    
-                    // Define Capabilities
-                    $post = $this->setCapability($post);
-    
-                    // Define Edit Link (_edit_link)
-                    $post = $this->setEditLink($post);
-    
-                    // Define Categories
-                    new Taxonomy($this->bs, 'categories', $post);
-    
-                    // Define Tags
-                    new Taxonomy($this->bs, 'tags', $post);
-    
-                    // Add Metaboxes (and supports)
-                    $metaboxes = new Metaboxes($this->bs, $post);
-                    $supports = $metaboxes->getSupports();
-    
-                    // Define Supports
-                    $post = $this->setSupports($supports, $post);
-    
-                    // TODO : 'map_meta_cap'
-                    // (bool) Whether to use the internal default meta capability handling. Default false.
-    
-                    // TODO : 'register_meta_box_cb'
-                    // (callable) Provide a callback function that sets up the meta boxes for the edit form. Do remove_meta_box() and add_meta_box() calls in the callback. Default null.
-    
-                    // TODO : '_builtin'
-                    // (bool) FOR INTERNAL USE ONLY! True if this post type is a native or "built-in" post_type. Default false.
-    
-                    // Internationalize the post data
-                    // $post = $this->i18n($post);
-    
-                    // Add the custom post to the register
-                    register_post_type( $post['type'], $post );
-    
+                    // -- Posts list
+
+                    add_action( 'pre_get_posts', [ $this, 'pre_get_posts' ]);
+
                     // Manage Post Column 
-                    add_filter( "manage_{$post['type']}_posts_columns", array($this, 'manage_posts_columns') );
-                    add_action( "manage_{$post['type']}_posts_custom_column" , array($this, 'manage_posts_custom_column'), 10, 2 );
-                    add_filter( "manage_edit-{$post['type']}_sortable_columns", array($this, 'manage_sortable_columns') );
-    
+                    add_filter( "manage_{$post['type']}_posts_columns", function($columns) use ($post) { return $this->manage_posts_columns($columns, $post); });
+                    add_action( "manage_{$post['type']}_posts_custom_column" , function($column, $id) use ($post) { $this->manage_posts_custom_column($column, $id, $post); }, 10, 2 );
+                    add_filter( "manage_edit-{$post['type']}_sortable_columns", function($columns) use ($post) { return $this->manage_sortable_columns($columns, $post); });
+
                     // Menu action on Admin index rows
-                    add_filter('post_row_actions', array($this, 'post_row_actions'), 10, 1);
+                    add_filter('post_row_actions', function($actions) use ($post) { return $this->post_row_actions($actions, $post); }, 10, 1);
     
+                    // -- Posts Edit
+
                     // Post submission
                     add_action('pre_post_update', array($this, "pre_post_update"));
     
@@ -238,6 +231,10 @@ if (!class_exists('Framework\Register\Posts'))
                     add_action('clear_post_session', function() use ($post) { $this->clear_post_session($post); });
                     add_action('wp_footer', [$this, "clear_post_session"], 10);
                     add_action('admin_footer', [$this, "clear_post_session"], 10);
+
+                    // --
+
+                    add_filter('screen_options_show_screen', function() use ($post) { return $this->screen_options_show_screen($post); });
                 }
             }
         }
@@ -281,15 +278,6 @@ if (!class_exists('Framework\Register\Posts'))
             $this->post = $post;
 
             return $this;
-        }
-        private function getPost(string $key = '')
-        {
-            if (!empty($key) && isset($this->post[$key]))
-            {
-                return $this->post[$key];
-            }
-
-            return $this->post;
         }
         private function isValidPostType(array $post)
         {
@@ -395,6 +383,8 @@ if (!class_exists('Framework\Register\Posts'))
                             'type' => $vp_name,
                             'name' => $vp_name,
                             'public' => false,
+                            // 'public' => true,
+                            // 'publicly_queryable' => false,
                             'schema' => [$type]
                         ]);
                     }
@@ -494,10 +484,10 @@ if (!class_exists('Framework\Register\Posts'))
             return $this;
         }
 
-
         private function fulltype(array $type)
         {
             // Define Types default values
+            $type['value']                  = null;
             $type['type']                   = isset($type['type'])                      ? $type['type']                     : "text";
             $type['key']                    = isset($type['key'])                       ? $type['key']                      : null;
             $type['label']                  = isset($type['label'])                     ? $type['label']                    : null;
@@ -582,8 +572,6 @@ if (!class_exists('Framework\Register\Posts'))
             return $type;
         }
 
-
-
         /**
          * Types Collection
          */
@@ -638,7 +626,6 @@ if (!class_exists('Framework\Register\Posts'))
                         {
                             if (is_string($collection_type))
                             {
-
                                 if (!isset($this->types[$posttype][$collection_type]))
                                 {
                                     unset($this->types[$posttype][$collection_name]['schema'][$key]);
@@ -658,8 +645,17 @@ if (!class_exists('Framework\Register\Posts'))
                                         }
                                     }
                                 }
-
                             }
+                        }
+
+
+                        foreach (['_PARENT', '_VPOST', '_VPOST_ID'] as $_vkey) 
+                        {
+                            array_push($this->types[$posttype][$collection_name]['schema'], [
+                                'key' => $_vkey,
+                                'type' => 'hidden'
+                                // 'type' => 'text'
+                            ]);
                         }
                     }
                 }
@@ -1500,15 +1496,106 @@ if (!class_exists('Framework\Register\Posts'))
          * ----------------------------------------
          */
 
+        /**
+         * 
+         */
+        public function pre_get_posts($query)
+        {
+            if (is_admin())
+            {
+                // // $query->set('posts_per_archive_page', '5');
+                // $query->set('posts_per_page', '5');
+                // // $query->set('paged', 10);
+
+                // // $limit = 5;
+                // // set_query_var('posts_per_archive_page', $limit);
+
+
+                // echo "<pre style=\"padding-left: 180px;\">";
+                // print_r($query->get('posts_per_page'));
+                // echo "</pre>";
+                // echo "<pre style=\"padding-left: 180px;\">";
+                // var_dump($query->get('paged'));
+                // echo "</pre>";
+            }
+        }
+
         // -- Admin Columns
 
         /**
          * 
          */
-        public function manage_posts_columns($_columns)
+        public function manage_posts_columns($columns, array $post)
+        {
+            $_columns = array();
+
+            // Define Columns
+            if (isset($post['ui']['pages']['index']['columns'])) 
+            {
+                $_columns = $post['ui']['pages']['index']['columns'];
+            }
+
+            foreach ($_columns as $column) 
+            {
+                if (
+                    isset($column['key']) && is_string($column['key']) && 
+                    isset($column['display']) && is_bool($column['display'])
+                ) 
+                {
+                    switch ($column['key']) 
+                    {
+                        case 'checkbox':
+                            $column['label'] = __('Select all');
+                            $column['key'] = 'cb';
+                            break;
+
+                        case 'categories':
+                            $column['label'] = __('Categories');
+                            $column['key'] = 'taxonomy-c_'.$post['type'];
+                            break;
+
+                        case 'tags':
+                            $column['label'] = __('Tags');
+                            $column['key'] = 'taxonomy-t_'.$post['type'];
+                            break;
+
+                        case 'date':
+                            $column['label'] = __('Date');
+                            break;
+
+                        case 'author':
+                            $column['label'] = __('Author');
+                            break;
+
+                        case 'comments':
+                            $column['label'] = __('Comments');
+                            break;
+
+                        case 'title':
+                            $column['label'] = __('Title');
+                            break;
+                    }
+
+                    if (true === $column['display'])
+                    {
+                        $columns[$column['key']] = $column['label'];
+                    }
+                    else
+                    {
+                        unset($columns[$column['key']]);
+                    }
+                }
+            }
+
+            return $columns;
+        }
+
+        /**
+         * 
+         */
+        public function manage_posts_custom_column(string $column, int $id, array $post)
         {
             $columns = array();
-            $post = $this->getPost();
 
             // Define Columns
             if (isset($post['ui']['pages']['index']['columns'])) 
@@ -1516,45 +1603,124 @@ if (!class_exists('Framework\Register\Posts'))
                 $columns = $post['ui']['pages']['index']['columns'];
             }
 
-            foreach ($columns as $column) 
+            foreach ($columns as $col) 
             {
-                if (
-                    isset($column['key']) && is_string($column['key']) && 
-                    isset($column['display']) && is_bool($column['display']) &&
-                    false === $column['display']
-                ) 
+                if (isset($col['key']) && $col['key'] == $column && isset($col['data']))
                 {
-                    unset($_columns[$column['key']]);
+
+                    if (is_string($col['data']))
+                    {
+                        $output = $this->getPostData($col['data'], $id);
+                    }
+
+                    elseif (is_array($col['data'])) 
+                    {
+                        $glue = $col['data'][0];
+                        unset($col['data'][0]);
+
+                        $data = [];
+                        foreach ($col['data'] as $field) 
+                        {
+                            $value = $this->getPostData($field, $id);
+                            if (!empty($value))
+                            {
+                                array_push($data, $value);
+                            }
+                        }
+                        $output = implode($glue, $data);
+                    }
+
+                    echo $output;
                 }
             }
+        }
+        private function getPostData(string $field, int $id)
+        {
+            // TODO: get post attachement media
 
-            return $_columns;
+            switch ($field) 
+            {
+                case 'content':
+                    return get_the_content($id);
+
+                case 'date':
+                    return get_the_date('', $id);
+
+                case 'id':
+                    return get_the_id($id);
+
+                case 'guid':
+                    return get_the_guid($id);
+
+                case 'status':
+                    return get_post_status($id);
+
+                case 'slug':
+                    return get_post_field('post_name', $id);
+
+                case 'title':
+                    return get_the_title($id);
+                
+                default:
+                    return get_post_meta($id , $field, true);
+            }
         }
 
         /**
          * 
          */
-        public function manage_posts_custom_column($columns, $postID)
+        public function manage_sortable_columns($columns, array $post)
         {
-            // TODO:
-        }
+            $_columns = array();
 
-        /**
-         * 
-         */
-        public function manage_sortable_columns($columns)
-        {
+            if (isset($post['ui']['pages']['index']['columns']) && is_array($post['ui']['pages']['index']['columns']))
+            {
+                $_columns = $post['ui']['pages']['index']['columns'];
+            }
+
+            foreach ($_columns as $column) 
+            {
+                if (
+                    isset($column['key']) && is_string($column['key']) &&
+                    isset($column['sortable']) && is_bool($column['sortable'])
+                )
+                {
+                    switch ($column['key']) {
+                        case 'categories':
+                            $key = 'taxonomy-c_'.$post['type'];
+                            break;
+                            
+                        case 'tags':
+                            $key = 'taxonomy-t_'.$post['type'];
+                            break;
+                        
+                        default:
+                            $key = $column['key'];
+                            break;
+                    } 
+
+                    if ($column['sortable'])
+                    {
+                        $columns[$key] = $key;
+                    }
+                    else
+                    {
+                        if (isset($columns[$column['key']]))
+                        {
+                            unset($columns[$column['key']]);
+                        }
+                    }
+                }
+            }
+            
             return $columns;
         }
 
         /**
          * Set actions for items row in Admin table
          */
-        public function post_row_actions($_actions)
+        public function post_row_actions($actions, $post)
         {
-            // Retieve Post config
-            $post = $this->getPost();
-
             // Default 
             $edit = true;
             $inline = true;
@@ -1592,12 +1758,12 @@ if (!class_exists('Framework\Register\Posts'))
                 }
             }
 
-            if (!$edit)   unset( $_actions['edit'] );
-            if (!$inline) unset( $_actions['inline hide-if-no-js'] );
-            if (!$trash)  unset( $_actions['trash'] );
-            if (!$view)   unset( $_actions['view'] );
+            if (!$edit)   unset( $actions['edit'] );
+            if (!$inline) unset( $actions['inline hide-if-no-js'] );
+            if (!$trash)  unset( $actions['trash'] );
+            if (!$view)   unset( $actions['view'] );
 
-            return $_actions;
+            return $actions;
         }
 
         // -- Post Submission
@@ -1607,7 +1773,7 @@ if (!class_exists('Framework\Register\Posts'))
          */
         public function pre_post_update($_PID)
         {
-            if (wp_is_post_revision($_PID))
+            if (wp_is_post_revision($_PID) || wp_is_post_autosave($_PID) || $this->bs->request()->isActionTrash() || $this->bs->request()->isActionUntrash())
             {
                 return;
             }
@@ -1615,22 +1781,9 @@ if (!class_exists('Framework\Register\Posts'))
             $response = new Response( $this->bs, $this->getPosts(), $_PID);
             $this->responses = $response->responses();
 
-            // // $session = new Session( $this->bs->getNamespace() );
-            // // $session->clear();
-            // echo "<pre>";
-            // print_r($this->responses->getMetaTypes());
-            // echo "</pre>";
-            // exit;
-            
-            // $this->responses->validate();
-            // echo "<pre>";
-            // print_r($_SESSION);
-            // echo "</pre>";
-            // exit;
-
             if ($this->responses->validate())
             {
-                // add_action('save_post', array($this, "save_post"));
+                add_action('save_post', [$this, 'save_post']);
             }
             else 
             {
@@ -1639,20 +1792,32 @@ if (!class_exists('Framework\Register\Posts'))
             }
         }
 
-        /**
-         * Save Post data
-         */
-        public function save_post($_PID)
-        {
-            // -- Post Title replacement
 
-            foreach ($this->getPosts() as $key => $post) 
+        // private function save_post(array $types, int $postid)
+        public function save_post(int $postid)
+        {
+            $poststypes = [];
+            $responses  = [];
+            $add        = [];
+            $update     = [];
+            $delete     = [];
+
+            foreach ($this->getPosts() as $post) 
             {
+
+                // Retrieve all Posts Type
+                if (isset($post['type']) && isset($post['public']) && !$post['public'])
+                {
+                    array_push($poststypes, $post['type']);
+                }
+
+                // Post Title replacement
                 if ($post['type'] == $this->bs->request()->getPostType())
                 {
                     $metaboxes = new Metaboxes($this->bs, $post);
                     $supports = $metaboxes->getSupports();
                     $glue = " ";
+                    $replacement = null;
         
                     foreach ($supports as $support) 
                     {
@@ -1674,7 +1839,7 @@ if (!class_exists('Framework\Register\Posts'))
                             // Check if replacement field (schema) exists
                             foreach ($replacements as $replacement_key) 
                             {
-                                foreach ($this->responses->getSchema() as $item) 
+                                foreach ($this->responses->getMetaTypes() as $item) 
                                 {
                                     if ($replacement_key == $item['key'] && 'password' != $item['type'])
                                     {
@@ -1683,50 +1848,192 @@ if (!class_exists('Framework\Register\Posts'))
                                 }
                             }
         
-                            $replacement = trim(implode($glue, $replacements_val));
-        
-                            // if $_POST['post_type'] == $post['type']
-                            global $wpdb;
-                            $wpdb->update( $wpdb->posts, [
-                                'post_title' => $replacement
-                            ],[
-                                'ID' => $_PID
-                            ]);
+                            $replacement = trim(implode($glue, $replacements_val));                    
                         }
+                    }
+                    
+                    if (null !== $replacement)
+                    {
+                        global $wpdb;
+                        $wpdb->update( $wpdb->posts, [
+                            'post_title' => $replacement
+                        ],[
+                            'ID' => $postid
+                        ]);
                     }
                 }
             }
-        
 
-            
-            // echo "<pre style=\"padding-left: 180px;\">";
-            // print_r($_REQUEST);
-            // echo "</pre>";
+            // -- retrieve responses
 
-            foreach ($this->responses->getSchema() as $key => $response) 
+            foreach ($this->responses->getMetaTypes() as $type)
             {
-                echo "<pre>";
-                echo $key." - ".$response['key']."\n";
-                echo $response['label']." : \n";
-                var_dump($response['value']);
-                echo "</pre>";
+                if ('collection' == $type['type'])
+                {
+                    if (isset($type['schema']))
+                    {
+                        $vpost_data = [];
+                        
+                        foreach ($type['schema'] as $type_key => $schema) 
+                        {
+                            if (is_array($schema['value']))
+                            {
+                                foreach ($schema['value'] as $value_key => $value) 
+                                {
+                                    if (!isset($vpost_data[$value_key]))
+                                    {
+                                        $vpost_data[$value_key] = array();
+                                    }
+
+                                    switch ($schema['key'])
+                                    {
+                                        case '_PARENT':
+                                            unset($type['schema'][$type_key]);
+                                            break;
+
+                                        case '_VPOST':
+                                            $vpost_data[$value_key]['posttype'] = $value;
+                                            unset($type['schema'][$type_key]);
+                                            break;
+
+                                        case '_VPOST_ID':
+                                            $vpost_data[$value_key]['postid'] = $value;                                        
+                                            unset($type['schema'][$type_key]);
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+
+                        foreach ($type['schema'] as $schema) 
+                        {
+                            if (is_array($schema['value']))
+                            {
+                                foreach ($schema['value'] as $key => $value) 
+                                {
+                                    array_push($responses, array_merge($vpost_data[$key], [
+                                        'key' => $schema['key'],
+                                        'serial' => $key,
+                                        'type' => $schema['type'],
+                                        'value' => $value,
+                                    ]));
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+                else
+                {
+                    array_push($responses, [
+                        'key' => $type['key'],
+                        'type' => $type['type'],
+                        'value' => $type['value'],
+                        'posttype' => $this->bs->request()->getPostType(),
+                        'postid' => $postid,
+                    ]);
+                }
             }
 
-            // echo "<pre>";
-            // // echo "<pre style=\"padding-left: 180px;\">";
-            // print_r($this->responses->getSchema());
-            // echo "</pre>";
-            exit;
+            // -- Build Arrays $add, $update, $delete
 
-            // -- Save Post Meta 
-
-            foreach ($this->responses->getSchema() as $item) 
+            foreach ($responses as $key => $response) 
             {
-                // If  item type == file
+                // -- Responses to add
+                if (empty($response['postid']))
+                {
+                    if (!isset($add[$response['serial']]))
+                    {
+                        $add[$response['serial']] = array();
+                    }
+                    array_push($add[$response['serial']], $response);
+                    
+                }
 
-                update_post_meta($_PID, $item['key'], $item['value']);
+                // -- Responses to update
+                else
+                {
+                    if (!isset($update[$response['postid']]))
+                    {
+                        $update[$response['postid']] = array();
+                    }
+                    array_push($update[$response['postid']], $response);
+                }
+            }
+
+            // -- Responses to remove
+
+            // Retrieve old responses
+            $query = new \WP_Query([
+                'wpse_include_parent' => true,
+                'post_parent'         => $postid,
+                'post_type'           => $poststypes
+            ]);
+
+            // Build the array $delete
+            foreach ($query->posts as $post) 
+            {
+                array_push($delete, $post->ID);
+            }
+
+            // Sanitize the array $delete
+            foreach ($update as $key => $value) 
+            {
+                if (in_array($key, $delete))
+                {
+                    unset($delete[ array_search($key, $delete) ]);
+                }
+            }
+
+            // -- Proceed to Add / Update / Delete
+
+
+            // Add
+            foreach ($add as $post) 
+            {
+                $_posttype = isset($post[0]['posttype']) ? $post[0]['posttype'] : null;
+
+                if (null != $_posttype)
+                {
+                    remove_action('save_post', [$this, 'save_post']);
+
+                    $post_data = [
+                        'post_author' => get_current_user_id(),
+                        'post_status' => get_post_status($postid),
+                        'post_type' => $_posttype,
+                        'post_parent' => $postid
+                    ];
+
+                    $postID = wp_insert_post($post_data, false);
+
+                    if ($postID)
+                    {
+                        foreach ($post as $meta)
+                        {
+                            update_post_meta($postID, $meta['key'], $meta['value']);
+                        }
+                    }
+
+                }
+            }
+
+            // Update
+            foreach ($update as $postID => $postmeta) 
+            {
+                foreach ($postmeta as $meta) 
+                {
+                    update_post_meta($postID, $meta['key'], $meta['value']);
+                }
+            }
+
+            // Delete
+            foreach ($delete as $postID) 
+            {
+                wp_delete_post($postID, true);
             }
         }
+
 
         /**
          * Clear Post Session
@@ -1744,6 +2051,33 @@ if (!class_exists('Framework\Register\Posts'))
     
             $notices = new Notices($this->bs->getNamespace());
             $notices->clear();
+        }
+
+        // -- Post Screens
+
+        public function screen_options_show_screen( array $post )
+        {
+            $screen_options_tab = true;
+
+            switch (basename($_SERVER['SCRIPT_FILENAME']))
+            {
+                case 'edit.php':
+                    if (isset($post['ui']['pages']['index']['options']['screen_options']) && is_bool($post['ui']['pages']['index']['options']['screen_options']))
+                    {
+                        $screen_options_tab = $post['ui']['pages']['index']['options']['screen_options'];
+                    }
+                    break;
+
+                case 'post.php':
+                case 'post-new.php':
+                    if (isset($post['ui']['pages']['edit']['options']['screen_options']) && is_bool($post['ui']['pages']['edit']['options']['screen_options']))
+                    {
+                        $screen_options_tab = $post['ui']['pages']['edit']['options']['screen_options'];
+                    }
+                    break;
+            }
+
+            return $screen_options_tab;
         }
     }
 }

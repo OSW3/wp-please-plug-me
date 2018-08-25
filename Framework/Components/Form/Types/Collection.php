@@ -11,6 +11,7 @@ if (!defined('WPINC'))
 }
 
 use \Framework\Components\Form\Form\Form;
+use \Framework\Kernel\Request;
 
 if (!class_exists('Framework\Components\Form\Types\Collection'))
 {
@@ -26,7 +27,6 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
          */
         public function attributes()
         {
-            // return ['id', 'name'];
             return ['id', 'name', 'class'];
         }
 
@@ -41,33 +41,92 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
             $this->setItems();
         }
 
+        /**
+         * Items
+         */
         private function setItems()
         {
-            // Retrieve items on responses of session
+            // Default items array
+            $items = array();
+
+            // -- Generate Items list from Responses on session
+
             $session = $this->session->responses($this->getConfig('post_type'));
+
             if (isset($session[$this->getConfig('key')]))
             {
                 $types = $session[$this->getConfig('key')];
 
                 foreach ($types as $type => $values) 
                 {
-                    foreach ($values as $key => $value) 
+                    if (is_array($values))
                     {
-                        if (!isset($this->items[$key]))
+                        foreach ($values as $key => $value) 
                         {
-                            $this->items[$key] = array();
+                            if (!isset($items[$key]))
+                            {
+                                $items[$key] = array();
+                            }
+                            
+                            $items[$key] = array_merge($items[$key], [$type => $value]);
                         }
-                        
-                        $this->items[$key] = array_merge($this->items[$key], [$type => $value]);
                     }
                 }
             }
 
-            if (!empty($this->items))
-            {
-                $this->setLoop(0);
-            }
+
+            // -- Generate Items list from database
             
+            if (empty($items))
+            {
+                $query = new \WP_Query([
+                    'wpse_include_parent' => true,
+                    'post_parent'         => get_the_ID(),
+                    'post_type'           => $this->getConfig('_VPOST'),
+                    'posts_per_page'      => -1
+                ]);
+
+                if (isset($query->posts))
+                {
+                    foreach ($query->posts as $post) 
+                    {
+                        $metas = get_post_meta($post->ID);
+
+                        $item               = array();
+                        $item['_PARENT']    = get_the_ID();
+                        $item['_VPOST']     = $this->getConfig('_VPOST');
+                        $item['_VPOST_ID']  = $post->ID;
+
+                        foreach ($metas as $key => $value) 
+                        {
+                            $item[$key] = $value[0];
+                        }
+
+                        array_push($items, $item);
+                    }
+                }
+            }
+
+
+            // -- Generate Items List from initial number of loop (config.php)
+
+            if (empty($items) && 'post-new.php' == basename($_SERVER['SCRIPT_FILENAME']))
+            {
+                for ($i=0; $i< $this->getLoop(); $i++)
+                {
+                    $item               = array();
+                    $item['_PARENT']    = get_the_ID();
+                    // $item['_PARENT']    = null;
+                    $item['_VPOST']     = $this->getConfig('_VPOST');
+                    $item['_VPOST_ID']  = null;
+
+                    array_push($items, $item);
+                }
+            }
+
+
+            $this->items = $items;
+
             return $this;
         }
         private function getItems()
@@ -80,62 +139,61 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
          */
         public function tag()
         {
-            $tag = '';
-            $tag.= $this->the_container();
-            $tag.= $this->the_add_button();
-            $tag.= '<script type="text/html" data-collection="'.$this->getId().'" data-type="prototype">';
-            // $tag.= $this->the_item();
-            $tag.= '<div id="ppm-collection-item-{{number}}" class="ppm-collection-item">';
-            $tag.= $this->the_item_header();
-            $tag.= '<table class="form-table ppm-collection">';
-            $tag.= '<tbody>';
-            $tag.= $this->the_item_body();
-            $tag.= '</tbody>';
-            $tag.= '</table>';
-            $tag.= '</div>';
-            $tag.= '</script>';
+            $tag = '<div class="ppm-collection" data-ppm-collection="'.$this->getId().'" data-role="collection" data-min="'.$this->getLoop().'">';
 
+            // Collection container
+            $tag.= $this->container();
+
+            // Button Add item
+            $tag.= $this->button();
+
+            // Item prototype
+            $tag.= $this->prototype();
+
+            $tag.= '</div>';
+            
             return $tag;
         }
 
         /**
          * Template of Collection container
          */
-        public function the_container()
+        private function container()
         {
-            // Have items on load (after response or retireve post by Id)
-            // $items = [];
-
-            $tag = '<div id="'.$this->getId().'" class="ppm-collection-container" data-collection="'.$this->getId().'" data-type="container" data-loop="'.$this->getLoop().'">';
-
-
-            // echo "<pre>";
-            // print_r($this->getItems());
-            // echo "</pre>";
-
-            foreach ($this->getItems() as $key => $item) 
-            {
-                $item_template = $this->the_item( $item );
-                $tag .= preg_replace("/{{number}}/", $key, $item_template);
+            // Default items list
+            $items = '';
+            foreach ($this->getItems() as $key => $item) {
+                $items.= $this->item( $item, $key );
             }
 
-
-            // $tag .= $this->getConfig('key');
-
-
-
+            $tag = '<div class="ppm-collection-container" data-role="container">';
+            $tag.= '<div class="ppm-collection-alert hidden" data-role="alert">Empty Collection message</div>';
+            $tag.= $items;
             $tag.= '</div>';
+            
             return $tag;
         }
 
         /**
          * Template of Add Button
          */
-        public function the_add_button()
+        private function button()
         {
             $tag = '<div class="ppm-collection-control">';
-            $tag.= '<button type="button" class="button button-secondary button-large" data-collection="'.$this->getId().'" data-type="control" data-action="add">Add</button>';
+            $tag.= '<button type="button" class="button button-secondary button-large" data-role="control" data-control="add">Add</button>';
             $tag.= '</div>';
+
+            return $tag;
+        }
+
+        /**
+         * Collection prototype
+         */
+        private function prototype()
+        {
+            $tag = '<script type="text/html" data-role="prototype">';
+            $tag.= $this->item();
+            $tag.= '</script>';
 
             return $tag;
         }
@@ -143,29 +201,37 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
         /**
          * Template of Item 
          */
-        public function the_item($item)
+        public function item( array $item = [], $serial = null)
         {
-            $tag= '<div id="ppm-collection-item-{{number}}" class="ppm-collection-item">';
-            $tag.= $this->the_item_header();
+            $tag = '<div id="ppm-collection-item-{{number}}" class="ppm-collection-item" data-role="item">';
+
+            // Item header
+            $tag.= $this->item_header();
+
+            // Item Body
             $tag.= '<table class="form-table ppm-collection">';
             $tag.= '<tbody>';
-            $tag.= $this->the_item_body($item);
+            $tag.= $this->item_body($item, $serial);
             $tag.= '</tbody>';
             $tag.= '</table>';
+
             $tag.= '</div>';
             
+            if (null !== $serial)
+            {
+                $tag = preg_replace("/{{number}}/", $serial, $tag);
+            }
+
             return $tag;
         }
 
         /**
          * Template of Item Header
          */
-        public function the_item_header()
+        private function item_header()
         {
             $tag = '<div class="ppm-collection-item-header">';
-            $tag.= '<div class="ppm-collection-item-actions hidden">';
-            $tag.= '<button type="button" class="button button-link button-small dashicons-before dashicons-dismiss" data-collection="'.$this->getId().'" data-type="control" data-action="delete"></button>';
-            $tag.= '</div>';
+            $tag.= '<button type="button" class="button button-link button-small dashicons-before dashicons-dismiss hidden" data-role="control" data-control="remove"></button>';
             $tag.= '<h4>'.$this->getLabel().'</h4>';
             $tag.= '</div>';
             
@@ -175,7 +241,7 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
         /**
          * Template of Item Body
          */
-        public function the_item_body(array $item = [])
+        public function item_body(array $item = [], $id = '')
         {
             $tag = '';
 
@@ -188,16 +254,51 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
                 $type_name = $this->getName() .'['.$schema['key'].'][{{number}}]';
 
                 $type_class = ucfirst(strtolower($schema['type']));
-                $type_class = "\\Framework\\Components\\Form\\Types\\".$type_class;
+                $type_class = "\\Framework\\Components\\Form\Types\\".$type_class;
                 $type = new $type_class($schema, 'collection');
                 $type->setName($type_name);
                 
-                if (!empty($item) && isset( $item[$schema['key']] ))
+                switch ($schema['key'])
                 {
-                    $type->setValue($item[$schema['key']]);
+                    case '_VPOST':
+                        $type->setValue($this->getConfig('_VPOST'));
+                        break;
+                    
+                    case '_PARENT':
+                        $type->setValue(get_the_ID());
+                        break;
+
+                    case '_VPOST_ID':
+                    default:
+                        if (empty($item))
+                        {
+                            $type->setValue(''); 
+                        }
+                        else if ( isset($item[$schema['key']]) )
+                        {
+                            $type->setValue( $item[$schema['key']] );
+                        }
                 }
 
-                $tag.= $type->render();
+
+                if ('hidden' == $schema['type'])
+                {
+                    $tag.= $type->tagTemplate();
+                }
+                else
+                {
+                    $tag.= $type->render();
+                }
+
+                // if ('wysiwyg' == $schema['type'])
+                // {
+                //     $tag = str_replace(
+                //         "wp-".$schema['post_type']."†".$schema['key']."†-{{number}}-", 
+                //         "wp-".$schema['post_type']."†".$schema['key']."†-__number__-",
+                //         $tag
+                //     );
+                // }
+
             }
             
             return $tag;

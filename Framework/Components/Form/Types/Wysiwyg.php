@@ -60,7 +60,8 @@ if (!class_exists('Framework\Components\Form\Types\Wysiwyg'))
         public function builder()
         {
             // $id = preg_replace("/\\[|\\]/", "____", $this->getName());
-            $id = preg_replace("/\\[|\\]/", "†", $this->getName());
+            $id = $this->getName();
+            $id = preg_replace("/\\[|\\]/", "†", $id);
             $this->setId($id);
 
             // Readonly or Disabled attribute

@@ -114,7 +114,7 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
 
             return $this;
         }
-        private function getPost(string $key = '')
+        public function getPost(string $key = '')
         {
             if (!empty($key) && isset($this->post[$key])) 
             {
@@ -323,7 +323,7 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         {
             foreach ($collection as $key => $type)
             {
-                if ('collection' == $type['type'])
+                if ('collection' == $type['type'] && isset($responses[$type['key']]))
                 {
                     $collection[$key]['schema'] = $this->responseCollection($type['schema'], $responses[$type['key']]);
                 }
@@ -540,6 +540,10 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             //         ]);
             //     }
 
+            // echo "<pre style=\"padding-left: 180px;\">";
+            // print_r($_SESSION);
+            // echo "</pre>";
+            // exit;
 
             return $validation;
         }

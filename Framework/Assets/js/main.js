@@ -5,77 +5,125 @@
     // Collection
     // ****************************** //
 
-    var collections = new Object();
+    // Create Collections
+    var Collections = new Object();
 
-    $('[data-collection]').each(function(){
-        var collection_name = $(this).data('collection');
-        var collection_type = $(this).data('type');
-        var collection_loop = $(this).data('loop');
-
-        // Add the collection reference to the Collections object
-        if ( undefined === collections[collection_name] ) {
-            collections[collection_name] = new Object();
-        }
-        if ( undefined === collections[collection_name][collection_type] ) {
-            collections[collection_name][collection_type] = $(this);
-        }
-        if ( undefined === collections[collection_name]['items'] ) {
-            collections[collection_name]['items'] = 1;
-        }
-        if ( undefined === collections[collection_name]['loop'] && undefined != collection_loop) {
-            collections[collection_name]['loop'] = collection_loop;
-        }
-    });
-
-    $.each(collections, function(index, collection){
-        // on load
-        for (var i=0; i<collection.loop; i++) {
-            collection_add_item(collection);
-        }
-
-        // on click
-        collection.control.click(function(e){
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            collection_add_item(collection);
-        });
-    });
-
-    function collection_add_item(collection) {
-
-        collection.container.append(render_ppmci(collection.prototype, {
-            number: collection.items
-        }));
-
-        var actions = collection.container.find('.ppm-collection-item-actions');
-        var deleteBtn = collection.container.find('[data-action="delete"]');
-
-        // Display / Hide actions
-        (collection.items > 1) ? actions.removeClass('hidden') : actions.addClass('hidden');
+    // Initialize Collections
+    $('[data-ppm-collection]').each(function() {
         
-        deleteBtn.click(function(e){
+        var name = $(this).data('ppmCollection');
+        
+        Collections[name] = {
+
+            // The name of the Collection
+            name: name,
+
+            // Collection Wrapper element
+            wrapper: $(this),
+
+            // Items container
+            container: $(this).find('[data-role=container]'),
+
+            // Item prototype
+            prototype: $(this).find('[data-role=prototype]'),
+
+            // Button Add item
+            add: $(this).find('[data-role=control][data-control=add]'),
+
+            items: undefined,
+
+            min: $(this).data('min'),
+
+            // Collection Stats
+            stats: {
+                serial: 0, 
+                items: 0
+            }
+
+        };
+    });
+
+    // Initialize each collection
+    $.each(Collections, function(key, collection) {
+        
+        var containerHTML = collection.container.html();
+            containerHTML = containerHTML.replace(/{{serial}}/g, '<span data-role="serial"></span>');
+            collection.container.html(containerHTML);
+
+        // Collection Items (already added to the container)
+        var items = collection.container.find('[data-role=item]');
+
+        Collections[collection.name].items = items;
+        Collections[collection.name].stats.serial = items.length;
+        Collections[collection.name].stats.items = items.length;
+
+        // Refresh Items Serial
+        ppmCollection_refreshSerial(collection);
+
+        // Add an Item
+        collection.add.click(function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
-
-            item = $(this).parents('.ppm-collection-item');
-            item.remove();
+            ppmCollection_addItem(collection);
         });
+        
+    });
 
-        collection.items++;
+    // Add new item to collection
+    function ppmCollection_addItem(collection) {
+
+        // Clone the prototype
+        var clone = collection.prototype.clone();
+
+        // Extract HTML tag of an item from the clone
+        var item = clone.html();
+            item = item.replace(/{{number}}/g, Collections[collection.name].stats.serial);
+            item = item.replace(/{{serial}}/g, '<span data-role="serial"></span>');
+
+        // Add item to container
+        collection.container.append(item);
+
+        // Update Serial
+        Collections[collection.name].stats.serial++;
+
+        // Refresh Items Serial
+        ppmCollection_refreshSerial(collection);
     }
 
-    // render PPM Collection Item
-    function render_ppmci(prototype, data) {
+    // Remove an item from collection
+    function ppmCollection_removeItem(collection, item) {
+
+        item.remove();
+        ppmCollection_refreshSerial(collection);
+    }
+
+    // Refresh each items serial
+    function ppmCollection_refreshSerial( collection ) {
+
+        var items = collection.container.find('[data-role=item]');
         
-        var clone = prototype.clone();
-        var html = clone.html();
+        collection.container.find('[data-role=alert]').toggleClass('hidden', (items.length > 0));
 
-        $.each(data, function(key, value){
-            var regex = new RegExp('{{'+key+'}}', "g");
-            html = html.replace(regex, value);
+        $.each(items, function(key, item){
+
+            // Set the serial number
+            $(item).find('[data-role=serial]').text(key+1);
+
+            // Find Control Element
+            var controlTag = $(item).find('[data-role=control][data-control=remove]');
+
+            // Show / Hide remove button
+            items.length > collection.min
+                ? controlTag.removeClass('hidden')
+                : controlTag.addClass('hidden');
+
+            // Remove item
+            controlTag.click(function(e){
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                ppmCollection_removeItem(collection, item);
+            });
         });
-
-        return html;
     }
 
 

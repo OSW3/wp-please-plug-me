@@ -22,12 +22,12 @@ if (!class_exists('Framework\Components\Form\Form\Types'))
             'output','password','radio','range','search','tel','text','textarea',
             'time','url','week','wysiwyg','year'];
 
-        // /**
-        //  * The instance of the bootstrap class
-        //  * 
-        //  * @param object instance
-        //  */
-        // // protected $bs;
+        /**
+         * The instance of the bootstrap class
+         * 
+         * @param object instance
+         */
+        protected $bs;
 
         // /**
         //  * List of

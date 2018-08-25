@@ -781,16 +781,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                 $this->label = $this->getConfig('label');
             }
 
-            // if ($this->getType() == 'collection')
-            // {
-            //     $this->label = "Item {{number}}";
-
-            //     if (is_string($this->getRule('label')))
-            //     {
-            //         $this->label = $this->getRule('label');
-            //     }
-            // }
-
             return $this;
         }
         protected function getLabel()
@@ -1233,76 +1223,53 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
         /**
          * Value
          */
-        protected function setValue()
+        protected function setValue($value = null, $post_id = null)
         {
-            // Default Value
-            // $this->value = null;
-
-            $hide_pwd_value = false;
-            
-            // if ($value === null)
-            // {
-                // Retrieve value from session (after submission)
-                $session = new Session($this->getConfig('namespace'));
-                foreach ($session->responses($this->getConfig('post_type')) as $key => $response) 
-                {
-                    if ($key == $this->getConfig('key')) 
-                    {
-                        $value = $response;
-                    }
-                }
-    
-                // Retrieve an existant value
-                if (null == $this->value && !empty(get_post()))
-                {
-                    $hide_pwd_value = true;
-                    $value = get_post_meta(
-                        get_post()->ID, 
-                        $this->getConfig('key'), 
-                        true
-                    );
-                }
-            // }
-
-            $this->value = $value;
-
-            // Set default value
-            if (null == $this->value) 
+            // Retrieve response in database
+            if (null === $value && !empty(get_post()))
             {
-                // Retrive Default parameters
-                if ($this->getConfig('default'))
+                if (null == $post_id)
                 {
-                    $this->value = $this->getConfig('default');
+                    $post_id = get_post()->ID;
                 }
+                $hide_pwd_value = true;
+                $post_field = $this->getConfig('key');
     
-                // Override default value
+                $value = get_post_meta($post_id, $post_field, true);
+            }
+
+            if (null == $value) 
+            {
                 if ($this->getConfig('value'))
                 {
-                    $this->value = $this->getConfig('value');
+                    $value = stripslashes($this->getConfig('value'));
                 }
             }
 
             switch ($this->getType()) 
             {
                 case 'date':
-                    if ('today' == $this->value) {
-                        $this->value = date('Y-m-d');
+                    if ('today' == $value) {
+                        $value = date('Y-m-d');
                     }
                     break;
 
                 case 'time':
-                    if ('now' == $this->value) {
-                        $this->value = date('H:i');
+                    if ('now' == $value) {
+                        $value = date('H:i');
                     }
                     break;
 
                 case 'password':
                     if ($hide_pwd_value)
                     {
-                        $this->value = '';
+                        $value = '';
                     }
                     break;
             }
+
+            $this->value = $value;
+
             return $this;
         }
         protected function getValue()
