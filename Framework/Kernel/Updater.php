@@ -69,9 +69,12 @@ if (!class_exists('Framework\Kernel\Updater'))
 			$this->setLocalMap();
 			$this->setRemoteMap();
 
-			$this->setMode();
-			$this->setCurrentVersion();
-			$this->setLastVersion();
+
+
+
+			// $this->setMode();
+			// $this->setCurrentVersion();
+			// $this->setLastVersion();
 
 			// echo "<pre>";
 			// print_r( $this->getRemote() );
@@ -113,27 +116,37 @@ if (!class_exists('Framework\Kernel\Updater'))
 			// print_r( $this->getLocalMap() );
 			// echo "</pre>";
 
+			// echo "<pre>";
+			// print_r( $this->writeMap() );
+			// echo "</pre>";
+
+
+
+			// echo "<pre>";
+			// print_r( $this->makeMap() );
+			// echo "</pre>";
+
 			echo "<pre>";
 			print_r( $this->diffMap() );
 			echo "</pre>";
 
 
-			foreach ($this->diffMap() as $md5 => $file) 
-			{
-				if ($file != 'Kernel/Updater.php')
-				{
-					$source = $this->getRemotePath().$file;
-					$dest = $this->getLocalPath().$file;
-					copy($source, $dest);
+			// foreach ($this->diffMap() as $md5 => $file) 
+			// {
+			// 	if ($file != 'Kernel/Updater.php')
+			// 	{
+			// 		$source = $this->getRemotePath().$file;
+			// 		$dest = $this->getLocalPath().$file;
+			// 		copy($source, $dest);
 
-					echo "<pre>";
-					print_r([
-						$source, 
-						$dest
-					]);
-					echo "</pre>";
-				}
-			}
+			// 		echo "<pre>";
+			// 		print_r([
+			// 			$source, 
+			// 			$dest
+			// 		]);
+			// 		echo "</pre>";
+			// 	}
+			// }
 			// $this->getRemoteMap();
 			// $this->makeMap();
 			exit;
@@ -181,7 +194,8 @@ if (!class_exists('Framework\Kernel\Updater'))
 			// Get map content
 			if ($map = @file_get_contents($url))
 			{
-				$this->remote_map = json_decode($map, true);
+				// $this->remote_map = json_decode($map, true);
+				$this->remote_map = $map;
 			}
 
 			return $this;
@@ -192,7 +206,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 		}
 		private function setLocalMap()
 		{
-			$this->local_map = json_decode($this->makeMap(), true);
+			$this->local_map = $this->generateMap();
 
 			return $this;
 		}
@@ -202,7 +216,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 		}
 
 		// Generate Map of local 
-		private function makeMap()
+		private function generateMap()
 		{
 			$map = [];
 
@@ -219,7 +233,19 @@ if (!class_exists('Framework\Kernel\Updater'))
 				}
 			}
 
-			return json_encode($map);
+			return $map;
+		}
+		private function makeMap()
+		{
+			// The file
+			$file = $this->getLocalPath().self::FILE_MAP;
+
+			// The data
+			$data = $this->generateMap();
+
+			$fp = fopen($file, 'w');
+			fwrite($fp, json_encode($data));
+			fclose($fp);
 		}
 		private function diffMap()
 		{
