@@ -61,96 +61,26 @@ if (!class_exists('Framework\Kernel\Updater'))
             // Retrieve the bootstrap class instance
 			$this->bs = $bs;
 
-			// Setters for local and remote Path
-			$this->setLocalPath();
-			$this->setRemotePath();
-			
-			// Setters for local and remote Map
-			$this->setLocalMap();
-			$this->setRemoteMap();
-			
-			$this->setMode();
-			$this->setCurrentVersion();
-			$this->setLastVersion();
-
-
-			echo "<pre>";
-			print_r( $this->getCurrentVersion() );
-			echo "</pre>";
-
-			echo "<pre>";
-			print_r( $this->getLastVersion() );
-			echo "</pre>";
-
-			// echo "<pre>";
-			// var_dump( $this->getMode() );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// var_dump( $this->checkVersion() );
-			// echo "</pre>";
-
-			// $this->update();
-			// Proceed to update
-			if ('auto' === $this->getMode() && $this->checkVersion()) 
+			if (!file_exists($this->bs->getRoot().'.no_update'))
 			{
-				$this->update();
+				// Setters for local and remote Path
+				$this->setLocalPath();
+				$this->setRemotePath();
+				
+				// Setters for local and remote Map
+				$this->setLocalMap();
+				$this->setRemoteMap();
+				
+				$this->setMode();
+				$this->setCurrentVersion();
+				$this->setLastVersion();
+	
+				// Proceed to update
+				if ('auto' === $this->getMode() && $this->checkVersion()) 
+				{
+					$this->update();
+				}
 			}
-
-			// echo "<pre>";
-			// print_r( $this->getRemote() );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( $this->getLocal() );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( $this->getMode() );
-			// echo "</pre>";
-
-
-			// echo "<pre>";
-			// var_dump( $this->check() );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( md5_file($this->getRemote().self::FILE_VERSION) );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( md5_file($this->getLocal().self::FILE_VERSION) );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( $this->getRemoteMap() );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( $this->getLocalMap() );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( $this->writeMap() );
-			// echo "</pre>";
-
-
-
-			// echo "<pre>";
-			// print_r( $this->makeMap() );
-			// echo "</pre>";
-
-
-
-
-			// $source = $this->getRemotePath().$file;
-			// $dest = $this->getLocalPath().$file;
-			// copy($this->getRemotePath().self::FILE_MAP, $this->getLocalPath().self::FILE_MAP);
-
-			// $this->getRemoteMap();
-			// $this->makeMap();
-			exit;
-
 		}
 
 		/**
