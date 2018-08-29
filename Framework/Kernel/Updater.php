@@ -61,25 +61,22 @@ if (!class_exists('Framework\Kernel\Updater'))
             // Retrieve the bootstrap class instance
 			$this->bs = $bs;
 
-			if (!file_exists($this->bs->getRoot().'.no_update'))
+			// Setters for local and remote Path
+			$this->setLocalPath();
+			$this->setRemotePath();
+			
+			// Setters for local and remote Map
+			$this->setLocalMap();
+			$this->setRemoteMap();
+			
+			$this->setMode();
+			$this->setCurrentVersion();
+			$this->setLastVersion();
+
+			// Proceed to update
+			if ('auto' === $this->getMode() && $this->checkVersion()) 
 			{
-				// Setters for local and remote Path
-				$this->setLocalPath();
-				$this->setRemotePath();
-				
-				// Setters for local and remote Map
-				$this->setLocalMap();
-				$this->setRemoteMap();
-				
-				$this->setMode();
-				$this->setCurrentVersion();
-				$this->setLastVersion();
-	
-				// Proceed to update
-				if ('auto' === $this->getMode() && $this->checkVersion()) 
-				{
-					$this->update();
-				}
+				$this->update();
 			}
 		}
 
