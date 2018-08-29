@@ -16,8 +16,8 @@ if (!class_exists('Framework\Kernel\Updater'))
 {
 	class Updater
 	{
-		// const LOCAL = $this->bs->getRoot().'Framework/VERSION';
-		// const REMOTE = "https://raw.githubusercontent.com/OSW3/wp-please-plug-me/develop/Framework/";
+		const FILE_MAP = 'map';
+		const FILE_VERSION = 'VERSION';
 
         /**
          * The instance of the bootstrap class
@@ -54,6 +54,11 @@ if (!class_exists('Framework\Kernel\Updater'))
 		/**
 		 * 
 		 */
+		private $map;
+
+		/**
+		 * 
+		 */
 		public function __construct($bs)
 		{
             // Retrieve the bootstrap class instance
@@ -66,39 +71,40 @@ if (!class_exists('Framework\Kernel\Updater'))
 			$this->setCurrentVersion();
 			$this->setLastVersion();
 
-			echo "<pre>";
-			print_r( $this->getRemote() );
-			echo "</pre>";
+			// echo "<pre>";
+			// print_r( $this->getRemote() );
+			// echo "</pre>";
 
-			echo "<pre>";
-			print_r( $this->getLocal() );
-			echo "</pre>";
+			// echo "<pre>";
+			// print_r( $this->getLocal() );
+			// echo "</pre>";
 
-			echo "<pre>";
-			print_r( $this->getMode() );
-			echo "</pre>";
+			// echo "<pre>";
+			// print_r( $this->getMode() );
+			// echo "</pre>";
 
-			echo "<pre>";
-			print_r( $this->getCurrentVersion() );
-			echo "</pre>";
+			// echo "<pre>";
+			// print_r( $this->getCurrentVersion() );
+			// echo "</pre>";
 
-			echo "<pre>";
-			print_r( $this->getLastVersion() );
-			echo "</pre>";
+			// echo "<pre>";
+			// print_r( $this->getLastVersion() );
+			// echo "</pre>";
 
-			echo "<pre>";
-			var_dump( $this->check() );
-			echo "</pre>";
+			// echo "<pre>";
+			// var_dump( $this->check() );
+			// echo "</pre>";
 
-			echo "<pre>";
-			print_r( md5_file($this->getRemote().'VERSION') );
-			echo "</pre>";
+			// echo "<pre>";
+			// print_r( md5_file($this->getRemote().self::FILE_VERSION) );
+			// echo "</pre>";
 
-			echo "<pre>";
-			print_r( md5_file($this->getLocal().'VERSION') );
-			echo "</pre>";
+			// echo "<pre>";
+			// print_r( md5_file($this->getLocal().self::FILE_VERSION) );
+			// echo "</pre>";
 
-			$this->compilate();
+			$this->getRemoteMap();
+			// $this->makeMap();
 			exit;
 
 			if ($this->check())
@@ -155,7 +161,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 			$this->c_version = null;
 
 			// Define file "version" path
-			$file = $this->bs->getRoot().'Framework/VERSION';
+			$file = $this->getLocal().self::FILE_VERSION;
 
 			// Read file
 			if (file_exists($file)) 
@@ -179,7 +185,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 			$this->l_version = null;
 
 			// Define file "version" URI
-			$file = $this->getRemote().'VERSION';
+			$file = $this->getRemote().self::FILE_VERSION;
 
 			$curl = curl_init();
 			curl_setopt($curl, CURLOPT_URL, $file);
@@ -196,6 +202,61 @@ if (!class_exists('Framework\Kernel\Updater'))
 		{
 			return $this->l_version;
 		}
+
+		/**
+		 * Map
+		 */
+		private function getRemoteMap()
+		{
+			$this->map = [];
+
+			// Define remote Map file url
+			$url = $this->getRemote().self::FILE_MAP;
+
+			// Get map content
+			$map = @file_get_contents($url);
+
+			if (false === $map)
+			{
+				$map = null;
+			}
+
+			$map = explode("\n", $map);
+
+
+			// try {
+			// 	$file = file_get_contents($url);
+			// }
+			// catch (\Exception $e) {
+			// 	// echo $e->getMessage();
+			// 	$file = "Nooooo";
+			// }
+
+			echo "<pre>";
+			var_dump( $map );
+			echo "</pre>";
+
+		}
+		public function makeMap()
+		{
+			$map = [];
+
+			$scan = $this->scandir( $this->getLocal() );
+
+			foreach ($scan as $path) 
+			{
+				$file = str_replace($this->getLocal(), '', $path);
+				$md5 = md5_file($path);
+
+				if ('map' != $file)
+				{
+					$map[$md5] = $file;
+				}
+			}
+
+			return json_encode($map);
+		}
+
 
 		/**
 		 * Compare the version number
@@ -217,43 +278,6 @@ if (!class_exists('Framework\Kernel\Updater'))
 
 
 
-		// 
-		public function compilate()
-		{
-			// $scan = scandir( $this->getLocal() );
-
-
-
-			echo "<pre>";
-			print_r( $this->getLocal() );
-			echo "</pre>";
-
-			$scan = $this->scandir( $this->getLocal() );
-
-
-			// $fp = fopen($this->getLocal().'map', 'w');
-
-			// if ($fp)
-			// {
-			// 	fwrite($fp, '1');
-			// 	fwrite($fp, '23');
-			// 	fclose($fp);
-			// }
-
-			foreach ($scan as $path) 
-			{
-				$file = str_replace($this->getLocal(), '', $path);
-				$md5 = md5_file($path);
-
-				if ('map' != $file)
-				{
-					echo $md5.":".$file. "\n";
-				}
-			}
-			// echo "<pre>";
-			// print_r( $scan );
-			// echo "</pre>";
-		}
 
 		public function scandir(string $target)
 		{
