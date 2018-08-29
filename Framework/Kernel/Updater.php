@@ -60,7 +60,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 		{
             // Retrieve the bootstrap class instance
 			$this->bs = $bs;
-			
+
 			// Setters for local and remote Path
 			$this->setLocalPath();
 			$this->setRemotePath();
@@ -68,13 +68,33 @@ if (!class_exists('Framework\Kernel\Updater'))
 			// Setters for local and remote Map
 			$this->setLocalMap();
 			$this->setRemoteMap();
+			
+			$this->setMode();
+			$this->setCurrentVersion();
+			$this->setLastVersion();
 
 
+			echo "<pre>";
+			print_r( $this->getCurrentVersion() );
+			echo "</pre>";
 
+			echo "<pre>";
+			print_r( $this->getLastVersion() );
+			echo "</pre>";
 
-			// $this->setMode();
-			// $this->setCurrentVersion();
-			// $this->setLastVersion();
+			// echo "<pre>";
+			// var_dump( $this->getMode() );
+			// echo "</pre>";
+
+			// echo "<pre>";
+			// var_dump( $this->checkVersion() );
+			// echo "</pre>";
+
+			// Proceed to update
+			if ('auto' === $this->getMode() && $this->checkVersion()) 
+			{
+				$this->update();
+			}
 
 			// echo "<pre>";
 			// print_r( $this->getRemote() );
@@ -88,13 +108,6 @@ if (!class_exists('Framework\Kernel\Updater'))
 			// print_r( $this->getMode() );
 			// echo "</pre>";
 
-			// echo "<pre>";
-			// print_r( $this->getCurrentVersion() );
-			// echo "</pre>";
-
-			// echo "<pre>";
-			// print_r( $this->getLastVersion() );
-			// echo "</pre>";
 
 			// echo "<pre>";
 			// var_dump( $this->check() );
@@ -126,150 +139,18 @@ if (!class_exists('Framework\Kernel\Updater'))
 			// print_r( $this->makeMap() );
 			// echo "</pre>";
 
-			echo "<pre>";
-			print_r( $this->diffMap() );
-			echo "</pre>";
 
 
-			// foreach ($this->diffMap() as $md5 => $file) 
-			// {
-			// 	if ($file != 'Kernel/Updater.php')
-			// 	{
-			// 		$source = $this->getRemotePath().$file;
-			// 		$dest = $this->getLocalPath().$file;
-			// 		copy($source, $dest);
 
-			// 		echo "<pre>";
-			// 		print_r([
-			// 			$source, 
-			// 			$dest
-			// 		]);
-			// 		echo "</pre>";
-			// 	}
-			// }
+			// $source = $this->getRemotePath().$file;
+			// $dest = $this->getLocalPath().$file;
+			// copy($this->getRemotePath().self::FILE_MAP, $this->getLocalPath().self::FILE_MAP);
+
 			// $this->getRemoteMap();
 			// $this->makeMap();
 			exit;
 
-			if ($this->check())
-			{
-				// TODO: Show update notice
-			}
 		}
-
-		/**
-		 * Path
-		 */
-		private function setRemotePath()
-		{
-			$this->remote_path = "https://raw.githubusercontent.com/OSW3/wp-please-plug-me/develop/Framework/";
-
-			return $this;
-		}
-		private function getRemotePath()
-		{
-			return $this->remote_path;
-		}
-		private function setLocalPath()
-		{
-			$this->local_path= $this->bs->getRoot().'Framework/';
-
-			return $this;
-		}
-		private function getLocalPath()
-		{
-			return $this->local_path;
-		}
-
-		/**
-		 * Map
-		 */
-		private function setRemoteMap()
-		{
-			$this->remote_map = [];
-
-			// Define remote Map file url
-			$url = $this->getRemotePath().self::FILE_MAP;
-
-			// Get map content
-			if ($map = @file_get_contents($url))
-			{
-				// $this->remote_map = json_decode($map, true);
-				$this->remote_map = $map;
-			}
-
-			return $this;
-		}
-		private function getRemoteMap()
-		{
-			return $this->remote_map;
-		}
-		private function setLocalMap()
-		{
-			$this->local_map = $this->generateMap();
-
-			return $this;
-		}
-		private function getLocalMap()
-		{
-			return $this->local_map;
-		}
-
-		// Generate Map of local 
-		private function generateMap()
-		{
-			$map = [];
-
-			$scan = $this->scandir( $this->getLocalPath() );
-
-			foreach ($scan as $path) 
-			{
-				$file = str_replace($this->getLocalPath(), '', $path);
-				$md5 = md5_file($path);
-
-				if ('map' != $file)
-				{
-					$map[$md5] = $file;
-				}
-			}
-
-			return $map;
-		}
-		private function makeMap()
-		{
-			// The file
-			$file = $this->getLocalPath().self::FILE_MAP;
-
-			// The data
-			$data = $this->generateMap();
-
-			$fp = fopen($file, 'w');
-			fwrite($fp, json_encode($data));
-			fclose($fp);
-		}
-		private function diffMap()
-		{
-			return array_diff_assoc($this->getRemoteMap(), $this->getLocalMap());
-			// return array_diff_assoc($this->getLocalMap(), $this->getRemoteMap());
-		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		/**
 		 * Updater Mode
@@ -353,6 +234,154 @@ if (!class_exists('Framework\Kernel\Updater'))
 
 			return false;
 		}
+
+		/**
+		 * Proceed
+		 */
+		private function update()
+		{
+			// Generate the Download list
+			$dl = array_diff_assoc($this->getRemoteMap(), $this->getLocalMap());
+			// Generate the remove list
+			$rm = array_diff_assoc($this->getLocalMap(), $this->getRemoteMap());
+
+			// Remove files ares not in remote repository
+			foreach ($rm as $file) 
+			{
+				// if ($file != 'Kernel/Updater.php')
+				// {
+					$source = $this->getLocalPath().$file;
+					if (file_exists($source))
+					{
+						unlink($source);
+					}
+				// }
+			}
+
+			// Copy files are not already in local
+			foreach ($dl as $file) 
+			{
+				// if ($file != 'Kernel/Updater.php')
+				// {
+					$source = $this->getRemotePath().$file;
+					$dest = $this->getLocalPath().$file;
+					copy($source, $dest);
+				// }
+			}
+
+			// Update the map
+			$this->makeMap();
+		}
+
+		/**
+		 * Path
+		 */
+		private function setRemotePath()
+		{
+			$this->remote_path = "https://raw.githubusercontent.com/OSW3/wp-please-plug-me/develop/Framework/";
+
+			return $this;
+		}
+		private function getRemotePath()
+		{
+			return $this->remote_path;
+		}
+		private function setLocalPath()
+		{
+			$this->local_path= $this->bs->getRoot().'Framework/';
+
+			return $this;
+		}
+		private function getLocalPath()
+		{
+			return $this->local_path;
+		}
+
+		/**
+		 * Map
+		 */
+		private function setRemoteMap()
+		{
+			$this->remote_map = [];
+
+			// Define remote Map file url
+			$url = $this->getRemotePath().self::FILE_MAP;
+
+			// Get map content
+			if ($map = @file_get_contents($url))
+			{
+				$this->remote_map = json_decode($map, true);
+				// $this->remote_map = $map;
+			}
+
+			return $this;
+		}
+		private function getRemoteMap()
+		{
+			return $this->remote_map;
+		}
+		private function setLocalMap()
+		{
+			$this->local_map = $this->generateMap();
+
+			return $this;
+		}
+		private function getLocalMap()
+		{
+			return $this->local_map;
+		}
+
+		// Generate Map of local 
+		private function generateMap()
+		{
+			$map = [];
+
+			$scan = $this->scandir( $this->getLocalPath() );
+
+			foreach ($scan as $path) 
+			{
+				$file = str_replace($this->getLocalPath(), '', $path);
+				$md5 = md5_file($path);
+
+				if ('map' != $file)
+				{
+					$map[$md5] = $file;
+				}
+			}
+
+			return $map;
+		}
+		private function makeMap()
+		{
+			// The file
+			$file = $this->getLocalPath().self::FILE_MAP;
+
+			// The data
+			$data = $this->generateMap();
+
+			$fp = fopen($file, 'w');
+			fwrite($fp, json_encode($data));
+			fclose($fp);
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
