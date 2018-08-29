@@ -90,6 +90,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 			// var_dump( $this->checkVersion() );
 			// echo "</pre>";
 
+			// $this->update();
 			// Proceed to update
 			if ('auto' === $this->getMode() && $this->checkVersion()) 
 			{
@@ -341,7 +342,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 			foreach ($scan as $path) 
 			{
 				$file = str_replace($this->getLocalPath(), '', $path);
-				$md5 = md5_file($path);
+				$md5 = md5(md5_file($path).md5($path));
 
 				if ('map' != $file)
 				{
@@ -363,33 +364,6 @@ if (!class_exists('Framework\Kernel\Updater'))
 			fwrite($fp, json_encode($data));
 			fclose($fp);
 		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		public function scandir(string $target)
 		{
@@ -414,9 +388,5 @@ if (!class_exists('Framework\Kernel\Updater'))
 
 			return $results;
 		}
-
-
-
-
 	}
 }
