@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Components\Form\Response;
+namespace Framework\Components\Form;
 
 // Make sure we don't expose any info if called directly
 if (!defined('WPINC'))
@@ -13,41 +13,37 @@ if (!defined('WPINC'))
 use \Framework\Components\Notices;
 use \Framework\Components\Arrays;
 use \Framework\Kernel\Session;
+use \Framework\Kernel\Request;
+use \Framework\Kernel\Config;
 
-if (!class_exists('Framework\Components\Form\Response\Response'))
+if (!class_exists('Framework\Components\Form\Response'))
 {
-    class Response
+    class Response extends Config 
     {
         const RE_TIME = "/^(00|[0-1][0-9]|2[0-3]):([0-5][0-9])$/";
         const RE_COLOR = "/#([a-f0-9]{3}){1,2}\b/i";
 
         /**
-         * The instance of the bootstrap class
-         * 
-         * @param object instance
+         * Errors messages
          */
-        protected $bs;
+        private $errors = [];
 
         /**
-         * Custom Post config
+         * Metaboxes
+         */
+        private $metaboxes = [];
+
+        /**
+         * Metaboxes Types
+         */
+        protected $metatypes = [];
+
+        /**
+         * The custom post config
          * 
          * @param array
          */
         protected $post;
-
-        /**
-         * Post ID
-         * 
-         * @param array
-         */
-        protected $id;
-
-        /**
-         * Request Response
-         * 
-         * @param array
-         */
-        private $request_responses = [];
 
         /**
          * Post Types
@@ -57,30 +53,31 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         protected $posttypes = [];
 
         /**
-         * Metaboxes Types
+         * The Instance of request
+         * 
+         * @param object instance
          */
-        protected $metatypes = [];
+        protected $request;
 
-        /**
-         * Metaboxes
-         */
-        private $metaboxes = [];
-
-        private $errors = [];
+        // /**
+        //  * Request Response
+        //  * 
+        //  * @param array
+        //  */
+        // private $request_responses = [];
 
         /**
          * 
          */
-        public function __construct($bs, array $posts, int $id)
+        // public function __construct(string $namespace, array $posts)
+        public function __construct(array $posts)
         {
-            // Retrieve the bootstrap class instance
-            $this->bs = $bs;
+            parent::__construct();
+
+            $this->request = new Request();
             
             // Define CustomPost config
             $this->setPost($posts);
-            
-            // Define Post ID
-            $this->setID($id);
 
             // Retrieve Metaboxes config of current Post
             $this->setMetaboxes();
@@ -106,7 +103,7 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
         {
             foreach ($posts as $post) 
             {
-                if ($post['type'] == $this->bs->request()->getPostType())
+                if ($post['type'] == $this->request->getPostType())
                 {
                     $this->post = $post;          
                 }
@@ -122,20 +119,6 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             }
 
             return $this->post;
-        }
-
-        /**
-         * Set Post ID
-         */
-        private function setID(int $id)
-        {
-            $this->id = $id;
-
-            return $this;
-        }
-        private function getID()
-        {
-            return $this->id;
         }
 
         /**
@@ -221,27 +204,49 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             $responses = [];
             $files = [];
 
-            if ($this->bs->request()->isPost())
+            if ($this->request->isPost())
             {
                 // Retrieve Response Data and Files
-                $responses = $this->bs->request()->responses();
-                $files = $this->bs->request()->files();
+                $responses = $this->request->responses();
+                $files = $this->request->files();
 
                 $this->metatypes = $this->responseCollection(
                     $this->getMetaTypes(), 
                     $responses 
                 );
 
-                $session = new Session( $this->bs->getNamespace() );
+
+                // Sanitize MetaTypes Array (remove not sended types)
+                if (!is_admin())
+                {
+                    foreach ($this->metatypes as $key => $type) 
+                    {
+                        $unset = false;
+
+                        if (!isset($responses[$type['key']]))
+                        {
+                            if  ('captcha' != $type['type']) 
+                            {
+                                $unset = true;
+                            }
+                        }
+
+                        if ($unset)
+                        {
+                            unset($this->metatypes[$key]);
+                        }
+                    }
+                }
+
+                $session = new Session( $this->getNamespace() );
                 $session->responses(
-                    $this->bs->request()->getPostType(), 
+                    $this->request->getPostType(), 
                     $this->responseSession($this->metatypes)
                 );
             }
 
             return $this;
         }
-
 
         public function responseSession(array $types)
         {
@@ -255,16 +260,19 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                 }
                 else
                 {
-                    if (is_array($type['value']))
+                    if (isset($type['value']))
                     {
-                        foreach ($type['value'] as $key => $value) 
+                        if (is_array($type['value']))
                         {
-                            $responses[$type['key']][$key] = $value;
+                            foreach ($type['value'] as $key => $value) 
+                            {
+                                $responses[$type['key']][$key] = $value;
+                            }
                         }
-                    }
-                    else
-                    {
-                        $responses[$type['key']] = $type['value'];
+                        else
+                        {
+                            $responses[$type['key']] = $type['value'];
+                        }
                     }
                 }
             }
@@ -312,10 +320,39 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
                         //     }
                         break;
 
+                    // Define value for Captcha
+                    case 'captcha':
+        
+                        if (isset($type['rules']['type']))
+                        {
+                            if ($type['rules']['type'] == 'recaptcha')
+                            {
+                                if (isset($_REQUEST['g-recaptcha-response']))
+                                {
+                                    $type['value'] = $_REQUEST['g-recaptcha-response'];
+                                }
+                                break;
+                            }
+                        }
+
                     default:
-                        $type['value'] = $responses[$type['key']];
+                        if (is_admin())
+                        {
+                            $type['value'] = $responses[$type['key']];
+                        }
+                        else
+                        {
+                            if (isset($responses[$type['key']]))
+                            {
+                                $type['value'] = $responses[$type['key']];
+                            }
+                        }
                 }
 
+                // echo "<hr>";
+                // echo "<pre>";
+                // print_r( $type );
+                // echo "</pre>";
                 return $type;
             }
         }
@@ -334,6 +371,23 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             }
 
             return $collection;
+        }
+
+        public function sanitizedResponses( array $types )
+        {
+            $responses = [];
+
+            foreach ($types as $type) 
+            {
+                $responses[$type['key']] = $type['value'];
+
+                // array_push($responses, [
+                //     'key' => $type['key'],
+                //     'value' => $type['value'],
+                // ]);
+            }
+
+            return $responses;
         }
 
         /**
@@ -364,11 +418,9 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
          */
         public function validate()
         {
-            // $errors = [];
+            $session = new Session( $this->getNamespace() );
+            $notices = new Notices( $this->getNamespace() );
 
-            $session = new Session( $this->bs->getNamespace() );
-            $notices = new Notices( $this->bs->getNamespace() );
-            
             $this->metatypes = $this->validateCollection($this->getMetaTypes());
 
             // Define errors
@@ -377,11 +429,11 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             // Add message to a notice
             if (!empty($this->errors))
             {
-                $notices->danger($this->bs->request()->getPostType(), "The form has not been saved.");
+                $notices->danger($this->request->getPostType(), "The form has not been saved.");
             }
 
             // Set errors to the session
-            $session->errors($this->bs->request()->getPostType(), $this->errors);
+            $session->errors($this->request->getPostType(), $this->errors);
 
             return empty($this->errors);
         }
@@ -513,6 +565,55 @@ if (!class_exists('Framework\Components\Form\Response\Response'))
             elseif (!empty($type['attr']['maxlength']) && $type['attr']['maxlength'] > 0 && strlen($response) > $type['attr']['maxlength']) 
             {
                 $error = $type['messages']['maxlength'];
+            }
+
+            // Captcha : ReCaptcha
+            elseif ('captcha' == $type['type'] && isset($type['rules']['type']) && 'recaptcha' == $type['rules']['type']) 
+            {
+                // Google API URL
+                $url = "https://www.google.com/recaptcha/api/siteverify";
+
+                // Parameters to provide Google API
+                $secret = null;
+
+                // Retrieve the Secret
+                if (isset($type['rules']['secret']))
+                {
+                    $secret = $type['rules']['secret'];
+                }
+
+                // Array of parameters to provide Google API
+                $params = [
+                    'secret' => $secret,
+                    'response' => $response,
+                ];
+
+                //open connection
+                $ch = curl_init();
+
+                //set the url, number of POST vars, POST data
+                curl_setopt($ch,CURLOPT_URL, $url);
+                curl_setopt($ch,CURLOPT_POST, count($params));
+                curl_setopt($ch,CURLOPT_POSTFIELDS, http_build_query($params));
+
+                // Don't print the cUrl response
+                curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
+
+                //execute post
+                $result = curl_exec($ch);
+
+                //close connection
+                curl_close($ch);
+
+                if (!empty($result))
+                {
+                    $result = json_decode($result);
+
+                    if (!$result->success)
+                    {
+                        $error = $type['messages']['captcha'];
+                    }
+                }
             }
 
             // Define validation parameter

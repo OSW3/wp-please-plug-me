@@ -537,11 +537,12 @@ $config = [
      * Each needs a pair of "Hook Function Name" and "trigger".
      * 
      * 'hooks' => [
-     *      'PPM_Hook_Exemple' => 'wp',
+     *      'Hook_Function' => 'Trigger',
      * ],
      */
     'hooks' => [
         'PPM_Hook_Exemple' => 'wp',
+        'PPM_Exemple_FormSubmit' => 'template_redirect',
     ],
 
     /**
@@ -559,7 +560,7 @@ $config = [
      * ]
      */
     'shortcodes' => [
-        'PPM_Shorcode_Exemple_Function' => 'PPM_Shorcode_Exemple_Code',
+        'PPM_Shortcode_Exemple_Function' => 'PPM_Shortcode_Exemple_Code',
     ],
 
     /**
@@ -1967,7 +1968,8 @@ $config = [
                                  */
                                 'schema' => [
                                     'demo_text',
-                                    'demo_textarea',
+                                    // 'demo_year',
+                                    // 'demo_recaptcha'
                                 ]
 
                             ],

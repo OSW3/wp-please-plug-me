@@ -315,18 +315,18 @@ if (!class_exists('Framework\Register\Metaboxes'))
 
             foreach ($metabox_fields as $field_key) 
             {
-                foreach ($schema as $key => $schema_field) 
+                foreach ($schema as $key => $type) 
                 {
-                    if ($field_key == $schema_field['key'])
+                    if ($field_key == $type['key'])
                     {
-                        $schema_field['post_type'] = $metabox['post_type'];
-                        $schema_field['namespace'] = $this->bs->getNamespace();
+                        $type['post_type'] = $metabox['post_type'];
+                        $type['namespace'] = $this->bs->getNamespace();
                         
-                        $fieldClass = ucfirst(strtolower($schema_field['type']));
-                        $fieldClass = "\\Framework\\Components\\Form\\Types\\".$fieldClass;
+                        $typeClass = ucfirst(strtolower($type['type']));
+                        $typeClass = "\\Framework\\Components\\Form\\Types\\".$typeClass;
                         
-                        $field = new $fieldClass($schema_field, 'metabox');
-                        $content.= $field->render();
+                        $typeInstance = new $typeClass($type, 'metabox');
+                        $content.= $typeInstance->render();
                         
                     }
                 }

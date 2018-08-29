@@ -370,7 +370,6 @@ if (!class_exists('Framework\Kernel\Config'))
          */
         static function getStaticNamespace(array $plugin = [])
         {
-            
             $config = self::getStaticConfig($plugin);
             $namespace = null;
             
@@ -434,10 +433,21 @@ if (!class_exists('Framework\Kernel\Config'))
         /* *** Public *** */
 
         /**
-         * Plugin configuration
-         * 
-         * @param array $plugin
-         * @return $this
+         * Assets
+         */
+        public function setAssets()
+        {
+            $this->assets = $this->getConfig('assets');
+
+            return $this;
+        }
+        public function getAssets()
+        {
+            return $this->assets;
+        }
+
+        /**
+         * Configuration
          */
         private function setConfig(array $plugin = [])
         {
@@ -445,13 +455,6 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Get value of a plugin config
-         * 
-         * @param string|null $key
-         * @return array|null
-         */
         public function getConfig($key = null )
         {
             if (null != $key && isset($this->config[$key])) 
@@ -463,29 +466,23 @@ if (!class_exists('Framework\Kernel\Config'))
         }
 
         /**
-         * Set the plugin absolute root directory 
-         * 
-         * @param string $path
-         * @return string
+         * Set the plugin absolute root directory
          */
         private function setRoot()
         {
             $root = $this->getPlugin('root_dir');
 
-            if (substr($root, strlen($root), 1) != DIRECTORY_SEPARATOR) {
-                $root.= DIRECTORY_SEPARATOR;
+            if (is_string($root))
+            {
+                if (substr($root, strlen($root), 1) != DIRECTORY_SEPARATOR) {
+                    $root.= DIRECTORY_SEPARATOR;
+                }
+    
+                (string) $this->root = $root;
             }
-
-            (string) $this->root = $root;
 
             return $this;
         }
-
-        /**
-         * Get the plugin absolute root directory
-         * 
-         * @return string
-         */
         public function getRoot()
         {
             return $this->root;
@@ -503,12 +500,6 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Get the plugin absolute root directory
-         * 
-         * @return string
-         */
         public function getUri()
         {
             return $this->uri;
@@ -525,12 +516,6 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin Title
-         * 
-         * @return string
-         */
         public function getTitle()
         {
             return $this->title;
@@ -547,12 +532,6 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin Title HTML
-         * 
-         * @return string
-         */
         public function getTitleHTML()
         {
             return $this->titlehtml;
@@ -569,12 +548,6 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin name
-         * 
-         * @return string
-         */
         public function getName()
         {
             return $this->name;
@@ -591,12 +564,6 @@ if (!class_exists('Framework\Kernel\Config'))
             
             return $this;
         }
-
-        /**
-         * Return the plugin namespace
-         * 
-         * @return string
-         */
         public function getNamespace()
         {
             return $this->namespace;
@@ -853,28 +820,6 @@ if (!class_exists('Framework\Kernel\Config'))
         }
 
         /**
-         * Define the plugin Assets
-         * 
-         * @return object instance
-         */
-        public function setAssets()
-        {
-            $this->assets = $this->getConfig('assets');
-
-            return $this;
-        }
-
-        /**
-         * Return the plugin Assets
-         * 
-         * @return string
-         */
-        public function getAssets()
-        {
-            return $this->assets;
-        }
-
-        /**
          * Define the plugin Options (recursive)
          * 
          * @return object instance
@@ -896,12 +841,6 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin Options
-         * 
-         * @return string
-         */
         public function getOptions()
         {
             return $this->options;
@@ -918,21 +857,13 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin Hooks
-         * 
-         * @return string
-         */
         public function getHooks()
         {
             return $this->hooks;
         }
 
         /**
-         * Define the plugin Filters
-         * 
-         * @return object instance
+         * Filters
          */
         public function setFilters()
         {
@@ -940,43 +871,13 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin Filters
-         * 
-         * @return string
-         */
         public function getFilters()
         {
             return $this->filters;
         }
 
         /**
-         * Define the plugin Shortcodes
-         * 
-         * @return object instance
-         */
-        public function setShortcodes()
-        {
-            $this->shortcodes = $this->getConfig('shortcodes');
-
-            return $this;
-        }
-
-        /**
-         * Return the plugin Shortcodes
-         * 
-         * @return string
-         */
-        public function getShortcodes()
-        {
-            return $this->shortcodes;
-        }
-
-        /**
-         * Define the plugin Images
-         * 
-         * @return object instance
+         * Images
          */
         public function setImages()
         {
@@ -984,43 +885,13 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin Images
-         * 
-         * @return string
-         */
         public function getImages()
         {
             return $this->images;
         }
 
         /**
-         * Define the plugin Settings
-         * 
-         * @return object instance
-         */
-        public function setSettings()
-        {
-            $this->settings = $this->getConfig('settings');
-
-            return $this;
-        }
-
-        /**
-         * Return the plugin Settings
-         * 
-         * @return string
-         */
-        public function getSettings()
-        {
-            return $this->settings;
-        }
-
-        /**
-         * Define the plugin Posts
-         * 
-         * @return object instance
+         * Posts
          */
         public function setPosts($schema = null)
         {
@@ -1029,53 +900,43 @@ if (!class_exists('Framework\Kernel\Config'))
                 $this->posts = $this->getConfig('posts');
             }
 
-            // // Retrieve schema declaration and search for Collection
-            // foreach ($this->posts as $post) 
-            // {
-            //     if (is_array($post['schema']))
-            //     {
-            //         foreach ($post['schema'] as $type) 
-            //         {
-            //             if ('collection' == $type['type'])
-            //             {
-
-            //                 echo "<pre>";
-            //                 print_r( $post['type']."__[". $type['key']."]");
-            //                 echo "</pre>";
-            //                 echo "<pre>";
-            //                 print_r($type);
-            //                 echo "</pre>";
-
-            //             }
-            //         }
-            //     }
-            // }
-
-
-            // echo "<pre>";
-            // echo count($this->posts);
-            // echo "</pre>";
-            // // echo "<pre>";
-            // // print_r($this->posts);
-            // // echo "</pre>";
-
             return $this;
         }
-
-        /**
-         * Return the plugin Posts
-         * 
-         * @return string
-         */
         public function getPosts()
         {
             return $this->posts;
         }
 
         /**
-         * Define the plugin Widgets
-         * 
-         * @return object instance
+         * Settings
+         */
+        public function setSettings()
+        {
+            $this->settings = $this->getConfig('settings');
+
+            return $this;
+        }
+        public function getSettings()
+        {
+            return $this->settings;
+        }
+
+        /**
+         * Shortcodes
+         */
+        public function setShortcodes()
+        {
+            $this->shortcodes = $this->getConfig('shortcodes');
+
+            return $this;
+        }
+        public function getShortcodes()
+        {
+            return $this->shortcodes;
+        }
+
+        /**
+         * Widgets
          */
         public function setWidgets()
         {
@@ -1083,12 +944,6 @@ if (!class_exists('Framework\Kernel\Config'))
 
             return $this;
         }
-
-        /**
-         * Return the plugin Widgets
-         * 
-         * @return string
-         */
         public function getWidgets()
         {
             return $this->widgets;

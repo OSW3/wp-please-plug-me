@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Components\Form\Form;
+namespace Framework\Components\Form;
 
 // Make sure we don't expose any info if called directly
 if (!defined('WPINC'))
@@ -13,9 +13,9 @@ if (!defined('WPINC'))
 use \Framework\Kernel\Config;
 use \Framework\Kernel\Session;
 
-if (!class_exists('Framework\Components\Form\Form\Form'))
+if (!class_exists('Framework\Components\Form\Types'))
 {
-    abstract class Form
+    abstract class Types
     {
         /**
          * Field Accept
@@ -225,6 +225,8 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             // Build the field
             $this->builder();
+
+            do_action('admin_head');
         }
 
         /**
@@ -258,7 +260,9 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
                     break;
                 
                 default:
+                    $output.= $this->tagLabel();
                     $output.= $this->tagTemplate();
+                    $output.= $this->tagHelper();
                     break;
             }
 
@@ -421,7 +425,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getAttr(string $key = '')
+        protected function getAttr(string $key = '')
         {
             if (isset( $this->attrs[$key] )) 
             {
@@ -448,7 +452,7 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
 
             return $this;
         }
-        private function getRule(string $key = '')
+        protected function getRule(string $key = '')
         {
             if (isset( $this->rules[$key] )) 
             {
@@ -709,10 +713,6 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
             $session = new Session($this->getConfig('namespace'));
             foreach ($session->errors($this->getConfig('post_type')) as $error) 
             {
-
-            // echo "<pre>";
-            // print_r($error);
-            // echo "</pre>";
 
                 if (isset($error['key']) && $error['key'] == $this->getConfig('key')) 
                 {
@@ -1225,6 +1225,19 @@ if (!class_exists('Framework\Components\Form\Form\Form'))
          */
         protected function setValue($value = null, $post_id = null)
         {
+            // Retrieve value from session (after submission)
+            if (null === $value)
+            {
+                $session = new Session($this->getConfig('namespace'));
+                foreach ($session->responses($this->getConfig('post_type')) as $key => $response) 
+                {
+                    if ($key == $this->getConfig('key')) 
+                    {
+                        $value = $response;
+                    }
+                }
+            }            
+
             // Retrieve response in database
             if (null === $value && !empty(get_post()))
             {

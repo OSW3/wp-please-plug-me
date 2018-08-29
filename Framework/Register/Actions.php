@@ -32,6 +32,11 @@ if (!class_exists('Framework\Register\Actions'))
         private $actions = array();
 
         /**
+         * List of types
+         */
+        protected $types = array();
+
+        /**
          * 
          */
         public function __construct($bs)
@@ -42,12 +47,15 @@ if (!class_exists('Framework\Register\Actions'))
             // Define the type of the action
             $this->setType();
 
+            // Set custom Posts to $this->posts register
+            // $this->setPosts();
+
             // Add Hooks to WP Register
             $this->WP_Actions();
         }
         
         /**
-         * 
+         * Action Type
          */
         private function setType()
         {
@@ -58,10 +66,6 @@ if (!class_exists('Framework\Register\Actions'))
             
             return $this;
         }
-
-        /**
-         * 
-         */
         private function getType(Type $var = null)
         {
             return $this->type;
@@ -120,8 +124,6 @@ if (!class_exists('Framework\Register\Actions'))
                 // Add Action to the register
                 if (function_exists($action['function'])) {
                     
-                    // TODO: add the last parameter $accepted_args to add_action
-
                     switch ($this->type) 
                     {
                         case 'filters':
@@ -131,19 +133,21 @@ if (!class_exists('Framework\Register\Actions'))
                                 $action['priority']
                             );
                             break;
-
+                        
                         case 'hooks':
                             add_action(
                                 $action['trigger'], 
                                 $action['function'], 
                                 $action['priority']
+                                // TODO: add the last parameter $accepted_args to add_action
                             );
                             break;
 
                         case 'shortcodes':
-                        add_shortcode(
+                            add_shortcode(
                                 $action['trigger'], 
-                                $action['function']                             );
+                                $action['function']
+                            );
                             break;
                     }
                 }

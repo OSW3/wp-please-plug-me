@@ -1,0 +1,23 @@
+PPM Please Plug Me - ReadMe
+
+1. How to create a Plugin with PPM
+
+------
+
+1. How to create a Plugin with PPM
+
+- Download the last version of PPM Package at https://github.com/OSW3/wp-please-plug-me
+- Unarchive the package and place the entiere directory "wp-please-plug-me" in 
+  your wp-content/ directory.
+- Rename the directory "wp-please-plug-me" by the name of your plugin and open 
+  this directory.
+- Open the file "/ppm.php" and change parameters:
+  * Plugin Name: Please Plug Me
+  * Version:     0.0.1
+  * Plugin URI:  http://osw3.net/wordpress/plugins/please-plug-me/
+  * Description: A WordPress plugin boilerplate.
+  * Author:      OSW3
+  * Author URI:  http://osw3.net/
+  * Text Domain: wordpress-ppm
+  * Domain Path: /Plugin/Languages/
+  * License:     MIT

@@ -10,12 +10,12 @@ if (!defined('WPINC'))
 	exit;
 }
 
-use \Framework\Components\Form\Form\Form;
+use \Framework\Components\Form\Types;
 use \Framework\Kernel\Request;
 
 if (!class_exists('Framework\Components\Form\Types\Collection'))
 {
-    class Collection extends Form 
+    class Collection extends Types 
     {
         /**
          * List of collection items (on load)
@@ -105,6 +105,11 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
                         array_push($items, $item);
                     }
                 }
+
+                if (empty($items))
+                {
+                    array_push($items, $this->addItem());
+                }
             }
 
 
@@ -114,13 +119,14 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
             {
                 for ($i=0; $i< $this->getLoop(); $i++)
                 {
-                    $item               = array();
-                    $item['_PARENT']    = get_the_ID();
-                    // $item['_PARENT']    = null;
-                    $item['_VPOST']     = $this->getConfig('_VPOST');
-                    $item['_VPOST_ID']  = null;
+                    array_push($items, $this->addItem());
+                    // $item               = array();
+                    // $item['_PARENT']    = get_the_ID();
+                    // // $item['_PARENT']    = null;
+                    // $item['_VPOST']     = $this->getConfig('_VPOST');
+                    // $item['_VPOST_ID']  = null;
 
-                    array_push($items, $item);
+                    // array_push($items, $item);
                 }
             }
 
@@ -132,6 +138,18 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
         private function getItems()
         {
             return $this->items;
+        }
+
+        // Add an empty itme
+        private function addItem(Type $var = null)
+        {
+            $item               = array();
+            $item['_PARENT']    = get_the_ID();
+            // $item['_PARENT']    = null;
+            $item['_VPOST']     = $this->getConfig('_VPOST');
+            $item['_VPOST_ID']  = null;
+
+            return $item;
         }
 
         /**
@@ -257,7 +275,7 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
                 $type_class = "\\Framework\\Components\\Form\Types\\".$type_class;
                 $type = new $type_class($schema, 'collection');
                 $type->setName($type_name);
-                
+
                 switch ($schema['key'])
                 {
                     case '_VPOST':
@@ -270,6 +288,11 @@ if (!class_exists('Framework\Components\Form\Types\Collection'))
 
                     case '_VPOST_ID':
                     default:
+
+                // echo "<pre>";
+                // var_dump( $item );
+                // echo "</pre>";
+
                         if (empty($item))
                         {
                             $type->setValue(''); 

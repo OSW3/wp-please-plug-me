@@ -15,7 +15,7 @@ if (!defined('WPINC'))
 use \Framework\Components\Strings;
 use \Framework\Components\FileSystem as FS;
 use \Framework\Components\Notices;
-use \Framework\Components\Form\Response\Response;
+use \Framework\Components\Form\Response;
 use \Framework\Components\Form\Types\Password;
 use \Framework\Kernel\Session;
 use \Framework\Register\Taxonomy;
@@ -34,8 +34,8 @@ if (!class_exists('Framework\Register\Posts'))
          */
         const TYPES = ['checkbox','choices','collection','color','date',
             'datetime','email','file','hidden','month','number','option',
-            'output','password','radio','range','search','tel','text','textarea',
-            'time','url','week','wysiwyg','year'];
+            'output','password','radio','range','captcha','search','tel',
+            'text','textarea','time','url','week','wysiwyg','year'];
 
         /**
          * List of custom post parameters we want to internationalize
@@ -205,6 +205,9 @@ if (!class_exists('Framework\Register\Posts'))
                 // Add the custom post to the register
                 register_post_type( $post['type'], $post );
 
+                // Create shortcodes
+                $this->setShortcodes($post);
+
                 if ($this->bs->request()->getPostType() == $post['type'])
                 {
                     // -- Posts list
@@ -219,6 +222,7 @@ if (!class_exists('Framework\Register\Posts'))
                     // Menu action on Admin index rows
                     add_filter('post_row_actions', function($actions) use ($post) { return $this->post_row_actions($actions, $post); }, 10, 1);
     
+
                     // -- Posts Edit
 
                     // Post submission
@@ -232,7 +236,8 @@ if (!class_exists('Framework\Register\Posts'))
                     add_action('wp_footer', [$this, "clear_post_session"], 10);
                     add_action('admin_footer', [$this, "clear_post_session"], 10);
 
-                    // --
+
+                    // -- Misc Options
 
                     add_filter('screen_options_show_screen', function() use ($post) { return $this->screen_options_show_screen($post); });
                 }
@@ -265,8 +270,20 @@ if (!class_exists('Framework\Register\Posts'))
 
             return $this;
         }
-        public function getPosts()
+        public function getPosts( $posttype = null )
         {
+            if (null != $posttype)
+            {
+                foreach ($this->posts as $post) 
+                {
+                    if ($post['type'] == $posttype)
+                    {
+                        $this->posts = $post;
+                        continue;
+                    }
+                }
+            }
+
             return $this->posts;
         }
 
@@ -350,7 +367,6 @@ if (!class_exists('Framework\Register\Posts'))
          */
         private function setTypes()
         {
-
             // Retrieve each Posts
             foreach ($this->posts as $post) 
             {
@@ -533,6 +549,7 @@ if (!class_exists('Framework\Register\Posts'))
             $type['messages']['maxlength']  = isset($type['messages']['maxlength'])     ? $type['messages']['maxlength']    : "This value is too long.";
             $type['messages']['size']       = isset($type['messages']['size'])          ? $type['messages']['size']         : "This file size is not valid.";
             $type['messages']['file_types'] = isset($type['messages']['file_types'])    ? $type['messages']['file_types']   : "This file is not valid.";
+            $type['messages']['captcha']    = isset($type['messages']['captcha'])       ? $type['messages']['captcha']      : "This captcha is not valid.";
 
             // Default algo for password
             if ('password' == $type['type']) 
@@ -710,431 +727,6 @@ if (!class_exists('Framework\Register\Posts'))
          */
 
         /**
-         * Define the label of the post
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setLabel(array $post)
-        {
-            // Init "label"
-            $post['label'] = null;
-
-            // Define the label
-            if (isset($post['name'])) 
-            {
-                $post['label'] = $post['name'];
-                unset($post['name']);
-            }
-            
-            return $post;
-        }
-
-        /**
-         * Define labels of the post
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setLabels(array $post)
-        {
-            $post['labels'] = array();
-
-            $post['labels'] = ['name' => $post['label']];
-
-            if (isset($post['ui']['labels'])) 
-            {
-                $post['labels'] = array_merge(
-                    $post['labels'], 
-                    $this->bs->i18n(self::LABELS_UI, $post['ui']['labels'])
-                );
-
-                unset($post['ui']['labels']);
-            }
-
-            return $post;
-        }
-
-        /**
-         * Define the description of the post
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setDescription(array $post)
-        {
-            $post['description'] = isset($post['description']) ? $post['description'] : null;
-
-            return $post;
-        }
-
-        /**
-         * Define if the post is a Public post
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setPublic(array $post)
-        {
-            if (!isset($post['public']) || !is_bool($post['public']))
-            {
-                $post['public'] = true;
-            }
-
-            return $post;
-        }
-
-        /**
-         * Whether the post type is hierarchical (e.g. page). 
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setHierarchical(array $post)
-        {
-            if (!isset($post['hierarchical']) || !is_bool($post['hierarchical']))
-            {
-                $post['hierarchical'] = false;
-            }
-
-            return $post;
-        }
-
-        /**
-         * Whether to exclude posts with this post type from front end search 
-         * results. Default is the opposite value of $post['public'].
-         * 
-         * @param array $query
-         * @param array $post
-         * @return array $post
-         */
-        private function setExcludeFromSearch(array $query, array $post)
-        {
-            $post['exclude_from_search'] = !$post['public'];
-
-            if (isset($query['exclude_from_search']) && is_bool($query['exclude_from_search']))
-            {
-                $post['exclude_from_search'] = $query['exclude_from_search'];
-            }
-
-            return $post;
-        }
-
-        /**
-         * Whether queries can be performed on the front end for the post type 
-         * as part of parse_request().
-         * 
-         * @param array $query
-         * @param array $post
-         * @return array $post
-         */
-        private function setPubliclyQueryable(array $query, array $post)
-        {
-            $post['publicly_queryable'] = $post['public'];
-
-            if (isset($query['public']) && is_bool($query['public']))
-            {
-                $post['publicly_queryable'] = $query['public'];
-            }
-
-            return $post;
-        }
-
-        /**
-         * Define the slug of custom post
-         * 
-         * @param array $rewrite
-         * @param array $post
-         * @return array $rewrite
-         */
-        private function setSlug(array $rewrite, array $post)
-        {
-            if (!isset($rewrite['slug']) || empty(trim($rewrite['slug'])))
-            {
-                $rewrite['slug'] = $post['type'];
-            }
-
-            switch ($rewrite['slug']) 
-            {
-                case '@type':
-                    $rewrite['slug'] = $post['type'];
-                    break;
-                
-                case '@name':
-                    $rewrite['slug'] = Strings::slugify($post['label'], '_');
-                    break;
-                
-                default:
-                    $rewrite['slug'] = Strings::slugify($post['slug'], '_');
-                    break;
-            }
-
-            return $rewrite;
-        }
-
-        /**
-         * Define Whether to generate and allow a UI for managing this post 
-         * type in the admin. 
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setShowUI(array $post)
-        {
-            $post['show_ui'] = $post['public'];
-
-            if (isset($post['ui']['show_ui']))
-            {
-                if (is_bool($post['ui']['show_ui']))
-                {
-                    $post['show_ui'] = $post['ui']['show_ui'];
-                }
-                unset($post['ui']['show_ui']);
-            }
-
-            return $post;
-        }
-
-        /**
-         * Where to show the post type in the admin menu
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setShowInMenu(array $post)
-        {
-            $post['show_in_menu'] = $post['show_ui'];
-
-            if (isset($post['ui']['menus']['main']['display']))
-            {
-                if (is_bool($post['ui']['menus']['main']['display']))
-                {
-                    $post['show_in_menu'] = $post['ui']['menus']['main']['display'];
-                }
-                unset($post['ui']['menus']['main']['display']);
-            }
-
-            return $post;
-        }
-
-        /**
-         * Define Makes this post type available for selection in navigation menus
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setShowInNavMenus(array $post)
-        {
-            // WP Default value
-            // $post['show_in_nav_menus'] = $post['public'];
-
-            // PPM Default Value
-            $post['show_in_nav_menus'] = false;
-
-            if (isset($post['ui']['pages']['menus']['display']))
-            {
-                if (is_bool($post['ui']['pages']['menus']['display'])) 
-                {
-                    $post['show_in_nav_menus'] = $post['ui']['pages']['menus']['display'];
-                }
-                unset($post['ui']['pages']['menus']['display']);
-            }
-
-            return $post;
-        }
-
-        /**
-         * Makes this post type available via the admin bar
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setShowInMenuBar(array $post)
-        {
-            $post['show_in_admin_bar'] = $post['show_in_menu'];
-
-            if (isset($post['ui']['menus']['top']['display']))
-            {
-                if (is_bool($post['ui']['menus']['top']['display']))
-                {
-                    $post['show_in_admin_bar'] = $post['ui']['menus']['top']['display'];
-                }
-                unset($post['ui']['menus']['top']['display']);
-            }
-
-
-
-            if (!isset($post['show_in_admin_bar']) || !is_bool($post['show_in_admin_bar']))
-            {
-                $post['show_in_admin_bar'] = $post['show_in_menu'];
-            }
-
-            return $post;
-        }
-
-        /**
-         * The position in the menu order the post type should appear
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setMenuPosition(array $post)
-        {
-            $post['menu_position'] = null;
-
-            if (isset($post['ui']['menus']['main']['position']))
-            {
-                if (is_int($post['ui']['menus']['main']['position']))
-                {
-                    $post['menu_position'] = $post['ui']['menus']['main']['position'];
-                }
-                unset($post['ui']['menus']['main']['position']);
-            }
-
-            return $post;
-        }
-
-        /**
-         * The icon of the menu
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setMenuIcon(array $post)
-        {
-            $post['menu_icon'] = 'none';
-
-            if (isset($post['ui']['menus']['main']['icon']) && is_string($post['ui']['menus']['main']['icon']))
-            {
-                if (preg_match("/^@/", $post['ui']['menus']['main']['icon']))
-                {
-                    $file = preg_replace("/^@/", null, $post['ui']['menus']['main']['icon']);
-                    $file_path = $this->bs->getRoot().FS::DIRECTORY_IMAGES.$file;
-                    $file_uri = $this->bs->getUri().FS::DIRECTORY_IMAGES.$file;
-                    
-                    if (file_exists($file_path))
-                    {
-                        $post['menu_icon'] = $file_uri;
-                    }
-                }
-                unset($post['ui']['menus']['main']['icon']);
-            }
-
-            return $post;
-        }
-
-        /**
-         * Whether there should be post type archives, or if a string, 
-         * the archive slug to use. Will generate the proper rewrite rules if 
-         * $rewrite is enabled.
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setHasArchive(array $post)
-        {
-            if (!isset($post['has_archive']) || (!is_bool($post['has_archive']) && !is_string($post['has_archive'])))
-            {
-                $post['has_archive'] = $post['public'];
-            }
-
-            return $post;
-        }
-
-        /**
-         * Whether the feed permastruct should be built for this post type
-         * 
-         * @param array $rewrite
-         * @param array $post
-         * @return array $rewrite
-         */
-        private function setFeeds(array $rewrite, array $post)
-        {
-            if (!isset($rewrite['feeds']) || !is_bool($rewrite['feeds']))
-            {
-                $rewrite['feeds'] = ($post['has_archive'] ? true : false);
-            }
-
-            return $rewrite;
-        }
-
-        /**
-         * Define REST parameters
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setREST(array $post)
-        {
-            // TODO: Include Rest Controller
-            
-            $post['show_in_rest'] = false;
-            $post['rest_base'] = $post['type'];
-            $post['rest_controller_class'] = false;
-
-            if (isset($post['rest']))
-            {
-                if (isset($post['rest']['base']) && is_string($post['rest']['base']))
-                {
-                    $post['rest_base'] = $post['rest']['base'];
-                }
-
-                if (isset($post['rest']['controller']) && is_string($post['rest']['controller']))
-                {
-                    $post['rest_controller_class'] = $post['rest']['controller'];
-                    $post['show_in_rest'] = true;
-                }
-                unset($post['rest']);
-            }
-
-            return $post;
-        }
-
-        /**
-         * Define if structure has a pagination
-         * 
-         * @param array $rewrite
-         * @return array $rewrite
-         */
-        private function setPages(array $rewrite)
-        {
-            $rewrite['pages'] = false;
-
-            if (isset($rewrite['paged']))
-            {
-                if (is_bool($rewrite['paged']))
-                {
-                    $rewrite['pages'] = $rewrite['paged'];
-                }
-                unset($rewrite['paged']);
-            }
-
-            return $rewrite;
-        }
-
-        /**
-         * Define if structure has a pagination
-         * 
-         * @param array $rewrite
-         * @return array $rewrite
-         */
-        private function setWithFront(array $rewrite)
-        {
-            $rewrite['with_front'] = false;
-
-            if (isset($rewrite['prefixed']))
-            {
-                if (is_bool($rewrite['prefixed']))
-                {
-                    $rewrite['with_front'] = $rewrite['prefixed'];
-                }
-                unset($rewrite['prefixed']);
-            }
-
-            return $rewrite;
-        }
-
-        /**
          * Define if is exportable
          * 
          * @param array $post
@@ -1157,157 +749,31 @@ if (!class_exists('Framework\Register\Posts'))
         }
 
         /**
-         * Define the endpoint mask
+         * Define Capabilities
          * 
-         * @param array $rewrite
-         * @return array $rewrite
-         */
-        private function setEndPointMask(array $rewrite)
-        {
-            $rewrite['ep_mask'] = "EP_PERMALINK";
-
-            if (isset($rewrite['endpoint']))
-            {
-                if (is_string($rewrite['endpoint']) && in_array($rewrite['endpoint'], self::ENDPOINT_MASK))
-                {
-                    $rewrite['ep_mask'] = $rewrite['endpoint'];
-                }
-                unset($rewrite['endpoint']);
-            }
-
-            return $rewrite;
-        }
-
-        /**
-         * Define query var
-         * 
-         * @param array $query
+         * @param array $capability
          * @param array $post
          * @return array $post
          */
-        private function setQueryVar(array $query, array $post)
+        private function setCapabilities(array $capability, array $post)
         {
-            $post['query_var'] = $post['type'];
-
-            if (isset($query['var']) && (is_bool($query['var']) || is_string($query['var'])))
+            // Default capabilities
+            if (!isset($capability['capablilities']))
             {
-                $post['query_var'] = $query['var'];
+                $type = $post['capability_type'];
+
+                $post['capablilities'] = [
+                    'edit_post' => 'edit_'.$type,
+                    'read_post' => 'read_'.$type,
+                    'delete_post' => 'delete_'.$type,
+                    'edit_posts' => 'edit_'.$type.'s',
+                    'edit_others_posts' => 'edit_others_'.$type.'s',
+                    'publish_posts' => 'publish_'.$type.'s',
+                    'read_private_posts' => 'read_private_'.$type.'s',
+                ];
             }
 
-            return $post;
-        }
-
-        /**
-         * Define rewrite rules
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setRewrite(array $post)
-        {
-            // Rewrite default value
-            if (!isset($post['rewrite']) || (!is_bool($post['rewrite']) && !is_array($post['rewrite'])))
-            {
-                $post['rewrite'] = true;
-            }
-
-            // Is an array
-            if (is_array($post['rewrite']))
-            {
-                $rewrite = $post['rewrite'];
-
-                // Define the Slug
-                $rewrite = $this->setSlug($rewrite, $post);
-
-                // Define if prefixed (with_front)
-                $rewrite = $this->setWithFront($rewrite);
-
-                // Define if has feed
-                $rewrite = $this->setFeeds($rewrite, $post);
-
-                // Define if has pagination
-                $rewrite = $this->setPages($rewrite);
-
-                // Define EndPoint Mask
-                $rewrite = $this->setEndPointMask($rewrite);
-
-                $post['rewrite'] = $rewrite;
-            }
-
-            return $post;
-        }
-
-        /**
-         * Define Query rules
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setQuery(array $post)
-        {
-            // Default query rules
-            if (!isset($post['query']) || (!is_bool($post['query']) && !is_array($post['query'])))
-            {
-                $post['exclude_from_search'] = !$post['public'];
-                $post['publicly_queryable'] = $post['public'];
-                $post['query_var'] = $post['type'];
-                $post['delete_with_user'] = null;
-            }
-
-            if (isset($post['query']) && is_array($post['query']))
-            {
-                $query = $post['query'];
-
-                // Define Query_var
-                $post = $this->setQueryVar($query, $post);
-
-                // Is Exclude from search
-                $post = $this->setExcludeFromSearch($query, $post);
-    
-                // Is publicly Queryable
-                $post = $this->setPubliclyQueryable($query, $post);
-
-                // Delete with user
-                $post = $this->setDeleteWithUser($query, $post);
-
-            }
-
-            return $post;
-        }
-
-        /**
-         * Define if delete custom posts with user
-         * 
-         * @param array $query
-         * @param array $post
-         * @return array $post
-         */
-        private function setDeleteWithUser(array $query, array $post)
-        {
-            $post['delete_with_user'] = null;
-
-            if (isset($query['delete_with_user']) && is_bool($query['delete_with_user']))
-            {
-                $post['delete_with_user'] = $query['delete_with_user'];
-            }
-
-            return $post;
-        }
-
-        /**
-         * Define _edit_link
-         * 
-         * @param array $post
-         * @return array $post
-         */
-        private function setEditLink(array $post)
-        {
-            $post['_edit_link'] = 'post.php?post=%d';
-
-            if (isset($post['ui']['pages']['edit']['link']) && is_string($post['ui']['pages']['edit']['link']))
-            {
-                $post['_edit_link'] = $post['ui']['pages']['edit']['link'];
-            }
+            // TODO: Custom Capabilities
 
             return $post;
         }
@@ -1372,33 +838,707 @@ if (!class_exists('Framework\Register\Posts'))
         }
 
         /**
-         * Define Capabilities
+         * Define if delete custom posts with user
          * 
-         * @param array $capability
+         * @param array $query
          * @param array $post
          * @return array $post
          */
-        private function setCapabilities(array $capability, array $post)
+        private function setDeleteWithUser(array $query, array $post)
         {
-            // Default capabilities
-            if (!isset($capability['capablilities']))
-            {
-                $type = $post['capability_type'];
+            $post['delete_with_user'] = null;
 
-                $post['capablilities'] = [
-                    'edit_post' => 'edit_'.$type,
-                    'read_post' => 'read_'.$type,
-                    'delete_post' => 'delete_'.$type,
-                    'edit_posts' => 'edit_'.$type.'s',
-                    'edit_others_posts' => 'edit_others_'.$type.'s',
-                    'publish_posts' => 'publish_'.$type.'s',
-                    'read_private_posts' => 'read_private_'.$type.'s',
-                ];
+            if (isset($query['delete_with_user']) && is_bool($query['delete_with_user']))
+            {
+                $post['delete_with_user'] = $query['delete_with_user'];
             }
 
-            // TODO: Custom Capabilities
+            return $post;
+        }
+
+        /**
+         * Define the description of the post
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setDescription(array $post)
+        {
+            $post['description'] = isset($post['description']) ? $post['description'] : null;
 
             return $post;
+        }
+
+        /**
+         * Define _edit_link
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setEditLink(array $post)
+        {
+            $post['_edit_link'] = 'post.php?post=%d';
+
+            if (isset($post['ui']['pages']['edit']['link']) && is_string($post['ui']['pages']['edit']['link']))
+            {
+                $post['_edit_link'] = $post['ui']['pages']['edit']['link'];
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define the endpoint mask
+         * 
+         * @param array $rewrite
+         * @return array $rewrite
+         */
+        private function setEndPointMask(array $rewrite)
+        {
+            $rewrite['ep_mask'] = "EP_PERMALINK";
+
+            if (isset($rewrite['endpoint']))
+            {
+                if (is_string($rewrite['endpoint']) && in_array($rewrite['endpoint'], self::ENDPOINT_MASK))
+                {
+                    $rewrite['ep_mask'] = $rewrite['endpoint'];
+                }
+                unset($rewrite['endpoint']);
+            }
+
+            return $rewrite;
+        }
+
+        /**
+         * Whether to exclude posts with this post type from front end search 
+         * results. Default is the opposite value of $post['public'].
+         * 
+         * @param array $query
+         * @param array $post
+         * @return array $post
+         */
+        private function setExcludeFromSearch(array $query, array $post)
+        {
+            $post['exclude_from_search'] = !$post['public'];
+
+            if (isset($query['exclude_from_search']) && is_bool($query['exclude_from_search']))
+            {
+                $post['exclude_from_search'] = $query['exclude_from_search'];
+            }
+
+            return $post;
+        }
+
+        /**
+         * Whether the feed permastruct should be built for this post type
+         * 
+         * @param array $rewrite
+         * @param array $post
+         * @return array $rewrite
+         */
+        private function setFeeds(array $rewrite, array $post)
+        {
+            if (!isset($rewrite['feeds']) || !is_bool($rewrite['feeds']))
+            {
+                $rewrite['feeds'] = ($post['has_archive'] ? true : false);
+            }
+
+            return $rewrite;
+        }
+
+        /**
+         * Whether there should be post type archives, or if a string, 
+         * the archive slug to use. Will generate the proper rewrite rules if 
+         * $rewrite is enabled.
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setHasArchive(array $post)
+        {
+            if (!isset($post['has_archive']) || (!is_bool($post['has_archive']) && !is_string($post['has_archive'])))
+            {
+                $post['has_archive'] = $post['public'];
+            }
+
+            return $post;
+        }
+
+        /**
+         * Whether the post type is hierarchical (e.g. page). 
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setHierarchical(array $post)
+        {
+            if (!isset($post['hierarchical']) || !is_bool($post['hierarchical']))
+            {
+                $post['hierarchical'] = false;
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define the label of the post
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setLabel(array $post)
+        {
+            // Init "label"
+            $post['label'] = null;
+
+            // Define the label
+            if (isset($post['name'])) 
+            {
+                $post['label'] = $post['name'];
+                unset($post['name']);
+            }
+            
+            return $post;
+        }
+
+        /**
+         * Define labels of the post
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setLabels(array $post)
+        {
+            $post['labels'] = array();
+
+            $post['labels'] = ['name' => $post['label']];
+
+            if (isset($post['ui']['labels'])) 
+            {
+                $post['labels'] = array_merge(
+                    $post['labels'], 
+                    $this->bs->i18n(self::LABELS_UI, $post['ui']['labels'])
+                );
+
+                unset($post['ui']['labels']);
+            }
+
+            return $post;
+        }
+
+        /**
+         * The icon of the menu
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setMenuIcon(array $post)
+        {
+            $post['menu_icon'] = 'none';
+
+            if (isset($post['ui']['menus']['main']['icon']) && is_string($post['ui']['menus']['main']['icon']))
+            {
+                if (preg_match("/^@/", $post['ui']['menus']['main']['icon']))
+                {
+                    $file = preg_replace("/^@/", null, $post['ui']['menus']['main']['icon']);
+                    $file_path = $this->bs->getRoot().FS::DIRECTORY_IMAGES.$file;
+                    $file_uri = $this->bs->getUri().FS::DIRECTORY_IMAGES.$file;
+                    
+                    if (file_exists($file_path))
+                    {
+                        $post['menu_icon'] = $file_uri;
+                    }
+                }
+                unset($post['ui']['menus']['main']['icon']);
+            }
+
+            return $post;
+        }
+
+        /**
+         * The position in the menu order the post type should appear
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setMenuPosition(array $post)
+        {
+            $post['menu_position'] = null;
+
+            if (isset($post['ui']['menus']['main']['position']))
+            {
+                if (is_int($post['ui']['menus']['main']['position']))
+                {
+                    $post['menu_position'] = $post['ui']['menus']['main']['position'];
+                }
+                unset($post['ui']['menus']['main']['position']);
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define if structure has a pagination
+         * 
+         * @param array $rewrite
+         * @return array $rewrite
+         */
+        private function setPages(array $rewrite)
+        {
+            $rewrite['pages'] = false;
+
+            if (isset($rewrite['paged']))
+            {
+                if (is_bool($rewrite['paged']))
+                {
+                    $rewrite['pages'] = $rewrite['paged'];
+                }
+                unset($rewrite['paged']);
+            }
+
+            return $rewrite;
+        }
+
+        /**
+         * Define if the post is a Public post
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setPublic(array $post)
+        {
+            if (!isset($post['public']) || !is_bool($post['public']))
+            {
+                $post['public'] = true;
+            }
+
+            return $post;
+        }
+
+        /**
+         * Whether queries can be performed on the front end for the post type 
+         * as part of parse_request().
+         * 
+         * @param array $query
+         * @param array $post
+         * @return array $post
+         */
+        private function setPubliclyQueryable(array $query, array $post)
+        {
+            $post['publicly_queryable'] = $post['public'];
+
+            if (isset($query['public']) && is_bool($query['public']))
+            {
+                $post['publicly_queryable'] = $query['public'];
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define Query rules
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setQuery(array $post)
+        {
+            // Default query rules
+            if (!isset($post['query']) || (!is_bool($post['query']) && !is_array($post['query'])))
+            {
+                $post['exclude_from_search'] = !$post['public'];
+                $post['publicly_queryable'] = $post['public'];
+                $post['query_var'] = $post['type'];
+                $post['delete_with_user'] = null;
+            }
+
+            if (isset($post['query']) && is_array($post['query']))
+            {
+                $query = $post['query'];
+
+                // Define Query_var
+                $post = $this->setQueryVar($query, $post);
+
+                // Is Exclude from search
+                $post = $this->setExcludeFromSearch($query, $post);
+    
+                // Is publicly Queryable
+                $post = $this->setPubliclyQueryable($query, $post);
+
+                // Delete with user
+                $post = $this->setDeleteWithUser($query, $post);
+
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define query var
+         * 
+         * @param array $query
+         * @param array $post
+         * @return array $post
+         */
+        private function setQueryVar(array $query, array $post)
+        {
+            $post['query_var'] = $post['type'];
+
+            if (isset($query['var']) && (is_bool($query['var']) || is_string($query['var'])))
+            {
+                $post['query_var'] = $query['var'];
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define REST parameters
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setREST(array $post)
+        {
+            // TODO: Include Rest Controller
+            
+            $post['show_in_rest'] = false;
+            $post['rest_base'] = $post['type'];
+            $post['rest_controller_class'] = false;
+
+            if (isset($post['rest']))
+            {
+                if (isset($post['rest']['base']) && is_string($post['rest']['base']))
+                {
+                    $post['rest_base'] = $post['rest']['base'];
+                }
+
+                if (isset($post['rest']['controller']) && is_string($post['rest']['controller']))
+                {
+                    $post['rest_controller_class'] = $post['rest']['controller'];
+                    $post['show_in_rest'] = true;
+                }
+                unset($post['rest']);
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define rewrite rules
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setRewrite(array $post)
+        {
+            // Rewrite default value
+            if (!isset($post['rewrite']) || (!is_bool($post['rewrite']) && !is_array($post['rewrite'])))
+            {
+                $post['rewrite'] = true;
+            }
+
+            // Is an array
+            if (is_array($post['rewrite']))
+            {
+                $rewrite = $post['rewrite'];
+
+                // Define the Slug
+                $rewrite = $this->setSlug($rewrite, $post);
+
+                // Define if prefixed (with_front)
+                $rewrite = $this->setWithFront($rewrite);
+
+                // Define if has feed
+                $rewrite = $this->setFeeds($rewrite, $post);
+
+                // Define if has pagination
+                $rewrite = $this->setPages($rewrite);
+
+                // Define EndPoint Mask
+                $rewrite = $this->setEndPointMask($rewrite);
+
+                $post['rewrite'] = $rewrite;
+            }
+
+            return $post;
+        }
+
+        /**
+         * Create the shortcode of the Type
+         */
+        private function setShortcodes(array $post)
+        {
+            $types = array();
+            
+            if (isset($post['schema']))
+            {
+                $types = $post['schema'];
+            }
+
+            // Shortcode for _wp_nonce for posttype
+            array_push($types,[
+                'key' => '_nonce',
+                'shortcode' => true
+            ]);
+
+            // Shortcode for Post Config
+            $name = implode(':', [
+                $this->bs->getNamespace(),
+                '_posts',
+            ]);
+            add_shortcode($name, function(){
+                return json_encode($this->getPosts());
+            });
+
+            // Shortcodes for declared Types
+            foreach ($types as $type) 
+            {
+                if (isset($type['shortcode']) && is_bool($type['shortcode']) && $type['shortcode'])
+                {
+                    // Shortcode Name
+                    $name = implode(':', [
+                        $this->bs->getNamespace(),
+                        $post['type'],
+                        $type['key'],
+                    ]);
+
+                    add_shortcode($name, [$this, 'shortcodeCallback']);
+                }
+            }
+        }
+        public function shortcodeCallback($attrs, $content = "", $tag)
+        {
+            // ReDefine each element of Shortcode Tag Name
+            list($namespace, $posttype, $key) = explode(":", $tag);
+            
+            // WP Nonce
+            if ('_nonce' === $key)
+            {
+                wp_nonce_field($posttype, $posttype.'[nonce]');
+                echo '<input type="hidden" name="post_type" value="'.$posttype.'">';
+            }
+
+            // Custom post fields
+            else
+            {
+                // Retrieve the Type Setiings
+                $types = $this->getTypes();
+                $type = null;
+    
+                if (isset($types[$posttype][$key]))
+                {
+                    $type = $types[$posttype][$key];
+                }
+    
+                if (null != $type)
+                {
+                    // Rebuild $attrs 
+                    if (is_array($attrs))
+                    {
+                        foreach ($attrs as $key => $value) 
+                        {
+                            switch ($key) 
+                            {
+                                case 'default':
+                                case 'label':
+                                case 'helper':
+                                case 'preview':
+                                case 'expanded':
+                                    $type[$key] = $value;
+                                    break;
+            
+                                case 'id':
+                                case 'required':
+                                case 'readonly':
+                                case 'disabled':
+                                case 'class':
+                                case 'placeholder':
+                                case 'maxlength':
+                                case 'step':
+                                case 'max':
+                                case 'min':
+                                case 'width':
+                                case 'cols':
+                                case 'rows':
+                                case 'multiple':
+                                    $type['attr'][$key] = $value;
+                                    break;
+            
+                                case 'pattern':
+                                case 'regex':
+                                    $type['rules'][$key] = $value;
+                                    break;
+                                
+                                default:
+                                    $value = parse_url($value);
+            
+                                    if (isset($value['query']))
+                                    {
+                                        parse_str($value['query'], $output);
+            
+                                        if (isset($type['key']))
+                                        {
+                                            $type[$key] = array_merge($type[$key], $output);
+                                        }
+                                        else 
+                                        {
+                                            $type[$key] = $output;
+                                        }
+                                    }
+            
+                                    elseif (isset($value['path']))
+                                    {
+                                        $type[$key] = $value['path'];
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+        
+                    $type['post_type'] = $posttype;
+                    $type['namespace'] = $namespace;
+        
+                    $typeClass = ucfirst(strtolower($type['type']));
+                    $typeClass = "\\Framework\\Components\\Form\\Types\\".$typeClass;
+        
+                    $typeInstance = new $typeClass($type, '');
+                    echo $typeInstance->render();
+                }
+            }
+
+        }
+
+        /**
+         * Where to show the post type in the admin menu
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setShowInMenu(array $post)
+        {
+            $post['show_in_menu'] = $post['show_ui'];
+
+            if (isset($post['ui']['menus']['main']['display']))
+            {
+                if (is_bool($post['ui']['menus']['main']['display']))
+                {
+                    $post['show_in_menu'] = $post['ui']['menus']['main']['display'];
+                }
+                unset($post['ui']['menus']['main']['display']);
+            }
+
+            return $post;
+        }
+
+        /**
+         * Makes this post type available via the admin bar
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setShowInMenuBar(array $post)
+        {
+            $post['show_in_admin_bar'] = $post['show_in_menu'];
+
+            if (isset($post['ui']['menus']['top']['display']))
+            {
+                if (is_bool($post['ui']['menus']['top']['display']))
+                {
+                    $post['show_in_admin_bar'] = $post['ui']['menus']['top']['display'];
+                }
+                unset($post['ui']['menus']['top']['display']);
+            }
+
+
+
+            if (!isset($post['show_in_admin_bar']) || !is_bool($post['show_in_admin_bar']))
+            {
+                $post['show_in_admin_bar'] = $post['show_in_menu'];
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define Makes this post type available for selection in navigation menus
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setShowInNavMenus(array $post)
+        {
+            // WP Default value
+            // $post['show_in_nav_menus'] = $post['public'];
+
+            // PPM Default Value
+            $post['show_in_nav_menus'] = false;
+
+            if (isset($post['ui']['pages']['menus']['display']))
+            {
+                if (is_bool($post['ui']['pages']['menus']['display'])) 
+                {
+                    $post['show_in_nav_menus'] = $post['ui']['pages']['menus']['display'];
+                }
+                unset($post['ui']['pages']['menus']['display']);
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define Whether to generate and allow a UI for managing this post 
+         * type in the admin. 
+         * 
+         * @param array $post
+         * @return array $post
+         */
+        private function setShowUI(array $post)
+        {
+            $post['show_ui'] = $post['public'];
+
+            if (isset($post['ui']['show_ui']))
+            {
+                if (is_bool($post['ui']['show_ui']))
+                {
+                    $post['show_ui'] = $post['ui']['show_ui'];
+                }
+                unset($post['ui']['show_ui']);
+            }
+
+            return $post;
+        }
+
+        /**
+         * Define the slug of custom post
+         * 
+         * @param array $rewrite
+         * @param array $post
+         * @return array $rewrite
+         */
+        private function setSlug(array $rewrite, array $post)
+        {
+            if (!isset($rewrite['slug']) || empty(trim($rewrite['slug'])))
+            {
+                $rewrite['slug'] = $post['type'];
+            }
+
+            switch ($rewrite['slug']) 
+            {
+                case '@type':
+                    $rewrite['slug'] = $post['type'];
+                    break;
+                
+                case '@name':
+                    $rewrite['slug'] = Strings::slugify($post['label'], '_');
+                    break;
+                
+                default:
+                    $rewrite['slug'] = Strings::slugify($post['slug'], '_');
+                    break;
+            }
+
+            return $rewrite;
         }
 
         /**
@@ -1446,11 +1586,37 @@ if (!class_exists('Framework\Register\Posts'))
             if (empty($post['supports']))
             {
                 array_push($post['supports'], '');
-                $this->bs->codeInjection('head', "<style>#post-body-content {margin-bottom: 0px;}</style>");
+                if (is_admin())
+                {
+                    $this->bs->codeInjection('head', "<style>#post-body-content {margin-bottom: 0px;}</style>");
+                }
             }
 
             return $post;
         }
+
+        /**
+         * Define if structure has a pagination
+         * 
+         * @param array $rewrite
+         * @return array $rewrite
+         */
+        private function setWithFront(array $rewrite)
+        {
+            $rewrite['with_front'] = false;
+
+            if (isset($rewrite['prefixed']))
+            {
+                if (is_bool($rewrite['prefixed']))
+                {
+                    $rewrite['with_front'] = $rewrite['prefixed'];
+                }
+                unset($rewrite['prefixed']);
+            }
+
+            return $rewrite;
+        }
+
 
         /**
          * Verify the validity of the Name of a custom post
@@ -1777,10 +1943,10 @@ if (!class_exists('Framework\Register\Posts'))
             {
                 return;
             }
-            
-            $response = new Response( $this->bs, $this->getPosts(), $_PID);
-            $this->responses = $response->responses();
 
+            $response = new Response( $this->getPosts());
+            $this->responses = $response->responses();
+            
             if ($this->responses->validate())
             {
                 add_action('save_post', [$this, 'save_post']);
@@ -1792,8 +1958,9 @@ if (!class_exists('Framework\Register\Posts'))
             }
         }
 
-
-        // private function save_post(array $types, int $postid)
+        /**
+         * Save / Update Post data
+         */
         public function save_post(int $postid)
         {
             $poststypes = [];
@@ -1907,6 +2074,10 @@ if (!class_exists('Framework\Register\Posts'))
 
                         foreach ($type['schema'] as $schema) 
                         {
+                            // echo "<hr>";
+                            // echo "<pre>";
+                            // var_dump( $schema['value'] );
+                            // echo "</pre>";
                             if (is_array($schema['value']))
                             {
                                 foreach ($schema['value'] as $key => $value) 
@@ -1938,6 +2109,15 @@ if (!class_exists('Framework\Register\Posts'))
 
             // -- Build Arrays $add, $update, $delete
 
+
+            // echo "<pre>";
+            // print_r( $this->responses->getMetaTypes() );
+            // echo "</pre>";
+
+            // echo "<pre>";
+            // print_r( $responses );
+            // echo "</pre>";
+
             foreach ($responses as $key => $response) 
             {
                 // -- Responses to add
@@ -1948,7 +2128,6 @@ if (!class_exists('Framework\Register\Posts'))
                         $add[$response['serial']] = array();
                     }
                     array_push($add[$response['serial']], $response);
-                    
                 }
 
                 // -- Responses to update
@@ -1961,6 +2140,10 @@ if (!class_exists('Framework\Register\Posts'))
                     array_push($update[$response['postid']], $response);
                 }
             }
+
+            // echo "<pre>";
+            // print_r( $update );
+            // echo "</pre>";
 
             // -- Responses to remove
 
@@ -2018,11 +2201,18 @@ if (!class_exists('Framework\Register\Posts'))
                 }
             }
 
+            // echo "<pre>";
+            // print_r( $update );
+            // echo "</pre>";
+
             // Update
             foreach ($update as $postID => $postmeta) 
             {
                 foreach ($postmeta as $meta) 
                 {
+                    // echo "<pre>";
+                    // print_r( [$meta['key'], $meta['value']] );
+                    // echo "</pre>";
                     update_post_meta($postID, $meta['key'], $meta['value']);
                 }
             }
@@ -2032,6 +2222,8 @@ if (!class_exists('Framework\Register\Posts'))
             {
                 wp_delete_post($postID, true);
             }
+
+            // exit;
         }
 
 

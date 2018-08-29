@@ -406,6 +406,7 @@ $schema_declaration = [
          * Shortcode
          * 
          * If true, a shortcode was automaticaly created for this field.
+         * Syntaxe : namespace:post_type:type_key
          * 
          * @param optional
          * @type boolean
@@ -433,7 +434,9 @@ $schema_declaration = [
         'label' => "Text",
         'default' => "Ceci est un Texte",
         'attr' => [
-        ]
+            // 'required' => true
+        ],
+        'shortcode' => true,
     ],
     
     /**
@@ -649,7 +652,9 @@ $schema_declaration = [
             'cols' => 5,
 
             'autofocus' => true
-        ]
+        ],
+        'shortcode' => true
+
     ],
 
     // Options
@@ -876,7 +881,8 @@ $schema_declaration = [
         'attr' => [
             'class' => 'inline',
             'multiple' => true
-        ]
+        ],
+        'shortcode' => true
     ],
 
     // Date & Time
@@ -1024,6 +1030,21 @@ $schema_declaration = [
     ],
     
     /**
+     * reCaptcha
+     */
+    [
+        'key' => 'demo_recaptcha',
+        'type' => 'captcha',
+        'rules' => [
+            'type' => 'recaptcha',
+            'key' => "6LeXR2wUAAAAANE1gXv4mdYpL_ZmnuLGZeXwlH1L",
+            'secret' => "6LeXR2wUAAAAADJAVfbf_MSMErIYfqAY0Tv_gHp2",
+        ],
+        'shortcode' => true
+    ],
+    
+    
+    /**
      * Collection
      */
     [
@@ -1074,7 +1095,7 @@ $schema_declaration = [
              * @default 1
              */
             // 'init' => 2,
-            'init' => 0,
+            // 'init' => 0,
         ]
     ],
 

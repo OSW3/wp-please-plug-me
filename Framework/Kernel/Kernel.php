@@ -33,12 +33,12 @@ if (!class_exists('Framework\Kernel\Kernel'))
             }
             
             // new \Framework\Kernel\Session($bs->getNamespace());
+            new \Framework\Register\Posts($bs);
             new \Framework\Register\Assets($bs);
             new \Framework\Register\Filters($bs);
             new \Framework\Register\Hooks($bs);
             new \Framework\Register\Shortcodes($bs);
             // new \Framework\Register\Settings($bs);
-            new \Framework\Register\Posts($bs);
             // new \Framework\Register\Widgets($bs);
 
             // Do on Admin

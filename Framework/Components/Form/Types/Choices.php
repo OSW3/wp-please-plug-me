@@ -10,14 +10,14 @@ if (!defined('WPINC'))
 	exit;
 }
 
-use \Framework\Components\Form\Form\Form;
+use \Framework\Components\Form\Types;
 use \Framework\Components\Form\Types\Checkbox;
 use \Framework\Components\Form\Types\Radio;
 use \Framework\Components\Form\Types\Option;
 
 if (!class_exists('Framework\Components\Form\Types\Choices'))
 {
-    class Choices extends Form 
+    class Choices extends Types 
     {
         /**
          * Tag Attributes

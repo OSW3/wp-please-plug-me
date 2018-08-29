@@ -10,11 +10,11 @@ if (!defined('WPINC'))
 	exit;
 }
 
-use \Framework\Components\Form\Form\Form;
+use \Framework\Components\Form\Types;
 
 if (!class_exists('Framework\Components\Form\Types\Option'))
 {
-    class Option extends Form 
+    class Option extends Types 
     {
         /**
          * Tag Attributes

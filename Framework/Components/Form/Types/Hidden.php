@@ -10,11 +10,11 @@ if (!defined('WPINC'))
 	exit;
 }
 
-use \Framework\Components\Form\Form\Form;
+use \Framework\Components\Form\Types;
 
 if (!class_exists('Framework\Components\Form\Types\Hidden'))
 {
-    class Hidden extends Form 
+    class Hidden extends Types 
     {
         /**
          * Tag Attributes

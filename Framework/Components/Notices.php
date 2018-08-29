@@ -46,8 +46,6 @@ if (!class_exists('Framework\Components\Notices'))
             $this->setNamespace($namespace);
 
 
-
-
             // Retrieve the bootstrap class instance
             // $this->bs = $bs;
 
@@ -57,7 +55,7 @@ if (!class_exists('Framework\Components\Notices'))
 
 
         /**
-         * Define the plugin namespace
+         * Namespace
          */
         private function setNamespace(string $namespace)
         {
@@ -69,10 +67,6 @@ if (!class_exists('Framework\Components\Notices'))
         {
             return $this->namespace;
         }
-
-
-
-
 
         /**
          * Set Notice
