@@ -57,51 +57,55 @@ use \Framework\Components\Form\Response;
 use \Framework\Components\Notices;
 use \Framework\Kernel\Session;
 
-class PPM 
+
+if (!class_exists('PPM'))
 {
-	private $namespace;
-	private $posttype;
-	private $responses;
-
-	public function __construct(string $namespace, string $posttype)
+	class PPM 
 	{
-		$this->namespace = $namespace; 
-		$this->posttype = $posttype;
-	}
-
-	public function responses( array $posts, bool $asObject = false )
-	{
-		$response = new Response( $posts );
-		$responses = $response->responses();
-		$this->responses = $responses;
-
-		return $asObject ? $responses : $responses->sanitizedResponses( $responses->getMetaTypes() );
-	}
-
-	public function validate( array $posts = [] )
-	{
-		$responses = (!empty($posts))
-			? $this->responses( $posts )
-			: $this->responses;
-
-		return $responses->validate();
-	}
-
-	public function clearSession(bool $forced = false)
-	{
-		if ($forced)
-		{
-			$this->clear_session();
-		}
-
-        add_action('wp_footer', [$this, 'clear_session']);
-	}
-	public function clear_session()
-	{
-		$session = new Session($this->namespace);
-		$session->clear($this->posttype);
+		private $namespace;
+		private $posttype;
+		private $responses;
 	
-		$notices = new Notices($this->namespace);
-		$notices->clear();
+		public function __construct(string $namespace, string $posttype)
+		{
+			$this->namespace = $namespace; 
+			$this->posttype = $posttype;
+		}
+	
+		public function responses( array $posts, bool $asObject = false )
+		{
+			$response = new Response( $posts );
+			$responses = $response->responses();
+			$this->responses = $responses;
+	
+			return $asObject ? $responses : $responses->sanitizedResponses( $responses->getMetaTypes() );
+		}
+	
+		public function validate( array $posts = [] )
+		{
+			$responses = (!empty($posts))
+				? $this->responses( $posts )
+				: $this->responses;
+	
+			return $responses->validate();
+		}
+	
+		public function clearSession(bool $forced = false)
+		{
+			if ($forced)
+			{
+				$this->clear_session();
+			}
+	
+			add_action('wp_footer', [$this, 'clear_session']);
+		}
+		public function clear_session()
+		{
+			$session = new Session($this->namespace);
+			$session->clear($this->posttype);
+		
+			$notices = new Notices($this->namespace);
+			$notices->clear();
+		}
 	}
 }
