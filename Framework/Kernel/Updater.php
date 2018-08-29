@@ -125,7 +125,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 					$source = $this->getRemotePath().$file;
 					$dest = $this->getLocalPath().$file;
 					copy($source, $dest);
-					
+
 					echo "<pre>";
 					print_r([
 						$source, 
