@@ -8,7 +8,7 @@
  * Author URI:  http://osw3.net/
  * Text Domain: wordpress-ppm
  * Domain Path: /Plugin/Languages/
- * License:     MIT
+ * License:     GPL v3
  */
 
 
@@ -43,6 +43,7 @@ if (!defined('ABSPATH')){
 
 $ppm_required = [
 	ABSPATH.'wp-admin/includes/plugin.php',
+	ABSPATH.'wp-admin/includes/screen.php',
 	$ppm_root_dir.'/Framework/bootstrap.php'
 ];
 
@@ -56,7 +57,6 @@ foreach ($ppm_required as $file)
 use \Framework\Components\Form\Response;
 use \Framework\Components\Notices;
 use \Framework\Kernel\Session;
-
 
 if (!class_exists('PPM'))
 {

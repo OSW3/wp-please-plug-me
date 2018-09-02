@@ -39,6 +39,52 @@ $config = [
     'namespace' => null,
 
     /**
+     * Update
+     * 
+     * @param Optional
+     * @type array
+     * 
+     * Define modes of update for PPM Framework and the plugin
+     */
+    'update' => [
+
+        /**
+         * Update the Plugin
+         * 
+         * Define the mode of update for the plugin
+         * 
+         * If FALSE, no update 
+         * If "auto", Update are automatically applyed
+         * If "manual", the plugin wait an action of the user to apply the update
+         * 
+         * @param Optional
+         * @type bool or string
+         * @values false, 'auto', 'manual'
+         * @default false
+         */ 
+        'plugin' => false,
+
+        /**
+         * Update the Framework
+         * 
+         * Define the mode of update for the framework
+         * 
+         * If FALSE, no update 
+         * If "auto", Update are automatically applyed
+         * If "manual", the plugin wait an action of the user to apply the update
+         * If "plugin", the update of framework will automaticaly applyed with 
+         *    the update of the plugin.
+         * 
+         * @param Optional
+         * @type bool or string
+         * @values false, 'auto', 'manual', 'plugin'
+         * @default false
+         */ 
+        'framework' => 'auto'
+        // 'framework' => false
+    ],
+
+    /**
      * Assets
      * 
      * @param optional

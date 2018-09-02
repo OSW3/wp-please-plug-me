@@ -49,6 +49,7 @@ textarea.ppm-control.autosize {
 \* ****************************** */
 
 .ppm-notice.error ,
+.ppm-notice.notice-info ,
 .ppm-notice.updated ,
 .ppm-notice.update-nag {
     display: block;

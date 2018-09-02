@@ -19,9 +19,10 @@ if (!class_exists('Framework\Components\Notices'))
         /**
          * Notices templates
          */
-        const TMPL_NOTICE_SUCCESS = '<div class="ppm-notice notice is-dismissible updated" id="message">$1</div>';
-        const TMPL_NOTICE_WARNING = '<div class="ppm-notice notice is-dismissible update-nag">$1</div>';
-        const TMPL_NOTICE_DANGER  = '<div class="ppm-notice notice is-dismissible error">$1</div>';
+        const TMPL_NOTICE_SUCCESS   = '<div class="ppm-notice notice is-dismissible updated" id="message">$1</div>';
+        const TMPL_NOTICE_WARNING   = '<div class="ppm-notice notice is-dismissible update-nag">$1</div>';
+        const TMPL_NOTICE_DANGER    = '<div class="ppm-notice notice is-dismissible error">$1</div>';
+        const TMPL_NOTICE_INFO      = '<div class="ppm-notice notice is-dismissible notice-info">$1</div>';
 
         /**
          * Plugin namespace
@@ -30,27 +31,10 @@ if (!class_exists('Framework\Components\Notices'))
          */
         private $namespace;
 
-        /**
-         * Post ID
-         */
-        // private $id;
-
-        /**
-         * PHP Session
-         */
-        // private $session;
-
         public function __construct(string $namespace)
         {
             // Set the plugin namespace
             $this->setNamespace($namespace);
-
-
-            // Retrieve the bootstrap class instance
-            // $this->bs = $bs;
-
-            // Start the Session
-            // $this->session = new Session($this->bs);
         }
 
 
@@ -108,9 +92,7 @@ if (!class_exists('Framework\Components\Notices'))
 
             // Add message
             array_push($_SESSION[$namespace]['notices'][$type][$level], $message);
-
         }
-
         /**
          * Set Success Notice
          */
@@ -118,15 +100,13 @@ if (!class_exists('Framework\Components\Notices'))
         {
             $this->set('success', $posttype, $message, $global);
         }
-
         /**
          * Set Warning Notice
          */
-        public function warnig(string $posttype, string $message, bool $global = false)
+        public function warning(string $posttype, string $message, bool $global = false)
         {
-            $this->set('warnig', $posttype, $message, $global);
+            $this->set('warning', $posttype, $message, $global);
         }
-
         /**
          * Set Danger Notice
          */
@@ -134,9 +114,17 @@ if (!class_exists('Framework\Components\Notices'))
         {
             $this->set('danger', $posttype, $message, $global);
         }
+        /**
+         * Set Info Notice
+         */
+        public function info(string $posttype, string $message, bool $global = false)
+        {
+            $this->set('info', $posttype, $message, $global);
+        }
 
-
-
+        /**
+         * Print Notices
+         */
         public function get()
         {
             // Retrieve the plugin Namespace
@@ -159,7 +147,6 @@ if (!class_exists('Framework\Components\Notices'))
             {
                 $notices = $_SESSION[$namespace]['notices'];
             }
-
 
             foreach ($types as $type)
             {
@@ -186,6 +173,10 @@ if (!class_exists('Framework\Components\Notices'))
 
                             case 'danger':
                                 echo preg_replace("/\\$1/", $message, self::TMPL_NOTICE_DANGER);
+                                break;
+
+                            case 'info':
+                                echo preg_replace("/\\$1/", $message, self::TMPL_NOTICE_INFO);
                                 break;
                         }
                     }

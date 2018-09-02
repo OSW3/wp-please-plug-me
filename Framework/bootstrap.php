@@ -35,7 +35,6 @@ if ( !function_exists('ppm_auoload') ) {
     function ppm_auoload($class_name) 
     {
         global $ppm_root_file;
-        // print_r( $ppm_root_file."\n" );
 
         // Retrieve the relative path of the file from the plugin directory
         $class_relpath = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
@@ -43,7 +42,6 @@ if ( !function_exists('ppm_auoload') ) {
     
         // Retrive the filename with extension
         $class_filename = basename($class_relpath);
-        // print_r($class_relpath."\n");
     
         // Retrive relative directory from the plugin directory
         $class_reldir = str_replace(basename($class_filename), '', $class_relpath);

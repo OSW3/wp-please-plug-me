@@ -15,6 +15,11 @@ if (!class_exists('Framework\Kernel\Request'))
     class Request
     {
         /**
+         * Action
+         */
+        private $action;
+
+        /**
          * Request Method
          */
         private $method;
@@ -30,9 +35,9 @@ if (!class_exists('Framework\Kernel\Request'))
         private $posttype;
 
         /**
-         * Action
+         * HTTP Referer
          */
-        private $action;
+        private $referer;
 
         /**
          * 
@@ -42,6 +47,7 @@ if (!class_exists('Framework\Kernel\Request'))
         {
             // Define Request Method
             $this->setMethod();
+            $this->setReferer();
 
             // Retrieve the ID
             $this->setPostID();
@@ -51,6 +57,20 @@ if (!class_exists('Framework\Kernel\Request'))
 
             // Retrieve the action
             $this->setAction();
+        }
+
+        /**
+         * Http Referer
+         */
+        private function setReferer()
+        {
+            $this->referer = $_SERVER['HTTP_REFERER'];
+
+            return $this;
+        }
+        public function getReferer()
+        {
+            return $this->referer;
         }
 
         /**
@@ -70,6 +90,10 @@ if (!class_exists('Framework\Kernel\Request'))
         public function isPost()
         {
             return 'POST' === $this->getMethod();
+        }
+        public function isGet()
+        {
+            return 'GET' === $this->getMethod();
         }
 
         /**
@@ -125,6 +149,31 @@ if (!class_exists('Framework\Kernel\Request'))
         public function isActionDelete()
         {
             return 'delete' === $this->getAction();
+        }
+        public function isActionUpdate()
+        {
+            return 'update' === $this->getAction();
+        }
+
+        /**
+         * Retrieve parameter
+         */
+        public function get(string $param = '')
+        {
+            return $this->getParameter('GET', $param);
+        }
+        public function post(string $param = '')
+        {
+            return $this->getParameter('POST', $param);
+        }
+        private function getParameter(string $method = 'GET', string $param = '')
+        {
+            if ($method === $this->getMethod() && isset($_REQUEST[$param]))
+            {
+                return $_REQUEST[$param];
+            }
+
+            return null;
         }
 
         /**

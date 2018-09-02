@@ -10,14 +10,22 @@ if (!defined('WPINC'))
 	exit;
 }
 
-// use \Framework\Kernel\Kernel;
+use \Framework\Components\Notices;
+use \Framework\Kernel\Config;
+use \Framework\Kernel\Request;
 
 if (!class_exists('Framework\Kernel\Updater'))
 {
 	class Updater
 	{
-		const FILE_MAP = 'map';
+		const FILE_MAP = 'map.json';
+
 		const FILE_VERSION = 'VERSION';
+
+		/**
+		 * List of file excluded from the update
+		 */
+		const EXCLUDE = ['Kernel/Updater.php'];
 
         /**
          * The instance of the bootstrap class
@@ -26,32 +34,36 @@ if (!class_exists('Framework\Kernel\Updater'))
          */
 		private $bs;
 
-		/**
-		 * define the mode of this updater
-		 */
-		private $mode;
-		
-		/**
-		 * Current version
-		 */
-		private $c_version;
+        /**
+         * Bases path / URL
+         */
+		private $bases;
+
+        /**
+         * Map
+         * 
+         * @param array
+         */
+		private $maps;
+
+        /**
+         * Update modes
+         * 
+         * @param array
+         */
+		private $modes;
 
 		/**
-		 * Last version
+		 * Versions
 		 */
-		private $l_version;
+		private $versions;
 
 		/**
+		 * Sections
 		 * 
+		 * Array of section want to update (plugin and/or framework)
 		 */
-		private $local_path;
-		private $remote_path;
-
-		/**
-		 * 
-		 */
-		private $local_map;
-		private $remote_map;
+		private $sections;
 
 		/**
 		 * 
@@ -61,218 +73,122 @@ if (!class_exists('Framework\Kernel\Updater'))
             // Retrieve the bootstrap class instance
 			$this->bs = $bs;
 
-			// Setters for local and remote Path
-			$this->setLocalPath();
-			$this->setRemotePath();
-			
-			// Setters for local and remote Map
-			$this->setLocalMap();
-			$this->setRemoteMap();
-			
-			$this->setMode();
-			$this->setCurrentVersion();
-			$this->setLastVersion();
+			// Instance of Request
+			$request = new Request;
 
-			// Proceed to update
-			if ('auto' === $this->getMode() && $this->checkVersion()) 
+			// Instance of Notices
+			$this->notices = new Notices($this->bs->getNamespace());
+
+			// Define sectionswe want to update (plugin and/or framework)
+			$this->setSections();
+
+			if ($request->isActionUpdate())
 			{
-				$this->update();
-			}
-		}
+				$this->startUpdate($request->get("section"));
 
-		/**
-		 * Updater Mode
-		 */
-		private function setMode()
-		{
-			// TODO: change to add this in config.php
-			$this->mode = "auto";
-
-			return $this;
-		}
-		private function getMode()
-		{
-			return $this->mode;
-		}
-
-		/**
-		 * Current version
-		 */
-		private function setCurrentVersion()
-		{
-			// Default version
-			$this->c_version = null;
-
-			// Define file "version" path
-			$file = $this->getLocalPath().self::FILE_VERSION;
-
-			// Read file
-			if (file_exists($file)) 
-			{
-				$this->c_version = trim(file_get_contents($file));
+				header("location: ".$request->getReferer());
+				exit;
 			}
 
-			return $this;
+			// Define Bases of Plugins and Framework, local and Remote
+			$this->setBases();
+
+			// Define Versions of Plugins and Framework, local and Remote
+			$this->setVersions();
+
+			// define the alternative API for updating checking
+			$this->checkUpdate( new \StdClass() );
+			// add_filter('pre_set_site_transient_update_plugins', array(&$this, 'checkUpdate'));
+		
+			// Define the alternative response for information checking
+			// add_filter('plugins_api', array(&$this, 'check_info'), 10, 3);
+			// add_filter('plugins_api', array(&$this, 'checkUpdate'), 10, 3);
+
+			// Display Notices
+			$this->notices->get();
 		}
-		private function getCurrentVersion()
+		public function __destruct()
 		{
-			return $this->c_version;
-		}
-
-		/**
-		 * Last version
-		 */
-		private function setLastVersion()
-		{
-			// Default version
-			$this->l_version = null;
-
-			// Define file "version" URI
-			$file = $this->getRemotePath().self::FILE_VERSION;
-
-			$curl = curl_init();
-			curl_setopt($curl, CURLOPT_URL, $file);
-			curl_setopt($curl, CURLOPT_COOKIESESSION, true);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			$version = curl_exec($curl);
-			curl_close($curl);
-
-			$this->l_version = trim($version);
-
-			return $this;
-		}
-		private function getLastVersion()
-		{
-			return $this->l_version;
+			// Clear Notices
+            $this->notices->clear();
 		}
 
 		/**
-		 * Compare the version number
+		 * Base
 		 */
-		private function checkVersion()
+		private function setBases()
 		{
-			if (null != $this->getCurrentVersion() && null != $this->getLastVersion())
+			// Default bases
+			$bases = [];
+
+			if (in_array($this->getMode('plugin'), ['auto', 'manual']))
 			{
-				return version_compare( 
-					$this->getCurrentVersion(), 
-					$this->getLastVersion() , 
-					'<'
-				);
+				// Default
+				$bases['plugin'] = [
+					'local' => $this->bs->getRoot().'Plugin/',
+					'remote' => Config::SOURCES.'Plugin/'
+				];
 			}
 
-			return false;
-		}
-
-		/**
-		 * Proceed
-		 */
-		private function update()
-		{
-			// Generate the Download list
-			$dl = array_diff_assoc($this->getRemoteMap(), $this->getLocalMap());
-			// Generate the remove list
-			$rm = array_diff_assoc($this->getLocalMap(), $this->getRemoteMap());
-
-			// Remove files ares not in remote repository
-			foreach ($rm as $file) 
+			if (in_array($this->getMode('framework'), ['auto', 'manual', 'plugin']))
 			{
-				// if ($file != 'Kernel/Updater.php')
-				// {
-					$source = $this->getLocalPath().$file;
-					if (file_exists($source))
-					{
-						unlink($source);
-					}
-				// }
+				// Default
+				$bases['framework'] = [
+					'local' => $this->bs->getRoot().'Framework/',
+					'remote' => Config::SOURCES.'Framework/'
+				];
 			}
 
-			// Copy files are not already in local
-			foreach ($dl as $file) 
-			{
-				// if ($file != 'Kernel/Updater.php')
-				// {
-					$source = $this->getRemotePath().$file;
-					$dest = $this->getLocalPath().$file;
-					copy($source, $dest);
-				// }
-			}
-
-			// Update the map
-			$this->makeMap();
-		}
-
-		/**
-		 * Path
-		 */
-		private function setRemotePath()
-		{
-			$this->remote_path = "https://raw.githubusercontent.com/OSW3/wp-please-plug-me/develop/Framework/";
+			$this->bases = $bases;
 
 			return $this;
-		}
-		private function getRemotePath()
-		{
-			return $this->remote_path;
-		}
-		private function setLocalPath()
-		{
-			$this->local_path= $this->bs->getRoot().'Framework/';
-
-			return $this;
-		}
-		private function getLocalPath()
-		{
-			return $this->local_path;
 		}
 
 		/**
 		 * Map
 		 */
-		private function setRemoteMap()
+		private function setMaps()
 		{
-			$this->remote_map = [];
+			$maps = [];
 
-			// Define remote Map file url
-			$url = $this->getRemotePath().self::FILE_MAP;
+			// Local Map
+			$maps['local'] = $this->generateMap();
 
-			// Get map content
-			if ($map = @file_get_contents($url))
+			// Remote Map
+			$maps['remote'] = [];
+			// $remote_url = $this->bases['framework']['remote'].self::FILE_MAP;
+			$remote_url = $this->bases['framework']['remote']."map";
+			if ($map = @file_get_contents($remote_url))
 			{
-				$this->remote_map = json_decode($map, true);
-				// $this->remote_map = $map;
+				$maps['remote'] = json_decode($map, true);
 			}
 
-			return $this;
-		}
-		private function getRemoteMap()
-		{
-			return $this->remote_map;
-		}
-		private function setLocalMap()
-		{
-			$this->local_map = $this->generateMap();
+			$this->maps = $maps;
 
 			return $this;
 		}
 		private function getLocalMap()
 		{
-			return $this->local_map;
+			return $this->maps['local'];
 		}
-
-		// Generate Map of local 
+		private function getRemoteMap()
+		{
+			return $this->maps['remote'];
+		}
 		private function generateMap()
 		{
 			$map = [];
+			$base = $this->bases['framework']['local'];
 
-			$scan = $this->scandir( $this->getLocalPath() );
+			$scan = $this->scandir($base);
 
 			foreach ($scan as $path) 
 			{
-				$file = str_replace($this->getLocalPath(), '', $path);
-				$md5 = md5(md5_file($path).md5($path));
-
-				if ('map' != $file)
+				$file = str_replace($base, '', $path);
+				$exclude = array_merge(self::EXCLUDE, [self::FILE_MAP]);
+				if (!in_array($file, $exclude))
 				{
+					$md5 = md5(md5_file($path).md5($path));
 					$map[$md5] = $file;
 				}
 			}
@@ -282,7 +198,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 		private function makeMap()
 		{
 			// The file
-			$file = $this->getLocalPath().self::FILE_MAP;
+			$file = $this->bases['framework']['local'].self::FILE_MAP;
 
 			// The data
 			$data = $this->generateMap();
@@ -291,6 +207,208 @@ if (!class_exists('Framework\Kernel\Updater'))
 			fwrite($fp, json_encode($data));
 			fclose($fp);
 		}
+
+		/**
+		 * Modes
+		 */
+		private function getMode(string $section = '')
+		{
+			if (isset($this->modes[$section]))
+			{
+				return $this->modes[$section];
+			}
+
+			return false;
+		}
+
+		/**
+		 * Section
+		 */
+		private function setSections()
+		{
+			$this->sections = [];
+			$this->modes = [];
+
+			$sections = $this->bs->getUpdate();
+
+			if (isset($sections['plugin']) && in_array($sections['plugin'], ['auto', 'manual']))
+			{
+				$this->modes['plugin'] = $sections['plugin'];
+				array_push($this->sections, 'plugin');
+			}
+
+			if (isset($sections['framework']) && in_array($sections['framework'], ['auto', 'manual', 'plugin']))
+			{
+				$this->modes['framework'] = $sections['framework'];
+				array_push($this->sections, 'framework');
+			}
+
+			return $this;
+		}
+		private function getSections()
+		{
+			return $this->sections;
+		}
+
+		/**
+		 * Update
+		 */
+		public function checkUpdate($transient)
+		{
+			foreach ($this->getSections() as $section) 
+			{
+				$current_version = $this->versions[$section]['local'];
+				$remote_version = $this->versions[$section]['remote'];
+
+				$update = version_compare( $current_version, $remote_version, '<');
+
+				if ('auto' == $this->getMode($section) && $update)
+				{
+					$this->startUpdate($section);
+				}
+
+				elseif ('manual' == $this->getMode($section) && $update)
+				{
+					$params = http_build_query([
+						'ppm' => $this->bs->getNamespace(),
+						'action' => 'update',
+						'section' => $section
+					]);
+
+					$url = implode("?", [admin_url("plugins.php"), $params]);
+
+					$message = __("The plugin <strong>".$this->bs->getName()."</strong> need an update. Please <a href=\"$url\">update now</a>.");
+					$this->notices->warning('ppm', $message, true);
+				}
+			}
+
+			return $transient;
+		}
+		private function startUpdate(string $section = '')
+		{
+			// Define Maps of Plugins and Framework, local and Remote
+			$this->setMaps();
+			
+			if (in_array($section, $this->getSections()))
+			{
+				// Generate the remove list
+				$rm = array_diff_assoc($this->getLocalMap(), $this->getRemoteMap());
+				// Generate the Download list
+				$dl = array_diff_assoc($this->getRemoteMap(), $this->getLocalMap());
+
+				// Remove files ares not in remote repository
+				foreach ($rm as $file) 
+				{
+					if (!in_array($file, self::EXCLUDE))
+					{
+						$source = $this->bases[$section]['local'].$file;
+						if (file_exists($source))
+						{
+							// unlink($source);
+
+							// echo '<pre style="padding-left: 180px">';
+							// print_r( $source );
+							// echo '</pre>';
+						}
+					}
+				}
+
+				// Copy files are not already in local
+				foreach ($dl as $file) 
+				{
+					if (!in_array($file, self::EXCLUDE))
+					{
+						$source = $this->bases[$section]['remote'].$file;
+						$dest = $this->bases[$section]['local'].$file;
+						
+						// copy($source, $dest);
+						
+						// echo '<pre style="padding-left: 180px">';
+						// print_r( $source );
+						// echo '</pre>';
+					}
+				}
+
+				// Update the map
+				$this->makeMap();
+			}
+			exit;
+		}
+
+		/**
+		 * Versions
+		 */
+		private function setVersions()
+		{
+			// Default versions
+			$versions = [];
+
+			if (in_array($this->getMode('plugin'), ['auto', 'manual']))
+			{
+				// Default
+				$versions['plugin'] = [
+					'local' => null,
+					'remote' => null
+				];
+
+				// Local Version of Plugin
+				$lvp = $this->bs->getVersion();
+				if (is_string($lvp) && !empty($lvp))
+				{
+					$versions['plugin']['local'] = $lvp;
+				}
+	
+				// Remote  Version of Plugin
+				$rvp = null; // TODO: 
+				if (is_string($rvp) && !empty($rvp))
+				{
+					$versions['plugin']['remote'] = $rvp;
+				}
+			}
+
+			if (in_array($this->getMode('framework'), ['auto', 'manual', 'plugin']))
+			{
+				// Default
+				$versions['framework'] = [
+					'local' => null,
+					'remote' => null
+				];
+
+				// Local Version of Framework
+				$lvf = null;
+				$file = $this->bases['framework']['local'].self::FILE_VERSION;
+				if (file_exists($file)) 
+				{
+					$lvf = trim(file_get_contents($file));
+				}
+				if (is_string($lvf) && !empty($lvf))
+				{
+					$versions['framework']['local'] = $lvf;
+				}
+	
+	
+				// Remote  Version of Framework
+				$rvf = null;
+				$file = $this->bases['framework']['remote'].self::FILE_VERSION;
+				$curl = curl_init();
+				curl_setopt($curl, CURLOPT_URL, $file);
+				curl_setopt($curl, CURLOPT_COOKIESESSION, true);
+				curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+				$version = curl_exec($curl);
+				curl_close($curl);
+				$rvf = trim($version);
+				if (is_string($rvf) && !empty($rvf))
+				{
+					$versions['framework']['remote'] = $rvf;
+				}
+			}
+
+			$this->versions = $versions;
+
+			return $this;
+		}
+
+
 
 		public function scandir(string $target)
 		{
@@ -317,3 +435,55 @@ if (!class_exists('Framework\Kernel\Updater'))
 		}
 	}
 }
+
+
+
+
+// stdClass Object
+// (
+// 	[last_checked] => 1535841127
+// 	[checked] => Array
+// 		(
+// 			[akismet/akismet.php] => 4.0.8
+// 			[wp-please-plug-me/ppm.php] => 0.0.1
+// 			[wp-please-plug-me copie/ppm.php] => 0.0.1
+// 		)
+
+// 	[response] => Array
+// 		(
+// 		)
+
+// 	[translations] => Array
+// 		(
+// 		)
+
+// 	[no_update] => Array
+// 		(
+// 			[akismet/akismet.php] => stdClass Object
+// 				(
+// 					[id] => w.org/plugins/akismet
+// 					[slug] => akismet
+// 					[plugin] => akismet/akismet.php
+// 					[new_version] => 4.0.8
+// 					[url] => https://wordpress.org/plugins/akismet/
+// 					[package] => https://downloads.wordpress.org/plugin/akismet.4.0.8.zip
+// 					[icons] => Array
+// 						(
+// 							[2x] => https://ps.w.org/akismet/assets/icon-256x256.png?rev=969272
+// 							[1x] => https://ps.w.org/akismet/assets/icon-128x128.png?rev=969272
+// 						)
+
+// 					[banners] => Array
+// 						(
+// 							[1x] => https://ps.w.org/akismet/assets/banner-772x250.jpg?rev=479904
+// 						)
+
+// 					[banners_rtl] => Array
+// 						(
+// 						)
+
+// 				)
+
+// 		)
+
+// )
