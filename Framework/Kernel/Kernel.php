@@ -38,7 +38,7 @@ if (!class_exists('Framework\Kernel\Kernel'))
             new \Framework\Register\Filters($bs);
             new \Framework\Register\Hooks($bs);
             new \Framework\Register\Shortcodes($bs);
-            // new \Framework\Register\Settings($bs);
+            new \Framework\Register\Settings($bs);
             // new \Framework\Register\Widgets($bs);
 
             // Do on Admin
