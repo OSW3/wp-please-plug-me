@@ -675,7 +675,7 @@ $config = [
              * @type Boolean
              * @default false
              */
-            'action' => false,
+            'action' => true,
 
             /**
              * Settings Tab
@@ -689,6 +689,13 @@ $config = [
             'settingTag' => true
 
         ],
+
+        /**
+         * 
+         */
+        'ui' => [
+            
+        ]
 
     ],
 

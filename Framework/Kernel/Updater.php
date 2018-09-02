@@ -25,7 +25,8 @@ if (!class_exists('Framework\Kernel\Updater'))
 		/**
 		 * List of file excluded from the update
 		 */
-		const EXCLUDE = ['Kernel/Updater.php'];
+		// const EXCLUDE = ['Kernel/Updater.php'];
+		const EXCLUDE = [];
 
         /**
          * The instance of the bootstrap class
@@ -97,13 +98,9 @@ if (!class_exists('Framework\Kernel\Updater'))
 			$this->setVersions();
 
 			// define the alternative API for updating checking
-			$this->checkUpdate( new \StdClass() );
-			// add_filter('pre_set_site_transient_update_plugins', array(&$this, 'checkUpdate'));
+			// $this->checkUpdate( new \StdClass() );
+			add_filter('pre_set_site_transient_update_plugins', array(&$this, 'checkUpdate'));
 		
-			// Define the alternative response for information checking
-			// add_filter('plugins_api', array(&$this, 'check_info'), 10, 3);
-			// add_filter('plugins_api', array(&$this, 'checkUpdate'), 10, 3);
-
 			// Display Notices
 			$this->notices->get();
 		}
@@ -156,8 +153,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 
 			// Remote Map
 			$maps['remote'] = [];
-			// $remote_url = $this->bases['framework']['remote'].self::FILE_MAP;
-			$remote_url = $this->bases['framework']['remote']."map";
+			$remote_url = $this->bases['framework']['remote'].self::FILE_MAP;
 			if ($map = @file_get_contents($remote_url))
 			{
 				$maps['remote'] = json_decode($map, true);
@@ -304,11 +300,7 @@ if (!class_exists('Framework\Kernel\Updater'))
 						$source = $this->bases[$section]['local'].$file;
 						if (file_exists($source))
 						{
-							// unlink($source);
-
-							// echo '<pre style="padding-left: 180px">';
-							// print_r( $source );
-							// echo '</pre>';
+							unlink($source);
 						}
 					}
 				}
@@ -321,18 +313,14 @@ if (!class_exists('Framework\Kernel\Updater'))
 						$source = $this->bases[$section]['remote'].$file;
 						$dest = $this->bases[$section]['local'].$file;
 						
-						// copy($source, $dest);
-						
-						// echo '<pre style="padding-left: 180px">';
-						// print_r( $source );
-						// echo '</pre>';
+						copy($source, $dest);
 					}
 				}
 
 				// Update the map
 				$this->makeMap();
 			}
-			exit;
+			// exit;
 		}
 
 		/**
@@ -408,8 +396,6 @@ if (!class_exists('Framework\Kernel\Updater'))
 			return $this;
 		}
 
-
-
 		public function scandir(string $target)
 		{
 			$results = [];
@@ -435,55 +421,3 @@ if (!class_exists('Framework\Kernel\Updater'))
 		}
 	}
 }
-
-
-
-
-// stdClass Object
-// (
-// 	[last_checked] => 1535841127
-// 	[checked] => Array
-// 		(
-// 			[akismet/akismet.php] => 4.0.8
-// 			[wp-please-plug-me/ppm.php] => 0.0.1
-// 			[wp-please-plug-me copie/ppm.php] => 0.0.1
-// 		)
-
-// 	[response] => Array
-// 		(
-// 		)
-
-// 	[translations] => Array
-// 		(
-// 		)
-
-// 	[no_update] => Array
-// 		(
-// 			[akismet/akismet.php] => stdClass Object
-// 				(
-// 					[id] => w.org/plugins/akismet
-// 					[slug] => akismet
-// 					[plugin] => akismet/akismet.php
-// 					[new_version] => 4.0.8
-// 					[url] => https://wordpress.org/plugins/akismet/
-// 					[package] => https://downloads.wordpress.org/plugin/akismet.4.0.8.zip
-// 					[icons] => Array
-// 						(
-// 							[2x] => https://ps.w.org/akismet/assets/icon-256x256.png?rev=969272
-// 							[1x] => https://ps.w.org/akismet/assets/icon-128x128.png?rev=969272
-// 						)
-
-// 					[banners] => Array
-// 						(
-// 							[1x] => https://ps.w.org/akismet/assets/banner-772x250.jpg?rev=479904
-// 						)
-
-// 					[banners_rtl] => Array
-// 						(
-// 						)
-
-// 				)
-
-// 		)
-
-// )
