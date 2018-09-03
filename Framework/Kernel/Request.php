@@ -64,7 +64,7 @@ if (!class_exists('Framework\Kernel\Request'))
          */
         private function setReferer()
         {
-            $this->referer = "/";
+            $this->referer = is_admin() ? admin_url() : home_url();
             
             if (isset($_SERVER['HTTP_REFERER']))
             {
