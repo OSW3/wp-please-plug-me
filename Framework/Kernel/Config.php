@@ -17,9 +17,8 @@ use \Framework\Kernel\Session;
 if (!class_exists('Framework\Kernel\Config'))
 {
     abstract class Config 
-    {
+    {        
         const SOURCES = "https://raw.githubusercontent.com/OSW3/wp-please-plug-me/develop/";
-
         const DEFAULT = [
             "root"          => null,
             "uri"           => null,

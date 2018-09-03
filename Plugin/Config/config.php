@@ -694,7 +694,7 @@ $config = [
          * 
          */
         'ui' => [
-            
+
         ]
 
     ],
@@ -1881,7 +1881,7 @@ $config = [
                              */
                             [
                                 'key' => 'editor',
-                                'display' => false
+                                'display' => true
                             ],
 
                             /**
@@ -2021,6 +2021,7 @@ $config = [
                                  */
                                 'schema' => [
                                     'demo_text',
+                                    'demo_number_default'
                                     // 'demo_year',
                                     // 'demo_recaptcha'
                                 ]

@@ -38,13 +38,16 @@ if (!class_exists('Framework\Kernel\Kernel'))
             new \Framework\Register\Filters($bs);
             new \Framework\Register\Hooks($bs);
             new \Framework\Register\Shortcodes($bs);
-            new \Framework\Register\Settings($bs);
+            // new \Framework\Register\Settings($bs);
             // new \Framework\Register\Widgets($bs);
 
             // Do on Admin
             if (is_admin()) 
             {
                 new \Framework\Kernel\Updater($bs);
+
+                // add_action('admin_notices', [$this, 'wp_upe_display_install_notice']);
+
             }
 
             // Do on Front
@@ -102,5 +105,16 @@ if (!class_exists('Framework\Kernel\Kernel'))
         {
             echo $this->_codeInjection;
         }
+
+
+
+        // public function wp_upe_display_install_notice() {
+        //     // Check the transient to see if we've just activated the plugin
+        //     if (get_transient($this->getNamespace())) {
+        //         echo '<div class="notice notice-success">Thanks for installing</div>';
+        //         // Delete the transient so we don't keep displaying the activation message
+        //         delete_transient($this->getNamespace());
+        //     }
+        // }
     }
 }

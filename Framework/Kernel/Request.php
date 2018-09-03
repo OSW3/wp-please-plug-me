@@ -64,7 +64,10 @@ if (!class_exists('Framework\Kernel\Request'))
          */
         private function setReferer()
         {
-            $this->referer = $_SERVER['HTTP_REFERER'];
+            if (isset($_SERVER['HTTP_REFERER']))
+            {
+                $this->referer = $_SERVER['HTTP_REFERER'];
+            }
 
             return $this;
         }

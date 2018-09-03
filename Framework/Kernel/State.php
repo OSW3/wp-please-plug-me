@@ -30,6 +30,7 @@ if (!class_exists('Framework\Kernel\State'))
 
 			// TODO: Initialize Text domain
 
+			set_transient( $this->getNamespace(), 1);
 
             // print_r("\n");
 			// echo "activate"; exit;
