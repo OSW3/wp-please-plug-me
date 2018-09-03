@@ -85,6 +85,12 @@ if (!class_exists('Framework\Kernel\Updater'))
 			// Define sectionswe want to update (plugin and/or framework)
 			$this->setSections();
 
+			// Define Bases of Plugins and Framework, local and Remote
+			$this->setBases();
+
+			// Define Versions of Plugins and Framework, local and Remote
+			$this->setVersions();
+
 			if ($request->isActionUpdate())
 			{
 				$this->startUpdate($request->get("section"));
@@ -92,12 +98,6 @@ if (!class_exists('Framework\Kernel\Updater'))
 				header("location: ".$request->getReferer());
 				exit;
 			}
-
-			// Define Bases of Plugins and Framework, local and Remote
-			$this->setBases();
-
-			// Define Versions of Plugins and Framework, local and Remote
-			$this->setVersions();
 
 			// define the alternative API for updating checking
 			// $this->checkUpdate( new \StdClass() );
